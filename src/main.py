@@ -1,4 +1,3 @@
-from email.charset import QP
 from random import random, randrange
 import sys
 from math import ceil, cos, floor, pi, sin, atan
