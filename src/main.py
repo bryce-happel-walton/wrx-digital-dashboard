@@ -79,7 +79,7 @@ class Label(QWidget):
 		painter.end()
 
 
-class RPMGuage(QWidget):
+class RPMGauge(QWidget):
 
 	def __init__(self, parent, min_rpm, max_rpm, redline, sections):
 		super().__init__(parent)
@@ -221,10 +221,10 @@ class MainWindow(QMainWindow):
 		self.show()
 		self.setFocus()
 
-		rpm_guage = RPMGuage(self, rpm_params["min"], rpm_params["max"], rpm_params["redline"], rpm_params["sections"])
-		rpm_guage.move(1920 - 500 - 500/4, 500/4)
-		rpm_guage.show()
-		self.rpm_guage = rpm_guage
+		rpm_gauge = RPMGauge(self, rpm_params["min"], rpm_params["max"], rpm_params["redline"], rpm_params["sections"])
+		rpm_gauge.move(1920 - 500 - 500/4, 500/4)
+		rpm_gauge.show()
+		self.rpm_gauge = rpm_gauge
 
 class Application(QApplication):
 
@@ -261,14 +261,14 @@ class Application(QApplication):
 			else:
 				self._awaken_a += a_step * 2
 
-			self.primary_container.rpm_guage.setDial(self._awaken_a)
+			self.primary_container.rpm_gauge.setDial(self._awaken_a)
 
 
 		timer.timeout.connect(dialMove)
 		timer.start(self.awaken_sequence_step_ms)
 
 	def clusterUpdate(self):
-		self.primary_container.rpm_guage.setRPM(randrange(0, 8000))
+		self.primary_container.rpm_gauge.setRPM(randrange(0, 8000))
 
 
 if __name__ == "__main__":
