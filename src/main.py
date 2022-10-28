@@ -96,7 +96,7 @@ class RPMGuage(QWidget):
 
 		frame = QFrame(self)
 		frame.setStyleSheet("background-color: black")
-		frame.resize(500, 500)
+		frame.resize(self.frameGeometry().width(), self.frameGeometry().height())
 		frame.show()
 
 		rad_range = 2 * pi - pi / 2
@@ -216,14 +216,15 @@ class MainWindow(QMainWindow):
 		super().__init__()
 
 		self.setWindowTitle("Digital Cluster")
-		self.setFixedSize(screen_size[0], screen_size[1])
-		#self.showFullScreen()
+		#self.setFixedSize(screen_size[0], screen_size[1])
+		self.showFullScreen()
 		self.show()
 		self.setFocus()
 
-		self.rpm_guage = RPMGuage(self, rpm_params["min"], rpm_params["max"], rpm_params["redline"], rpm_params["sections"])
-		self.rpm_guage.show()
-
+		rpm_guage = RPMGuage(self, rpm_params["min"], rpm_params["max"], rpm_params["redline"], rpm_params["sections"])
+		rpm_guage.move(1920 - 500 - 500/4, 500/4)
+		rpm_guage.show()
+		self.rpm_guage = rpm_guage
 
 class Application(QApplication):
 
