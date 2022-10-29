@@ -1,9 +1,10 @@
+from email.mime import application
 from random import random, randrange
 import sys
 from math import ceil, cos, floor, pi, sin, atan
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QFrame, QWidget
 from PySide6.QtGui import QCursor, QPainter, QFont
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal, Slot
 
 screen_size = [1920, 720]
 rpm_params = {
@@ -12,7 +13,12 @@ rpm_params = {
 	"redline": 6700,
 	"sections": 14
 }
-
+speed_params = {
+	"min": 0,
+	"max": 180,
+	"units": 1, # 1: mph, 2: kph
+	"sections": 4
+}
 
 def clamp(low, n, high):
 	return min(max(n, low), high)
@@ -79,7 +85,7 @@ class Label(QWidget):
 		painter.end()
 
 
-class RPMGauge(QWidget):
+class Tachometer(QWidget):
 
 	def __init__(self, parent, min_rpm, max_rpm, redline, sections):
 		super().__init__(parent)
@@ -210,6 +216,134 @@ class RPMGauge(QWidget):
 		self.rpm_label.setText(f"{self.rpm:.0f}")
 
 
+class Speedometer(QWidget):
+
+	def __init__(self, parent, min_speed, max_speed, sections, units=1):
+		super().__init__(parent)
+
+		self.speed = 0
+		self.min_speed = floor(min_speed)
+		self.max_speed = ceil(max_speed)
+		self.units = 1
+
+		visual_min_speed = floor(min_speed / 10)
+		visual_max_speed = ceil(max_speed / 10)
+
+		self.resize(500, 500)
+
+		frame = QFrame(self)
+		frame.setStyleSheet("background-color: black")
+		frame.resize(self.frameGeometry().width(), self.frameGeometry().height())
+		frame.show()
+
+		rad_range = 2 * pi - pi / 2
+		rad_offset = pi / 2 + (2 * pi - rad_range) / 2
+		rad_step = rad_range / visual_max_speed
+		rad_section_step = rad_step / sections
+
+		buffer_radius = 20
+		num_radius = 55
+		section_radius = 20
+		minor_section_rad_offset = 3
+		middle_section_rad_offset = 50
+		major_section_rad_offset = 44
+		dial_inner_rad = 60
+
+		num_x_radius = frame.frameGeometry().width() / 2 - buffer_radius - num_radius
+		num_y_radius = frame.frameGeometry().height() / 2 - buffer_radius - num_radius
+
+		section_x_radius = frame.frameGeometry().width() / 2 - buffer_radius - section_radius
+		section_y_radius = frame.frameGeometry().height() / 2 - buffer_radius - section_radius
+
+		x_rad_offset = frame.frameGeometry().width() / 2
+		y_rad_offset = frame.frameGeometry().height() / 2
+
+
+		color = "white"
+		label_font = QFont("Sans-serif", 14)
+
+		rpm_label = QLabel(f"{self.speed}", frame)
+		rpm_label.resize(200, 50)
+		rpm_label.move(x_rad_offset - 200/2, y_rad_offset - 50/2)
+		rpm_label.setStyleSheet("color: white")
+		rpm_label.setAlignment(Qt.AlignHCenter| Qt.AlignVCenter)
+		rpm_label.setFont(label_font)
+		rpm_label.show()
+		self.speed_label = rpm_label
+
+		rpm_dial = Line(frame,
+						(
+							cos(0 * rad_step + rad_offset) * section_x_radius + x_rad_offset,
+							sin(0 * rad_step + rad_offset) * section_y_radius + y_rad_offset,
+							cos(0 * rad_step + rad_offset) * dial_inner_rad + x_rad_offset,
+							sin(0 * rad_step + rad_offset) * dial_inner_rad + y_rad_offset
+						),
+						(0, 0),
+						0,
+						color
+					)
+
+		rpm_dial.show()
+
+		for i in range(visual_min_speed, visual_max_speed + 1):
+			label = Label(frame, f"{i * 10}",
+					(
+						cos(i * rad_step + rad_offset) * num_x_radius + x_rad_offset - 16,
+						sin(i * rad_step + rad_offset) * num_y_radius + y_rad_offset + 3
+					),
+					0,
+					color,
+					font=label_font
+				)
+			label.show()
+
+			for z in range(0, sections):
+				x_radius = section_x_radius
+				y_radius = section_y_radius
+				x_inner_radius = x_radius
+				y_inner_radius = y_radius
+
+				if z == 0:
+					x_inner_radius -= num_radius - major_section_rad_offset
+					y_inner_radius -= num_radius - major_section_rad_offset
+				elif (sections % 2 == 0) and (z == sections/2):
+					x_inner_radius -= num_radius - middle_section_rad_offset
+					y_inner_radius -= num_radius - middle_section_rad_offset
+				else:
+					x_inner_radius -= minor_section_rad_offset
+					y_inner_radius -= minor_section_rad_offset
+
+				x_inner_radius = min(x_inner_radius, x_radius - minor_section_rad_offset)
+				y_inner_radius = min(y_inner_radius, y_radius - minor_section_rad_offset)
+
+				line = Line(frame,
+								(
+									cos(i * rad_step + rad_offset + z * rad_section_step) * x_radius + x_rad_offset,
+									sin(i * rad_step + rad_offset + z * rad_section_step) * y_radius + y_rad_offset,
+									cos(i * rad_step + rad_offset + z * rad_section_step) * x_inner_radius + x_rad_offset,
+									sin(i * rad_step + rad_offset + z * rad_section_step) * y_inner_radius + y_rad_offset
+								),
+								(0, 0), 0, color)
+
+				line.show()
+
+				if i == visual_max_speed:
+					break
+
+				label.show()
+
+	def setDial(self, alpha):
+		alpha = clamp(0, alpha, 1)
+		self.setSpeed(alpha * (self.max_speed - self.min_speed))
+
+	def setSpeed(self, value):
+		self.speed = value
+		self.updateSpeed()
+
+	def updateSpeed(self):
+		self.speed_label.setText(f"{self.speed:.0f}")
+
+
 class MainWindow(QMainWindow):
 
 	def __init__(self):
@@ -217,16 +351,20 @@ class MainWindow(QMainWindow):
 
 		self.setWindowTitle("Digital Cluster")
 		#self.setFixedSize(screen_size[0], screen_size[1])
-		self.showFullScreen()
-		self.show()
-		self.setFocus()
 
-		rpm_gauge = RPMGauge(self, rpm_params["min"], rpm_params["max"], rpm_params["redline"], rpm_params["sections"])
-		rpm_gauge.move(1920 - 500 - 500/4, 500/4)
+		rpm_gauge = Tachometer(self, rpm_params["min"], rpm_params["max"], rpm_params["redline"], rpm_params["sections"])
+		rpm_gauge.move(0 + 500/4 + 500/6, 500/4)
 		rpm_gauge.show()
 		self.rpm_gauge = rpm_gauge
 
+		speed_gauge = Speedometer(self, speed_params["min"], speed_params["max"], speed_params["sections"], speed_params["units"])
+		speed_gauge.move(1920 - 500 - 500/4 - 500/6, 500/4)
+		speed_gauge.show()
+		self.speed_gauge = speed_gauge
+
 class Application(QApplication):
+
+	awakened = Signal()
 
 	def __init__(self):
 		super().__init__([])
@@ -245,6 +383,12 @@ class Application(QApplication):
 
 		self.awaken_cluster()
 
+		self.awakened.connect(self.init)
+
+	@Slot()
+	def init(self):
+		print("init")
+
 	def awaken_cluster(self):
 		timer = QTimer()
 
@@ -256,6 +400,7 @@ class Application(QApplication):
 			self._awaken_t += self.awaken_sequence_step_ms
 			if self._awaken_t >= self.awaken_sequence_duration_ms:
 				timer.stop()
+				self.awakened.emit()
 			elif self._awaken_t >= self.awaken_sequence_duration_ms / 2:
 				self._awaken_a -= a_step * 2
 			else:
@@ -273,4 +418,14 @@ class Application(QApplication):
 
 if __name__ == "__main__":
 	app = Application()
+
+	screens = app.screens()
+	if len(screens) > 0:
+		screen = screens[1]
+		app.primary_container.setScreen(screen)
+		app.primary_container.move(screen.geometry().topLeft())
+
+	app.primary_container.showFullScreen()
+	app.primary_container.show()
+	app.primary_container.setFocus()
 	sys.exit(app.exec())
