@@ -25,15 +25,6 @@ def clamp(low, n, high):
     return min(max(n, low), high)
 
 
-def rotate(origin, point, angle):
-    ox, oy = origin
-    px, py = point
-
-    qx = ox + cos(angle) * (px - ox) - sin(angle) * (py - oy)
-    qy = oy + sin(angle) * (px - ox) + cos(angle) * (py - oy)
-    return qx, qy
-
-
 class Line(QWidget):
 
     def __init__(self, parent, rect, translation, rotation, color):
