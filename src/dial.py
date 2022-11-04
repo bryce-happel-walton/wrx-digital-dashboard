@@ -58,7 +58,8 @@ class Dial(QWidget):
                  major_section_rad_offset=40,
                  dial_mask_rad=290,
                  dial_inner_border_rad=4,
-                 angle_offset=0):
+                 angle_range=2 * pi - pi / 2,
+                 angle_offset=pi - pi / 4):
         super().__init__(parent)
 
         visual_min_unit = floor(min_unit / visual_num_gap)
@@ -69,6 +70,7 @@ class Dial(QWidget):
         self.max_unit = max_unit
         self.redline = redline
         self.unit_range = max_unit - min_unit
+        self.denomination = denomination
 
         self.dial_opacity = dial_opacity
         self.border_opacity = border_opacity
@@ -90,13 +92,15 @@ class Dial(QWidget):
         frame.show()
         self.frame = frame
 
-        rad_range = 2 * pi - pi / 2
-        rad_offset = pi / 2 + (2 * pi - rad_range) / 2 + angle_offset
-        rad_step = rad_range / visual_max_unit
+        rad_offset = angle_offset
+        rad_step = angle_range / visual_max_unit
         rad_section_step = rad_step / mid_sections
 
-        self.rad_range_a = rad_range / (2 * pi)
+        self.rad_range = angle_range
+        self.rad_range_deg = degrees(angle_range)
+        self.rad_range_a = angle_range / (2 * pi)
         self.dial_offset_angle = rad_offset
+        self.dial_offset_angle_deg = degrees(rad_offset)
 
         dial_inner_border_rad = dial_mask_rad + dial_inner_border_rad
 
@@ -219,7 +223,7 @@ class Dial(QWidget):
 
     def setDial(self, alpha):
         alpha = clamp(0, alpha, 1)
-        self.setRPM(ceil(alpha * (self.max_unit - self.min_unit)))
+        self.setRPM(ceil(alpha * self.unit_range))
 
     def setRPM(self, value):
         self.unit = value
@@ -228,10 +232,9 @@ class Dial(QWidget):
     def updateRPM(self):
         current_unit = self.unit
 
-        offset_deg = degrees(self.dial_offset_angle)
-
-        angle_step = offset_deg / self.max_unit
-        angle2 = offset_deg + 90 - current_unit * angle_step * 2
+        angle_step = self.rad_range_deg / self.unit_range
+        angle = -self.dial_offset_angle_deg
+        angle2 = angle - current_unit * angle_step
 
         color = self.dial_color
         color2 = self.dial_top_color
@@ -247,13 +250,8 @@ class Dial(QWidget):
         else:
             unit_alpha = self.max_unit
 
-        stop_1 = max(unit_alpha - 0.001, 0)
-        stop_2 = unit_alpha
-        angle = offset_deg + 90
-
-        if unit_alpha == 1:
-            stop_1 = 1 - 0.001
-            stop_2 = 1
+        stop_1 = clamp(0, unit_alpha - 0.001, 0.999)
+        stop_2 = min(unit_alpha, 1)
 
         self.unit_dial.setStyleSheet(
             f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color});"
@@ -264,5 +262,5 @@ class Dial(QWidget):
         )
 
         self.unit_dial_top.setStyleSheet(
-            f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle2}, stop:0.995 rgba(255, 255, 255, 0%), stop:1 {color2});"
+            f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle2}, stop:0.997 rgba(255, 255, 255, 0%), stop:1 {color2});"
         )

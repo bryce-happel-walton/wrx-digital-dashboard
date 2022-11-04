@@ -2,6 +2,7 @@
 # Bryce Happel Walton
 
 import sys
+from math import pi
 from random import random
 from time import time
 
@@ -24,16 +25,14 @@ speed_params = {"min": 0, "max": 180, "units": "MPH", "mid_sections": 10}
 cluster_size = 600
 
 
-def clamp(low, n, high):
-    return min(max(n, low), high)
-
-
 class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Digital Cluster")
+
+        font_group = "Yu Gothic UI"
 
         rpm_gauge = Dial(self,
                          size=cluster_size,
@@ -43,9 +42,13 @@ class MainWindow(QMainWindow):
                          mid_sections=rpm_params["mid_sections"],
                          denomination=rpm_params["denomination"],
                          visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont("Sans-serif", 20))
+                         label_font=QFont(f"{font_group}", 22, 600),
+                         angle_offset=pi,
+                         angle_range=2 * pi - pi / 2)
+
         rpm_gauge.move(0 + cluster_size / 4,
                        screen_size[1] / 2 - cluster_size / 2)
+
         rpm_gauge.show()
         self.tachometer = rpm_gauge
 
@@ -57,7 +60,10 @@ class MainWindow(QMainWindow):
                            mid_sections=speed_params["mid_sections"],
                            units=speed_params["units"],
                            visual_num_gap=20,
-                           label_font=QFont("Sans-serif", 18))
+                           label_font=QFont(f"{font_group}", 17, 600),
+                           angle_offset=pi,
+                           angle_range=2 * pi - pi / 2)
+
         speed_gauge.move(1920 - cluster_size - cluster_size / 4,
                          screen_size[1] / 2 - cluster_size / 2)
         speed_gauge.show()
