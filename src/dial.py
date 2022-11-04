@@ -71,7 +71,7 @@ class Dial(QWidget):
         self.redline = redline
         self.unit_range = max_unit - min_unit
         self.denomination = denomination
-
+        self.label_font = label_font
         self.dial_opacity = dial_opacity
         self.border_opacity = border_opacity
 
@@ -79,8 +79,6 @@ class Dial(QWidget):
         self.dial_top_color = f"rgba({default_color[0]}, {default_color[1]}, {default_color[2]}, {self.border_opacity})"
         self.dial_redline_color = f"rgba({redline_color[0]}, {redline_color[1]}, {redline_color[2]}, {self.dial_opacity})"
         self.dial_top_redline_color = f"rgba({redline_color[0]}, {redline_color[1]}, {redline_color[2]}, {self.border_opacity})"
-
-        self.label_font = label_font
 
         self.resize(size, size)
 
@@ -90,7 +88,6 @@ class Dial(QWidget):
         )
         frame.resize(self.geometry().size())
         frame.show()
-        self.frame = frame
 
         rad_offset = angle_offset
         rad_step = angle_range / visual_max_unit
@@ -102,7 +99,7 @@ class Dial(QWidget):
         self.dial_offset_angle = rad_offset
         self.dial_offset_angle_deg = degrees(rad_offset)
 
-        dial_inner_border_rad = dial_mask_rad + dial_inner_border_rad
+        dial_inner_border_rad += dial_mask_rad
 
         num_x_radius = frame.frameGeometry().width(
         ) / 2 - buffer_radius - num_radius
@@ -154,18 +151,23 @@ class Dial(QWidget):
         self.unit_dial_inner_border = unit_dial_inner_border
         self.unit_dial = unit_dial
         self.unit_dial_top = unit_dial_top
+        self.frame = frame
 
         self.dial_corner_radius = int(self.unit_dial.geometry().width() / 2)
         self.unit_dial_inner_border_radius = int(
             self.unit_dial_inner_border.geometry().width() / 2)
 
         color = QColor(*default_color)
-        readline_drawn = False
-
         palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, color)
 
         for i in range(visual_min_unit, visual_max_unit + 1):
+            if i >= redline / visual_num_gap:
+                color = QColor(*redline_color)
+            else:
+                color = QColor(*default_color)
+
+            palette.setColor(QPalette.ColorRole.WindowText, color)
+
             label = QLabel(f"{int(i * visual_num_gap / denomination)}", frame)
             label.setStyleSheet("background:transparent")
             label.setPalette(palette)
@@ -176,9 +178,12 @@ class Dial(QWidget):
                 label.geometry().width() / 2,
                 sin(i * rad_step + rad_offset) * num_y_radius + y_rad_offset -
                 label.geometry().height() / 2)
+            label.show()
 
+            for z in range(mid_sections):
+                if i + (z) / mid_sections >= redline / visual_num_gap:
+                    color = QColor(*redline_color)
 
-            for z in range(0, mid_sections):
                 x_radius = x_inner_radius = section_x_radius
                 y_radius = y_inner_radius = section_y_radius
 
@@ -212,14 +217,6 @@ class Dial(QWidget):
 
                 if i == visual_max_unit:
                     break
-
-                if not readline_drawn and (
-                        i + (z + 1) / mid_sections) >= redline / denomination:
-                    readline_drawn = True
-                    color = QColor(*redline_color)
-                    palette.setColor(QPalette.ColorRole.WindowText, color)
-
-                label.show()
 
     def setDial(self, alpha):
         alpha = clamp(0, alpha, 1)
