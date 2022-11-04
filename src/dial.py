@@ -125,10 +125,17 @@ class Dial(QWidget):
 
         unit_dial_top = QFrame(frame)
         unit_dial_top.resize(unit_dial.frameGeometry().size())
+        unit_dial_top.show()
         unit_dial_top.move(
             x_rad_offset - unit_dial_top.frameGeometry().width() / 2,
             y_rad_offset - unit_dial_top.frameGeometry().height() / 2)
-        unit_dial_top.show()
+
+        unit_dial_bottom = QFrame(frame)
+        unit_dial_bottom.resize(unit_dial.frameGeometry().size())
+        unit_dial_bottom.move(
+            x_rad_offset - unit_dial_bottom.frameGeometry().width() / 2,
+            y_rad_offset - unit_dial_bottom.frameGeometry().height() / 2)
+        unit_dial_bottom.show()
 
         unit_dial_inner_border = QFrame(frame)
         unit_dial_inner_border.resize(dial_inner_border_rad,
@@ -151,6 +158,7 @@ class Dial(QWidget):
         self.unit_dial_inner_border = unit_dial_inner_border
         self.unit_dial = unit_dial
         self.unit_dial_top = unit_dial_top
+        self.unit_dial_bottom = unit_dial_bottom
         self.frame = frame
 
         self.dial_corner_radius = int(self.unit_dial.geometry().width() / 2)
@@ -260,4 +268,8 @@ class Dial(QWidget):
 
         self.unit_dial_top.setStyleSheet(
             f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle2}, stop:0.997 rgba(255, 255, 255, 0%), stop:1 {color2});"
+        )
+
+        self.unit_dial_bottom.setStyleSheet(
+            f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle + 0.5}, stop:0.996 rgba(255, 255, 255, 0%), stop:1 {color2});"
         )

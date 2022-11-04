@@ -17,7 +17,7 @@ rpm_params = {
     "min": 0,
     "max": 8000,
     "redline": 6700,
-    "mid_sections": 14,
+    "mid_sections": 10,
     "denomination": 1000
 }
 speed_params = {"min": 0, "max": 180, "units": "MPH", "mid_sections": 10}
@@ -32,7 +32,9 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Digital Cluster")
 
-        font_group = "Yu Gothic UI"
+        font_group = "Sans Serif Collection"
+        font_weight = 600
+        big_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
 
         rpm_gauge = Dial(self,
                          size=cluster_size,
@@ -42,9 +44,9 @@ class MainWindow(QMainWindow):
                          mid_sections=rpm_params["mid_sections"],
                          denomination=rpm_params["denomination"],
                          visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont(f"{font_group}", 22, 600),
+                         label_font=QFont(f"{font_group}", 21, font_weight),
                          angle_offset=pi,
-                         angle_range=2 * pi - pi / 2)
+                         angle_range=big_dial_angle_range)
 
         rpm_gauge.move(0 + cluster_size / 4,
                        screen_size[1] / 2 - cluster_size / 2)
@@ -60,9 +62,9 @@ class MainWindow(QMainWindow):
                            mid_sections=speed_params["mid_sections"],
                            units=speed_params["units"],
                            visual_num_gap=20,
-                           label_font=QFont(f"{font_group}", 17, 600),
+                           label_font=QFont(f"{font_group}", 18, font_weight),
                            angle_offset=pi,
-                           angle_range=2 * pi - pi / 2)
+                           angle_range=big_dial_angle_range)
 
         speed_gauge.move(1920 - cluster_size - cluster_size / 4,
                          screen_size[1] / 2 - cluster_size / 2)
