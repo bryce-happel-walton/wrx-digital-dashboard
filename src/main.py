@@ -7,7 +7,7 @@ from math import pi
 from random import random
 from time import time
 
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QCursor, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
@@ -97,27 +97,43 @@ class Application(QApplication):
         self.primary_container.tachometer.setDial(1)
         self.primary_container.speedometer.setDial(1)
 
-        timer = QTimer()
-
+        timer = QTimer(self)
         start = time()
 
+        self._rpm = 0
+        self._speed = 0
+
         def clusterHeck():
-            if time() - start > 5:
+            if time() - start > 20:
                 timer.stop()
                 timer.deleteLater()
-            self.clusterUpdate()
+
+            self._rpm += 75
+            if self._rpm >= rpm_params["max"]:
+                self._rpm = 200
+
+            self._speed += 2
+            if self._speed >= speed_params["max"]:
+                self._speed = 0
+
+            self.primary_container.tachometer.setDial(self._rpm/rpm_params["max"])
+            self.primary_container.speedometer.setDial(self._speed /
+                                                       speed_params["max"])
 
         timer.timeout.connect(clusterHeck)
-        timer.start(100)
+        timer.start(75/60)
 
     def awaken_clusters(self):
-        timer = QTimer()
+        timer = QTimer(self)
 
         self._awaken_a = 0
         self._awaken_t = 0
 
         t_step = self.awaken_sequence_duration_ms / self.awaken_sequence_steps
         a_step = t_step / self.awaken_sequence_duration_ms
+
+        self.primary_container.tachometer.setDial(0)
+        self.primary_container.speedometer.setDial(0)
 
         self._last_time = time() * 1000
         start_time = self._last_time
@@ -139,8 +155,8 @@ class Application(QApplication):
                 else:
                     self._awaken_a += step
 
-                self.primary_container.tachometer.setDial(self._awaken_a)
-                self.primary_container.speedometer.setDial(self._awaken_a)
+            self.primary_container.tachometer.setDial(self._awaken_a)
+            self.primary_container.speedometer.setDial(self._awaken_a)
 
             self._last_time = time() * 1000
 
@@ -161,7 +177,6 @@ if __name__ == "__main__":
     if system != "Linux":
         if len(screens) > 1:
             screen = screens[1]
-            #app.primary_container.setScreen(screen)
             app.primary_container.move(screen.geometry().topLeft())
             app.primary_container.showFullScreen()
         else:

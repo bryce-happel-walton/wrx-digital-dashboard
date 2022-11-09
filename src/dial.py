@@ -119,8 +119,9 @@ class Dial(QWidget):
         unit_dial = QFrame(frame)
         unit_dial.resize(section_x_radius + x_rad_offset - section_radius * 2,
                          section_y_radius + y_rad_offset - section_radius * 2)
-        unit_dial.move(int(x_rad_offset - unit_dial.frameGeometry().width() / 2),
-                       int(y_rad_offset - unit_dial.frameGeometry().height() / 2))
+        unit_dial.move(
+            int(x_rad_offset - unit_dial.frameGeometry().width() / 2),
+            int(y_rad_offset - unit_dial.frameGeometry().height() / 2))
         unit_dial.show()
 
         unit_dial_top = QFrame(frame)
@@ -141,8 +142,10 @@ class Dial(QWidget):
         unit_dial_inner_border.resize(dial_inner_border_rad,
                                       dial_inner_border_rad)
         unit_dial_inner_border.move(
-            int(x_rad_offset - unit_dial_inner_border.frameGeometry().width() / 2),
-            int(y_rad_offset - unit_dial_inner_border.frameGeometry().height() / 2))
+            int(x_rad_offset -
+                unit_dial_inner_border.frameGeometry().width() / 2),
+            int(y_rad_offset -
+                unit_dial_inner_border.frameGeometry().height() / 2))
         unit_dial_inner_border.show()
 
         unit_dial_mask = QFrame(frame)
