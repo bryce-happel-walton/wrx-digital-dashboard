@@ -1,6 +1,7 @@
 # formatted with yapf
 # Bryce Happel Walton
 
+import platform
 import sys
 from math import pi
 from random import random
@@ -153,15 +154,22 @@ class Application(QApplication):
 
 if __name__ == "__main__":
     app = Application()
-
     screens = app.screens()
-    # If I have the dashboard display connected to my PC then this will automatically switch for me
-    if len(screens) > 1:
-        screen = screens[1]
-        app.primary_container.setScreen(screen)
+
+    system = platform.system()
+
+    if system != "Linux":
+        if len(screens) > 1:
+            screen = screens[1]
+            #app.primary_container.setScreen(screen)
+            app.primary_container.move(screen.geometry().topLeft())
+            app.primary_container.showFullScreen()
+        else:
+            app.primary_container.setFixedSize(screen_size[0], screen_size[1])
+    else:
+        screen = screens[0]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
-    else:
         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
 
     app.primary_container.show()
