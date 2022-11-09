@@ -6,11 +6,10 @@ from math import pi
 from random import random
 from time import time
 
+from dial import Dial
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow
-
-from dial import Dial
 
 screen_size = [1920, 720]
 rpm_params = {
