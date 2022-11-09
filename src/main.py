@@ -6,9 +6,9 @@ from math import pi
 from random import random
 from time import time
 
-from PySide6.QtCore import Qt, QTimer, Signal, Slot
-from PySide6.QtGui import QCursor, QFont
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtGui import QCursor, QFont
+from PyQt5.QtWidgets import QApplication, QMainWindow
 
 from dial import Dial
 
@@ -48,8 +48,8 @@ class MainWindow(QMainWindow):
                          angle_offset=pi,
                          angle_range=big_dial_angle_range)
 
-        rpm_gauge.move(0 + cluster_size / 4,
-                       screen_size[1] / 2 - cluster_size / 2)
+        rpm_gauge.move(int(0 + cluster_size / 4),
+                       int(screen_size[1] / 2 - cluster_size / 2))
 
         rpm_gauge.show()
         self.tachometer = rpm_gauge
@@ -66,8 +66,8 @@ class MainWindow(QMainWindow):
                            angle_offset=pi,
                            angle_range=big_dial_angle_range)
 
-        speed_gauge.move(1920 - cluster_size - cluster_size / 4,
-                         screen_size[1] / 2 - cluster_size / 2)
+        speed_gauge.move(int(1920 - cluster_size - cluster_size / 4),
+                         int(screen_size[1] / 2 - cluster_size / 2))
         speed_gauge.show()
 
         self.speedometer = speed_gauge
@@ -75,8 +75,8 @@ class MainWindow(QMainWindow):
 
 class Application(QApplication):
 
-    awakened = Signal()
-    started = Signal()
+    awakened = pyqtSignal()
+    started = pyqtSignal()
 
     def __init__(self):
         super().__init__([])
@@ -92,7 +92,6 @@ class Application(QApplication):
         self.awaken_clusters()
         self.awakened.connect(self.start)
 
-    @Slot()
     def start(self):
         self.primary_container.tachometer.setDial(1)
         self.primary_container.speedometer.setDial(1)
@@ -145,9 +144,8 @@ class Application(QApplication):
             self._last_time = time() * 1000
 
         timer.timeout.connect(dialMove)
-        timer.start(t_step)
+        timer.start(int(t_step))
 
-    @Slot()
     def clusterUpdate(self):
         self.primary_container.tachometer.setDial(random())
         self.primary_container.speedometer.setDial(random())
