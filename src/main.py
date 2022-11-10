@@ -2,6 +2,7 @@
 # Bryce Happel Walton
 
 import platform
+import subprocess
 import sys
 from math import pi
 from random import random
@@ -11,6 +12,7 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QCursor, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
+import can_handle
 from dial import Dial
 
 screen_size = [1920, 720]
@@ -182,10 +184,20 @@ if __name__ == "__main__":
         else:
             app.primary_container.setFixedSize(screen_size[0], screen_size[1])
     else:
+        # Raspberry Pi (hopefully)
         screen = screens[0]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
+
+        try:
+            setup_can = subprocess.run("sudo /sbin/ip link set can0 up type can bitrate 500000", check=True)
+        except:
+            print("Could not find PiCan device! Quitting.")
+            del app
+            exit()
+
+        can_app = can_handle.CanApplication()
 
     app.primary_container.show()
     app.primary_container.setFocus()
