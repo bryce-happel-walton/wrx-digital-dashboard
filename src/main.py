@@ -8,9 +8,9 @@ from math import pi
 from random import random
 from time import time
 
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QCursor, QFont
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtGui import QCursor, QFont, QPixmap
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 
 import can_handle
 from dial import Dial
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
                          angle_offset=pi,
                          angle_range=big_dial_angle_range)
 
-        rpm_gauge.move(int(0 + cluster_size / 4),
+        rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
 
         rpm_gauge.show()
@@ -69,9 +69,17 @@ class MainWindow(QMainWindow):
                            angle_offset=pi,
                            angle_range=big_dial_angle_range)
 
-        speed_gauge.move(int(1920 - cluster_size - cluster_size / 4),
+        speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
         speed_gauge.show()
+
+        arrow_image = QPixmap("resources/turn-signal-arrow.png")
+        label = QLabel(self)
+        label.setPixmap(arrow_image)
+        label.resize(arrow_image.width(), arrow_image.height())
+        label.move(int(cluster_size / 4 + cluster_size), 10)
+        label.show()
+
 
         self.speedometer = speed_gauge
 
@@ -171,10 +179,16 @@ class Application(QApplication):
 
 
 if __name__ == "__main__":
+    system = platform.system()
+
+
+    if system == "Darwin":
+        shrink_rate = 1
+        screen_size = [1920/shrink_rate, 720/shrink_rate]
+        cluster_size /= shrink_rate
+
     app = Application()
     screens = app.screens()
-
-    system = platform.system()
 
     if system != "Linux":
         if len(screens) > 1:
