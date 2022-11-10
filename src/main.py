@@ -199,6 +199,10 @@ if __name__ == "__main__":
             exit()
 
         can_app = can_handle.CanApplication()
+        can_app.printout()
+
+        del app
+        exit()
 
     app.primary_container.show()
     app.primary_container.setFocus()
