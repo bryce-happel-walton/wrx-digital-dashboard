@@ -23,7 +23,7 @@ class CanApplication():
     def get_data(self):
         message = self.bus.recv()
 
-        print(message.arbitration_id, message.channel)
+        return message
 
 
 if __name__ == "__main__":

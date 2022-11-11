@@ -214,8 +214,10 @@ if __name__ == "__main__":
 
         can_app = CanApplication()
         while True:
-            can_app.get_data()
-            sleep(500)
+            data = can_app.get_data()
+
+            if data:
+                print(data.data)
 
         del app
         exit()
