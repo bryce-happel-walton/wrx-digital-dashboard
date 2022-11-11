@@ -6,13 +6,13 @@ import subprocess
 import sys
 from math import pi
 from random import random
-from time import time
+from time import sleep, time
 
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QFont, QPixmap
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 
-import can_handle
+from can_handle import CanApplication
 from dial import Dial
 
 screen_size = [1920, 720]
@@ -212,8 +212,10 @@ if __name__ == "__main__":
             del app
             exit()
 
-        can_app = can_handle.CanApplication()
-        can_app.printout()
+        can_app = CanApplication()
+        while True:
+            can_app.get_data()
+            sleep(500)
 
         del app
         exit()

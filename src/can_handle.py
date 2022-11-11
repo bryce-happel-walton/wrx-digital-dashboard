@@ -1,6 +1,18 @@
 import can
 
 
+can_ids = {
+    'left_sw_stock': 0x152,
+    'throttle_pedal': 0x140,
+    'vehicle_speed': 0x0D1,
+    'wheel_speeds': 0x0D4,
+    'door_states': 0x375,
+    'steering_wheel_position': 0x002,
+    'climate_control': 0x281,
+    'rpm': 0x141
+}
+
+
 class CanApplication():
 
     def __init__(self):
@@ -8,8 +20,10 @@ class CanApplication():
                                      bustype='socketcan',
                                      bitrate=500000)
 
-    def printout(self):
-        can.Notifier(self.bus, [can.Printer()])
+    def get_data(self):
+        message = self.bus.recv()
+
+        print(message.arbitration_id, message.channel)
 
 
 if __name__ == "__main__":
@@ -18,8 +32,11 @@ if __name__ == "__main__":
     try:
         shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
         setup_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"], check=True)
+        CanApplication()
     except:
         print("Could not find PiCan device! Quitting.")
+        exit()
 
-    can_app = CanApplication()
-    can_app.printout()
+
+
+
