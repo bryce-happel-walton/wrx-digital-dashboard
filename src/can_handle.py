@@ -20,15 +20,13 @@ class CanApplication():
                                      bitrate=500000)
 
     def get_data(self):
-        message = self.bus.recv(1)
-
-        return message
+        return self.bus.recv(1)
 
     def parse_data(self, msg: can.Message):
         id = msg.arbitration_id
         data = msg.data
 
-        if id == can_ids["rpm"]:
+        if id == can_ids["rpm"] and len(data) > 6:
             b4 = f"{data[4]:08b}"
             b5 = f"{data[5]:08b}"[-4:]
             rpm = int(b5+b4, base=2)
