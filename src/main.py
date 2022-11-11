@@ -101,39 +101,8 @@ class Application(QApplication):
         self.primary_container = primary_container
 
         self.awaken_clusters()
-        self.awakened.connect(self.start)
 
         self.cluster_vars = {"rpm": 0, "speed": 0}
-
-    def start(self):
-        self.primary_container.tachometer.setDial(1)
-        self.primary_container.speedometer.setDial(1)
-
-        timer = QTimer(self)
-        start = time()
-
-        self._rpm = 0
-        self._speed = 0
-
-        def clusterHeck():
-            if time() - start > 20:
-                timer.stop()
-                timer.deleteLater()
-
-            self._rpm += 75
-            if self._rpm >= rpm_params["max"]:
-                self._rpm = 200
-
-            self._speed += 2
-            if self._speed >= speed_params["max"]:
-                self._speed = 0
-
-            self.primary_container.tachometer.setDial(self._rpm/rpm_params["max"])
-            self.primary_container.speedometer.setDial(self._speed /
-                                                       speed_params["max"])
-
-        timer.timeout.connect(clusterHeck)
-        timer.start(75/60)
 
     def awaken_clusters(self):
         timer = QTimer(self)
@@ -215,6 +184,19 @@ if __name__ == "__main__":
             can_app = CanApplication()
 
             can_app.updated.connect(app.updateVar)
+
+            def read_can():
+                msg = can_app.get_data()
+
+                if msg is not None:
+                    can_app.parse_data(msg)
+
+            def run():
+                timer = QTimer(app)
+                timer.timeout.connect(read_can)
+                timer.start(0.1)
+
+            app.awakened.connect(run)
         except:
             print("Could not find PiCan device! Quitting.")
             del app

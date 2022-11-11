@@ -1,5 +1,4 @@
 import can
-
 from PyQt5.QtCore import pyqtSignal
 
 can_ids = {
