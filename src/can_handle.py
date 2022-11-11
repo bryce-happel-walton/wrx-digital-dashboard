@@ -27,7 +27,8 @@ class CanApplication():
 
 
 def testListener(msg: can.Message):
-    print(msg.data[0])
+    if msg.arbitration_id == can_ids["rpm"]:
+        print(msg.data)
 
 
 if __name__ == "__main__":
