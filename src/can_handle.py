@@ -15,7 +15,8 @@ can_ids = {
 
 class event():
 
-    connections = []
+    def __init__(self):
+        self.connections = []
 
     def connect(self, func):
         self.connections.append[func]
