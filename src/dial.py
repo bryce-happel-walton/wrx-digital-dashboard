@@ -235,9 +235,9 @@ class Dial(QWidget):
 
     def setUnit(self, value):
         self.unit = value
-        self.updateRPM()
+        self.updateUnit()
 
-    def updateRPM(self):
+    def updateUnit(self):
         current_unit = self.unit
 
         angle_step = self.rad_range_deg / self.unit_range
@@ -261,9 +261,9 @@ class Dial(QWidget):
         stop_1 = clamp(0, unit_alpha - 0.001, 0.999)
         stop_2 = min(unit_alpha, 1)
 
-        self.unit_dial.setStyleSheet(
-            f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color});"
-        )
+        # self.unit_dial.setStyleSheet(
+        #     f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color});"
+        # )
 
         # self.unit_dial_inner_border.setStyleSheet(
         #     f"border-radius: {self.unit_dial_inner_border_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color2});"
