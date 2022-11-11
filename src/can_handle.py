@@ -26,7 +26,7 @@ class event():
 
     def emit(self, *args, **kwargs):
         for v in self.connections:
-            v(args, kwargs)
+            v(*args, **kwargs)
 
 
 class CanApplication():
