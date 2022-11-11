@@ -265,14 +265,14 @@ class Dial(QWidget):
             f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color});"
         )
 
-        self.unit_dial_inner_border.setStyleSheet(
-            f"border-radius: {self.unit_dial_inner_border_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color2});"
-        )
+        # self.unit_dial_inner_border.setStyleSheet(
+        #     f"border-radius: {self.unit_dial_inner_border_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle}, stop:{stop_1} rgba(255, 255, 255, 0%), stop:{stop_2} {color2});"
+        # )
 
-        self.unit_dial_top.setStyleSheet(
-            f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle2}, stop:0.997 rgba(255, 255, 255, 0%), stop:1 {color2});"
-        )
+        # self.unit_dial_top.setStyleSheet(
+        #     f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle2}, stop:0.997 rgba(255, 255, 255, 0%), stop:1 {color2});"
+        # )
 
-        self.unit_dial_bottom.setStyleSheet(
-            f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle + 0.5}, stop:0.996 rgba(255, 255, 255, 0%), stop:1 {color2});"
-        )
+        # self.unit_dial_bottom.setStyleSheet(
+        #     f"border-radius: {self.dial_corner_radius}px; background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{angle + 0.5}, stop:0.996 rgba(255, 255, 255, 0%), stop:1 {color2});"
+        # )
