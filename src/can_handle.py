@@ -29,7 +29,11 @@ class CanApplication():
         data = msg.data
 
         if id == can_ids["rpm"]:
-            print(data)
+            b4 = f"{data[4]:08b}"
+            b5 = f"{data[5]:08b}"[-4:]
+            rpm = int(b5+b4, base=2)
+
+            print(rpm)
 
 
 if __name__ == "__main__":
