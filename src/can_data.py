@@ -8,9 +8,9 @@ def rpm(data: bytearray) -> int:
     return int(b5 + b4, base=2)
 
 def vehicle_speed(data: bytearray) -> int:
-    b1 = f"{data[0]:08b}"
-    b2 = f"{data[1]:08b}"
-    return int(int(b2 + b1, base=2) * speed_mult)
+    b0 = f"{data[0]:08b}"
+    b1 = f"{data[1]:08b}"
+    return int(int(b1 + b0, base=2) * speed_mult)
 
 
 if __name__ == "__main__":
