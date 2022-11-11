@@ -19,11 +19,16 @@ class CanApplication():
         self.bus = can.interface.Bus(channel='can0',
                                      bustype='socketcan',
                                      bitrate=500000)
+        self.notifier = can.Notifier(self.bus, [self.parse_data(msg)])
 
     def get_data(self):
         message = self.bus.recv()
 
         return message
+
+    def parse_data(self, msg):
+        print(msg)
+
 
 
 def testListener(msg: can.Message):
@@ -41,10 +46,6 @@ if __name__ == "__main__":
     except:
         print("Could not find PiCan device! Quitting.")
         exit()
-
-
-    listener = can.Listener()
-    listener.on_message_received(testListener)
 
 
 
