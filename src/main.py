@@ -212,16 +212,6 @@ if __name__ == "__main__":
             del app
             exit()
 
-        can_app = CanApplication()
-        while True:
-            data = can_app.get_data()
-
-            if data:
-                print(data.data)
-
-        del app
-        exit()
-
     app.primary_container.show()
     app.primary_container.setFocus()
     sys.exit(app.exec())
