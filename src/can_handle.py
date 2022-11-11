@@ -15,11 +15,10 @@ can_ids = {
 
 class event():
 
-    def __init__(self):
-        self.connections = []
+    connections = []
 
     def connect(self, func):
-        self.connections.append[func]
+        self.connections.append(func)
         return len(self.connections)
 
     def disconnect(self, i):
