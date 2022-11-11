@@ -1,6 +1,5 @@
 import can
 
-
 can_ids = {
     'left_sw_stock': 0x152,
     'throttle_pedal': 0x140,
@@ -19,21 +18,17 @@ class CanApplication():
         self.bus = can.interface.Bus(channel='can0',
                                      bustype='socketcan',
                                      bitrate=500000)
-        listener = can.Listener(self.parse_data)
 
     def get_data(self):
-        message = self.bus.recv()
+        message = self.bus.recv(1)
 
         return message
 
-    def parse_data(self, msg):
-        print(self.bus.recv().arbitration_id)
+    def parse_data(self, msg: can.Message):
+        id = msg.arbitration_id
 
-
-
-def testListener(msg: can.Message):
-    if msg.arbitration_id == can_ids["rpm"]:
-        print(msg.data)
+        if id == can_ids["rpm"]:
+            print(f"RPM: {msg.data}")
 
 
 if __name__ == "__main__":
@@ -47,5 +42,11 @@ if __name__ == "__main__":
         print("Could not find PiCan device! Quitting.")
         exit()
 
+    can_app.bus.state = can.BusState.PASSIVE
 
+    while True:
+        msg = can_app.get_data()
+
+        if msg is not None:
+            can_app.parse_data(msg)
 
