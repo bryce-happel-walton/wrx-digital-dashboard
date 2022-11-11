@@ -182,25 +182,25 @@ if __name__ == "__main__":
             shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
             setup_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"], check=True)
             can_app = CanApplication()
-
-            can_app.updated.connect(app.updateVar)
-
-            def read_can():
-                msg = can_app.get_data()
-
-                if msg is not None:
-                    can_app.parse_data(msg)
-
-            def run():
-                timer = QTimer(app)
-                timer.timeout.connect(read_can)
-                timer.start(0.1)
-
-            app.awakened.connect(run)
         except:
             print("Could not find PiCan device! Quitting.")
             del app
             exit()
+
+        can_app.updated.connect(app.updateVar)
+
+        def read_can():
+            msg = can_app.get_data()
+
+            if msg is not None:
+                can_app.parse_data(msg)
+
+        def run():
+            timer = QTimer(app)
+            timer.timeout.connect(read_can)
+            timer.start(0.1)
+
+        app.awakened.connect(run)
 
     app.primary_container.show()
     app.primary_container.setFocus()
