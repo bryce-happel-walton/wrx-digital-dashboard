@@ -26,9 +26,12 @@ class CanApplication():
 
     def parse_data(self, msg: can.Message):
         id = msg.arbitration_id
+        data = msg.data
 
         if id == can_ids["rpm"]:
-            print(f"RPM: {msg.data}")
+            v = int.from_bytes(data[0])
+
+            print(v)
 
 
 if __name__ == "__main__":
@@ -41,8 +44,6 @@ if __name__ == "__main__":
     except:
         print("Could not find PiCan device! Quitting.")
         exit()
-
-    can_app.bus.state = can.BusState.PASSIVE
 
     while True:
         msg = can_app.get_data()
