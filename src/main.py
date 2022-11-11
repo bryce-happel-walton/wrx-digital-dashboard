@@ -102,6 +102,11 @@ class Application(QApplication):
         self.awaken_sequence_steps = 2000
         self.primary_container = primary_container
 
+        label = QLabel(self.primary_container)
+        label.setText("Test")
+        label.resize(200, 200)
+        label.show()
+
         self.awaken_clusters()
 
         self.cluster_vars = {"rpm": 0, "speed": 0}
@@ -147,8 +152,10 @@ class Application(QApplication):
         timer.start(int(t_step))
 
     def clusterUpdate(self):
-        self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
-        self.primary_container.speedometer.setUnit(self.cluster_vars["speed"])
+        #self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
+        #self.primary_container.speedometer.setUnit(self.cluster_vars["speed"])
+        rpm = self.cluster_vars["rpm"]
+        self.label.setText(f"{rpm}")
 
     def updateVar(self, var, val):
         self.cluster_vars[var] = val
