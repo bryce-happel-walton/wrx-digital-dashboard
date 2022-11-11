@@ -106,6 +106,7 @@ class Application(QApplication):
         label.setText("Test")
         label.resize(200, 200)
         label.show()
+        self.label = label
 
         self.awaken_clusters()
 
