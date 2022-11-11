@@ -17,14 +17,14 @@ class event():
 
     connections = []
 
-    def connect(self, func: function) -> int:
+    def connect(self, func):
         self.connections.append[func]
         return len(self.connections)
 
-    def disconnect(self, i: int) -> None:
+    def disconnect(self, i):
         self.connections.pop(i)
 
-    def emit(self, *args, **kwargs) -> None:
+    def emit(self, *args, **kwargs):
         for v in self.connections:
             v(args, kwargs)
 
