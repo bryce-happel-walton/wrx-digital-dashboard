@@ -145,6 +145,7 @@ class Application(QApplication):
         timer.start(int(t_step))
 
     def clusterUpdate(self):
+        print(self.cluster_vars["rpm"])
         self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
         self.primary_container.speedometer.setUnit(self.cluster_vars["speed"])
 
