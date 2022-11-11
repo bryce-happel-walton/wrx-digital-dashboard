@@ -103,6 +103,8 @@ class Application(QApplication):
         self.awaken_clusters()
         self.awakened.connect(self.start)
 
+        self.cluster_vars = {"rpm": 0, "speed": 0}
+
     def start(self):
         self.primary_container.tachometer.setDial(1)
         self.primary_container.speedometer.setDial(1)
@@ -174,8 +176,12 @@ class Application(QApplication):
         timer.start(int(t_step))
 
     def clusterUpdate(self):
-        self.primary_container.tachometer.setDial(random())
-        self.primary_container.speedometer.setDial(random())
+        self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
+        self.primary_container.speedometer.set(self.cluster_vars["speed"])
+
+    def updateVar(self, var, val):
+        self.cluster_vars[var] = val
+        self.clusterUpdate()
 
 
 if __name__ == "__main__":
@@ -198,7 +204,6 @@ if __name__ == "__main__":
         else:
             app.primary_container.setFixedSize(screen_size[0], screen_size[1])
     else:
-        # Raspberry Pi (hopefully)
         screen = screens[0]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
@@ -207,6 +212,7 @@ if __name__ == "__main__":
         try:
             shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
             setup_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"], check=True)
+            can_app = CanApplication()
         except:
             print("Could not find PiCan device! Quitting.")
             del app

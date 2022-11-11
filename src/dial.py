@@ -231,9 +231,9 @@ class Dial(QWidget):
 
     def setDial(self, alpha):
         alpha = clamp(0, alpha, 1)
-        self.setRPM(ceil(alpha * self.unit_range))
+        self.setUnit(ceil(alpha * self.unit_range))
 
-    def setRPM(self, value):
+    def setUnit(self, value):
         self.unit = value
         self.updateRPM()
 
