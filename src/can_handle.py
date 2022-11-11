@@ -13,9 +13,25 @@ can_ids = {
 }
 
 
+class event():
+
+    connections = []
+
+    def connect(self, func: function) -> int:
+        self.connections.append[func]
+        return len(self.connections)
+
+    def disconnect(self, i: int) -> None:
+        self.connections.pop(i)
+
+    def emit(self, *args, **kwargs) -> None:
+        for v in self.connections:
+            v(args, kwargs)
+
+
 class CanApplication():
 
-    updated = pyqtSignal()
+    updated = event()
 
     def __init__(self):
         self.bus = can.interface.Bus(channel='can0',
