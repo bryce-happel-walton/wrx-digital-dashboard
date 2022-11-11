@@ -26,24 +26,24 @@ class CanApplication():
         return message
 
 
+def testListener(msg: can.Message):
+    print(msg.data[0])
+
+
 if __name__ == "__main__":
     import subprocess
 
     try:
         shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
         setup_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"], check=True)
-        can = CanApplication()
+        can_app = CanApplication()
     except:
         print("Could not find PiCan device! Quitting.")
         exit()
 
 
-    while True:
-        data = can.get_data()
-
-        if data:
-            print(data.data)
-
+    listener = can.Listener()
+    listener.on_message_received(testListener)
 
 
 
