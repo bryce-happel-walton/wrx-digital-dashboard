@@ -104,7 +104,7 @@ class Application(QApplication):
 
         self.awaken_clusters()
 
-        self.cluster_vars = {"rpm": 0, "speed": 0}
+        self.cluster_vars = {"rpm": 0, "vehicle_speed": 0}
 
     def awaken_clusters(self):
         timer = QTimer(self)
@@ -148,7 +148,7 @@ class Application(QApplication):
 
     def clusterUpdate(self):
         self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
-        self.primary_container.speedometer.setUnit(self.cluster_vars["speed"])
+        self.primary_container.speedometer.setUnit(self.cluster_vars["vehicle_speed"])
 
     def updateVar(self, var, val):
         self.cluster_vars[var] = val
