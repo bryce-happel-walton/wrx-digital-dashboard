@@ -150,6 +150,7 @@ class Application(QApplication):
         self.primary_container.speedometer.setUnit(self.cluster_vars["speed"])
 
     def updateVar(self, var, val):
+        print(var, val)
         self.cluster_vars[var] = val
         self.clusterUpdate()
 
