@@ -1,5 +1,7 @@
 import can
 
+from PyQt5.QtCore import pyqtSignal
+
 can_ids = {
     'left_sw_stock': 0x152,
     'throttle_pedal': 0x140,
@@ -13,6 +15,8 @@ can_ids = {
 
 
 class CanApplication():
+
+    updated = pyqtSignal()
 
     def __init__(self):
         self.bus = can.interface.Bus(channel='can0',
@@ -31,7 +35,7 @@ class CanApplication():
             b5 = f"{data[5]:08b}"[-4:]
             rpm = int(b5+b4, base=2)
 
-            print(rpm)
+            self.updated.emit("rpm", rpm)
 
 
 if __name__ == "__main__":

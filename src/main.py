@@ -213,6 +213,8 @@ if __name__ == "__main__":
             shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
             setup_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"], check=True)
             can_app = CanApplication()
+
+            can_app.updated.connect(app.updateVar)
         except:
             print("Could not find PiCan device! Quitting.")
             del app
