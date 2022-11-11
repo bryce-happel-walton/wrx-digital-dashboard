@@ -29,7 +29,7 @@ class CanApplication():
         data = msg.data
 
         if id == can_ids["rpm"]:
-            v = int.from_bytes(data[0], 'little')
+            v = int.from_bytes(data, 'little')
 
             print(v)
 
