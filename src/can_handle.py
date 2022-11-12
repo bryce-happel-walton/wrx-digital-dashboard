@@ -32,7 +32,7 @@ class CanApplication():
     updated = event()
 
     def __init__(self) -> None:
-        bus = can.interface.Bus(channel='can0',
+        self.bus = can.interface.Bus(channel='can0',
                                 bustype='socketcan',
                                 bitrate=500000)
 
