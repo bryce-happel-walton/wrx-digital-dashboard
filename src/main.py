@@ -189,6 +189,8 @@ class Application(QApplication):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow()
+        color = (25, 25, 25)
+        primary_container.setStyleSheet(f"background-color: rgb({color[0]}, {color[1]}, {color[2]})")
 
         self.start_time = time()
         self.primary_container = primary_container
@@ -236,11 +238,11 @@ class Application(QApplication):
         timer.start(t_step)
 
     def clusterUpdate(self):
-        self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
-        self.primary_container.speedometer.setUnit(self.cluster_vars["vehicle_speed"])
+        #self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
+        #self.primary_container.speedometer.setUnit(self.cluster_vars["vehicle_speed"])
         rpm = self.cluster_vars["rpm"]
         speed = self.cluster_vars["vehicle_speed"]
-        #self.primary_container.rpm_label.setText(f"{rpm}")
+        self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
         sw_stock = self.cluster_vars["left_sw_stock"]
@@ -253,12 +255,29 @@ class Application(QApplication):
         else:
             self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
 
+    def updateRPM(self, rpm):
+        self.primary_container.rpm_label.setText(f"{rpm}")
+
+    def updateSpeed(self, speed):
+        self.primary_container.speed_label.setText(f"{speed}")
+
     def updateVar(self, var, val):
-        self.cluster_vars[var] = val
-        self.clusterUpdate()
+        if var == "rpm":
+            self.updateRPM(val)
+        elif var == "vehicle_speed":
+            self.updateSpeed(val)
+        elif var == "left_sw_stock":
+            if val["left_turn_signal"]:
+                self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
+            else:
+                self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
+            if val["right_turn_signal"]:
+                self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
+            else:
+                self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
 
 
-if __name__ == "__main__":
+def main():
     system = platform.system()
 
     if system == "Darwin":
@@ -300,7 +319,7 @@ if __name__ == "__main__":
         def run():
             timer = QTimer(app)
             timer.timeout.connect(emulate_can)
-            timer.start(0.01)
+            timer.start(0.1)
 
         app.awakened.connect(run)
     else:

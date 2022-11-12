@@ -33,15 +33,15 @@ if __name__ == "__main__":
     data = bytearray(array)
     print(vehicle_speed(data))
 
-    # # steering wheel left stock
-    # array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] # everything off
-    # data = bytearray(array)
-    # print(left_sw_stock(data))
+    # steering wheel left stock
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] # everything off
+    data = bytearray(array)
+    print(left_sw_stock(data))
 
-    # array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10] # left turn signal
-    # data = bytearray(array)
-    # print(left_sw_stock(data))
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10] # left turn signal
+    data = bytearray(array)
+    print(left_sw_stock(data))
 
-    # array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20] # right turn signal
-    # data = bytearray(array)
-    # print(left_sw_stock(data))
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20] # right turn signal
+    data = bytearray(array)
+    print(left_sw_stock(data))
