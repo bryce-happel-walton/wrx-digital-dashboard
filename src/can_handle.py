@@ -43,9 +43,12 @@ class CanApplication():
         id = msg.arbitration_id
         data = msg.data
 
-        can_str_id = get_can_index(id)
-        if can_str_id in parsers:
-            self.updated.emit(can_str_id, parsers[can_str_id](data))
+        # can_str_id = get_can_index(id)
+        # if can_str_id in parsers:
+        #     self.updated.emit(can_str_id, parsers[can_str_id](data))
+
+        if id == can_ids["rpm"]:
+            self.updated.emit("rpm", parsers["rpm"](data))
 
 
 if __name__ == "__main__":
