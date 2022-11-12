@@ -277,7 +277,7 @@ class Application(QApplication):
                 self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
 
 
-def main():
+if __name__ == "__main__":
     system = platform.system()
 
     if system == "Darwin":
