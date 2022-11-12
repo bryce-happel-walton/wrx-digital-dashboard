@@ -1,21 +1,22 @@
 class connection():
 
-    def __init__(self, event, i):
+    def __init__(self, event, func):
         self.event = event
-        self.index = i
+        self.func = func
 
     def disconnect(self):
-        self.event.connections.pop(self.index)
+        self.event.connections.pop(self.func)
+
 
 
 class event():
 
-    connections = []
+    connections = {}
 
     def connect(self, func) -> connection:
-        self.connections.append(func)
+        self.connections[func] = func
         return connection(self, len(self.connections))
 
     def emit(self, *args, **kwargs):
         for v in self.connections:
-            v(*args, **kwargs)
+            self.connections[v](*args, **kwargs)
