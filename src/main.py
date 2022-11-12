@@ -243,16 +243,15 @@ class Application(QApplication):
         self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
-        if platform.system() != "Linux":
-            sw_stock = self.cluster_vars["left_sw_stock"]
-            if sw_stock["left_turn_signal"]:
-                self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
-            else:
-                self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
-            if sw_stock["right_turn_signal"]:
-                self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
-            else:
-                self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
+        sw_stock = self.cluster_vars["left_sw_stock"]
+        if sw_stock["left_turn_signal"]:
+            self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
+        else:
+            self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
+        if sw_stock["right_turn_signal"]:
+            self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
+        else:
+            self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
 
     def updateVar(self, var, val):
         self.cluster_vars[var] = val
@@ -330,13 +329,13 @@ if __name__ == "__main__":
         def read_can():
             msg = can_app.get_data()
 
-            if msg is not None:
+            if msg:
                 can_app.parse_data(msg)
 
         def run():
             timer = QTimer(app)
             timer.timeout.connect(read_can)
-            timer.start(0.01)
+            timer.start(0.001)
 
         app.awakened.connect(run)
 

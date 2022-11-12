@@ -12,15 +12,15 @@ def vehicle_speed(data: bytearray) -> int:
     b1 = f"{data[1]:08b}"
     return int(int(b1 + b0, base=2) * speed_mult)
 
-# def left_sw_stock(data: bytearray) -> dict[str, int]:
-#     b7 = f"{data[7]:08b}"
+def left_sw_stock(data: bytearray) -> dict[str, int]:
+    b7 = f"{data[7]:08b}"
 
-#     new_data = {
-#         "left_turn_signal": int(b7[3]),
-#         "right_turn_signal": int(b7[2])
-#     }
+    new_data = {
+        "left_turn_signal": int(b7[3]),
+        "right_turn_signal": int(b7[2])
+    }
 
-#     return new_data
+    return new_data
 
 if __name__ == "__main__":
     # rpm
