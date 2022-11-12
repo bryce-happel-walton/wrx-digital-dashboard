@@ -236,11 +236,11 @@ class Application(QApplication):
         timer.start(t_step)
 
     def clusterUpdate(self):
-        #self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
-        #self.primary_container.speedometer.setUnit(self.cluster_vars["vehicle_speed"])
+        self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
+        self.primary_container.speedometer.setUnit(self.cluster_vars["vehicle_speed"])
         rpm = self.cluster_vars["rpm"]
         speed = self.cluster_vars["vehicle_speed"]
-        self.primary_container.rpm_label.setText(f"{rpm}")
+        #self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
         sw_stock = self.cluster_vars["left_sw_stock"]
