@@ -41,7 +41,7 @@ class Dial(QWidget):
                  redline=0.5,
                  mid_sections=2,
                  size=500,
-                 label_font=QFont("Sans-serif", 17),
+                 label_font=QFont("Sans-serif", 16),
                  default_color=(255, 255, 255),
                  redline_color=(255, 0, 0),
                  background_color=(0, 0, 0),

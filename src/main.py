@@ -8,7 +8,7 @@ import subprocess
 import sys
 from math import pi
 from random import randrange
-from time import sleep, time
+from time import time
 
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QFont, QPixmap, QPalette, QColor, QImage, QTransform
@@ -123,7 +123,8 @@ class MainWindow(QMainWindow):
         right_turn_signal_image = QLabel(self)
         right_turn_signal_image.setPixmap(right_arrow_image_black)
         right_turn_signal_image.move(
-            int(screen_size[0] - cluster_size - cluster_size / 4 - turn_signal_offset),
+            int(screen_size[0] - cluster_size -
+                cluster_size / 4 - turn_signal_offset),
             int(screen_size[1] / 2 - cluster_size / 2))
         right_turn_signal_image.setScaledContents(True)
         right_turn_signal_image.resize(turn_signal_size, turn_signal_size)
@@ -132,23 +133,24 @@ class MainWindow(QMainWindow):
         left_turn_signal_image = QLabel(self)
         left_turn_signal_image.setPixmap(left_arrow_image_black)
         left_turn_signal_image.move(
-            int(cluster_size / 4 + cluster_size - turn_signal_size + turn_signal_offset),
+            int(cluster_size / 4 + cluster_size -
+                turn_signal_size + turn_signal_offset),
             int(screen_size[1] / 2 - cluster_size / 2))
         left_turn_signal_image.setScaledContents(True)
         left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
         left_turn_signal_image.show()
 
-        rpm_label = QLabel(self)
-        rpm_label.setStyleSheet("background:transparent")
-        rpm_label.setText(f"{0}")
-        rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25),
-                       int(screen_size[1] / 2 - cluster_size / 2 + 200))
-        rpm_label.setStyleSheet("background:transparent")
-        rpm_label.setFont(label_font)
-        rpm_label.setPalette(palette)
-        rpm_label.setFont(label_font)
-        rpm_label.resize(200, 200)
-        rpm_label.show()
+        # rpm_label = QLabel(self)
+        # rpm_label.setStyleSheet("background:transparent")
+        # rpm_label.setText(f"{0}")
+        # rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25),
+        #                int(screen_size[1] / 2 - cluster_size / 2 + 200))
+        # rpm_label.setStyleSheet("background:transparent")
+        # rpm_label.setFont(label_font)
+        # rpm_label.setPalette(palette)
+        # rpm_label.setFont(label_font)
+        # rpm_label.resize(200, 200)
+        # rpm_label.show()
 
         speed_label = QLabel(self)
         speed_label.setText(f"{0}")
@@ -162,7 +164,7 @@ class MainWindow(QMainWindow):
         speed_label.resize(200, 200)
         speed_label.show()
 
-        self.rpm_label = rpm_label
+        # self.rpm_label = rpm_label
         self.speed_label = speed_label
         self.right_turn_signal_image = right_turn_signal_image
         self.left_turn_signal_image = left_turn_signal_image
@@ -189,8 +191,9 @@ class Application(QApplication):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow()
-        color = (25, 25, 25)
-        primary_container.setStyleSheet(f"background-color: rgb({color[0]}, {color[1]}, {color[2]})")
+        color = (50, 50, 50)
+        primary_container.setStyleSheet(
+            f"background-color: rgb({color[0]}, {color[1]}, {color[2]})")
 
         self.start_time = time()
         self.primary_container = primary_container
@@ -238,22 +241,27 @@ class Application(QApplication):
         timer.start(t_step)
 
     def clusterUpdate(self):
-        #self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
-        #self.primary_container.speedometer.setUnit(self.cluster_vars["vehicle_speed"])
+        self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
+        self.primary_container.speedometer.setUnit(
+            self.cluster_vars["vehicle_speed"])
         rpm = self.cluster_vars["rpm"]
         speed = self.cluster_vars["vehicle_speed"]
-        self.primary_container.rpm_label.setText(f"{rpm}")
+        #self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
         sw_stock = self.cluster_vars["left_sw_stock"]
         if sw_stock["left_turn_signal"]:
-            self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
+            self.primary_container.left_turn_signal_image.setPixmap(
+                self.primary_container.left_arrow_image_green)
         else:
-            self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
+            self.primary_container.left_turn_signal_image.setPixmap(
+                self.primary_container.left_arrow_image_black)
         if sw_stock["right_turn_signal"]:
-            self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
+            self.primary_container.right_turn_signal_image.setPixmap(
+                self.primary_container.right_arrow_image_green)
         else:
-            self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
+            self.primary_container.right_turn_signal_image.setPixmap(
+                self.primary_container.right_arrow_image_black)
 
     def updateRPM(self, rpm):
         self.primary_container.rpm_label.setText(f"{rpm}")
@@ -262,19 +270,21 @@ class Application(QApplication):
         self.primary_container.speed_label.setText(f"{speed}")
 
     def updateVar(self, var, val):
-        if var == "rpm":
-            self.updateRPM(val)
-        elif var == "vehicle_speed":
-            self.updateSpeed(val)
-        elif var == "left_sw_stock":
-            if val["left_turn_signal"]:
-                self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
-            else:
-                self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
-            if val["right_turn_signal"]:
-                self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
-            else:
-                self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
+        self.cluster_vars[var] = val
+        self.clusterUpdate()
+        # if var == "rpm":
+        #     self.updateRPM(val)
+        # elif var == "vehicle_speed":
+        #     self.updateSpeed(val)
+        # elif var == "left_sw_stock":
+        #     if val["left_turn_signal"]:
+        #         self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
+        #     else:
+        #         self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
+        #     if val["right_turn_signal"]:
+        #         self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
+        #     else:
+        #         self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
 
 
 if __name__ == "__main__":
