@@ -1,8 +1,6 @@
 # formatted with yapf
 # Bryce Happel Walton
 
-#todo: This program is far too slow on the RPi
-
 import platform
 import subprocess
 import sys
