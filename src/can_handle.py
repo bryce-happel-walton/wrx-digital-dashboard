@@ -45,7 +45,7 @@ class CanApplication():
 
         can_str_id = get_can_index(id)
         if can_str_id in parsers:
-            self.updated(can_str_id, parsers[can_str_id](data))
+            self.updated.emit(can_str_id, parsers[can_str_id](data))
 
 
 if __name__ == "__main__":
