@@ -42,7 +42,7 @@ def change_image_color(image: QImage, color: QColor):
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, scale=1):
         super().__init__()
 
         self.setWindowTitle("Digital Cluster")
@@ -59,9 +59,18 @@ class MainWindow(QMainWindow):
                          mid_sections=rpm_params["mid_sections"],
                          denomination=rpm_params["denomination"],
                          visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont(f"{font_group}", 21, font_weight),
+                         label_font=QFont(f"{font_group}", 21 * scale,
+                                          font_weight),
                          angle_offset=pi,
-                         angle_range=big_dial_angle_range)
+                         angle_range=big_dial_angle_range,
+                         buffer_radius=20 * scale,
+                         num_radius=54 * scale,
+                         section_radius=20 * scale,
+                         minor_section_rad_offset=3 * scale,
+                         middle_section_rad_offset=43 * scale,
+                         major_section_rad_offset=40 * scale,
+                         dial_mask_rad=290 * scale,
+                         dial_inner_border_rad=4 * scale)
 
         rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
@@ -77,9 +86,18 @@ class MainWindow(QMainWindow):
                            mid_sections=speed_params["mid_sections"],
                            units=speed_params["units"],
                            visual_num_gap=20,
-                           label_font=QFont(f"{font_group}", 18, font_weight),
+                           label_font=QFont(f"{font_group}", 18 * scale,
+                                            font_weight),
                            angle_offset=pi,
-                           angle_range=big_dial_angle_range)
+                           angle_range=big_dial_angle_range,
+                           buffer_radius=20 * scale,
+                           num_radius=54 * scale,
+                           section_radius=20 * scale,
+                           minor_section_rad_offset=3 * scale,
+                           middle_section_rad_offset=43 * scale,
+                           major_section_rad_offset=40 * scale,
+                           dial_mask_rad=290 * scale,
+                           dial_inner_border_rad=4 * scale)
 
         speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
@@ -112,13 +130,13 @@ class MainWindow(QMainWindow):
         self.left_arrow_image_black = left_arrow_image_black
         self.left_arrow_image_green = left_arrow_image_green
 
-        label_font = QFont("Sans-serif", 17)
+        label_font = QFont("Sans-serif", 17 * scale)
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        turn_signal_offset = 80
-        turn_signal_size = 50
+        turn_signal_offset = 80 * scale
+        turn_signal_size = 50 * scale
 
         right_turn_signal_image = QLabel(self)
         right_turn_signal_image.setPixmap(right_arrow_image_black)
@@ -152,6 +170,8 @@ class MainWindow(QMainWindow):
         # rpm_label.resize(200, 200)
         # rpm_label.show()
 
+        speed_label_size = 200
+
         speed_label = QLabel(self)
         speed_label.setText(f"{0}")
         speed_label.setStyleSheet("background:transparent")
@@ -159,9 +179,10 @@ class MainWindow(QMainWindow):
         speed_label.setPalette(palette)
         speed_label.move(
             int(screen_size[0] - cluster_size - cluster_size / 4 +
-                cluster_size / 2 - 25 / 2),
-            int(screen_size[1] / 2 - cluster_size / 2 + 200))
-        speed_label.resize(200, 200)
+                cluster_size / 2 - 25 * scale / 2),
+            int(screen_size[1] / 2 - cluster_size / 2 +
+                speed_label_size * scale))
+        speed_label.resize(speed_label_size * scale, speed_label_size * scale)
         speed_label.show()
 
         # self.rpm_label = rpm_label
@@ -187,10 +208,10 @@ class Application(QApplication):
     awaken_sequence_duration_ms = 2500
     awaken_sequence_steps = 2000
 
-    def __init__(self):
+    def __init__(self, scale=1):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
-        primary_container = MainWindow()
+        primary_container = MainWindow(scale)
         color = (50, 50, 50)
         primary_container.setStyleSheet(
             f"background-color: rgb({color[0]}, {color[1]}, {color[2]})")
@@ -263,39 +284,22 @@ class Application(QApplication):
             self.primary_container.right_turn_signal_image.setPixmap(
                 self.primary_container.right_arrow_image_black)
 
-    def updateRPM(self, rpm):
-        self.primary_container.rpm_label.setText(f"{rpm}")
-
-    def updateSpeed(self, speed):
-        self.primary_container.speed_label.setText(f"{speed}")
-
     def updateVar(self, var, val):
         self.cluster_vars[var] = val
         self.clusterUpdate()
-        # if var == "rpm":
-        #     self.updateRPM(val)
-        # elif var == "vehicle_speed":
-        #     self.updateSpeed(val)
-        # elif var == "left_sw_stock":
-        #     if val["left_turn_signal"]:
-        #         self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_green)
-        #     else:
-        #         self.primary_container.left_turn_signal_image.setPixmap(self.primary_container.left_arrow_image_black)
-        #     if val["right_turn_signal"]:
-        #         self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_green)
-        #     else:
-        #         self.primary_container.right_turn_signal_image.setPixmap(self.primary_container.right_arrow_image_black)
 
 
 if __name__ == "__main__":
     system = platform.system()
 
-    if system == "Darwin":
-        shrink_rate = 1
-        screen_size = [1920 / shrink_rate, 720 / shrink_rate]
-        cluster_size /= shrink_rate
+    scale = 1
 
-    app = Application()
+    if system == "Darwin":
+        scale = 1 / 1.3325
+
+    screen_size = [1920 * scale, 720 * scale]
+    cluster_size *= scale
+    app = Application(scale=scale)
     screens = app.screens()
 
     if system != "Linux":
