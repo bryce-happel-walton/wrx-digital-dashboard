@@ -53,7 +53,6 @@ if __name__ == "__main__":
     import platform
 
     if platform != "Linux":
-        pass
         exit()
 
     try:

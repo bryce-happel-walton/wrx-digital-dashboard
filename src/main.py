@@ -1,10 +1,9 @@
 # formatted with yapf
 # Bryce Happel Walton
 
-#todo: This program is far too slow on the RPi
+#! This program is far too slow on the RPi
 
 import platform
-import subprocess
 import sys
 from math import pi
 from random import randrange
@@ -135,7 +134,7 @@ class MainWindow(QMainWindow):
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        turn_signal_offset = 80 * scale
+        turn_signal_offset = -20 * scale
         turn_signal_size = 50 * scale
 
         right_turn_signal_image = QLabel(self)
@@ -265,7 +264,7 @@ class Application(QApplication):
         self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
         self.primary_container.speedometer.setUnit(
             self.cluster_vars["vehicle_speed"])
-        rpm = self.cluster_vars["rpm"]
+        #rpm = self.cluster_vars["rpm"]
         speed = self.cluster_vars["vehicle_speed"]
         #self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
@@ -387,17 +386,6 @@ if __name__ == "__main__":
         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10],  # left turn
         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # everything off
     ]
-
-    def emulate_can():
-        app.updateVar("vehicle_speed",
-                        randrange(speed_params["min"], speed_params["max"]))
-        app.updateVar("rpm", randrange(rpm_params["min"],
-                                        rpm_params["max"]))
-        app.updateVar(
-            "left_sw_stock",
-            can_data.left_sw_stock(turn_signal_data[randrange(
-                0,
-                len(turn_signal_data) - 1)]))
 
     def emulate_can():
         app.updateVar("vehicle_speed",
