@@ -373,6 +373,12 @@ if __name__ == "__main__":
 
     import can_data
 
+    if system == "Linux":
+        screen = screens[0]
+        app.primary_container.move(screen.geometry().topLeft())
+        app.primary_container.showFullScreen()
+        app.primary_container.setFixedSize(screen_size[0], screen_size[1])
+
     if len(screens) > 1:
         screen = screens[1]
         app.primary_container.move(screen.geometry().topLeft())
