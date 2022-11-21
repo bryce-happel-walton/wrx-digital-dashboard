@@ -302,75 +302,120 @@ if __name__ == "__main__":
     app = Application(scale=scale)
     screens = app.screens()
 
-    if system != "Linux":
-        import can_data
+    # if system != "Linux":
+    #     import can_data
 
-        if len(screens) > 1:
-            screen = screens[1]
-            app.primary_container.move(screen.geometry().topLeft())
-            app.primary_container.showFullScreen()
-        else:
-            app.primary_container.setFixedSize(screen_size[0], screen_size[1])
+    #     if len(screens) > 1:
+    #         screen = screens[1]
+    #         app.primary_container.move(screen.geometry().topLeft())
+    #         app.primary_container.showFullScreen()
+    #     else:
+    #         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
 
-        turn_signal_data = [
-            [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30],  # hazards
-            [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20],  # right turn
-            [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10],  # left turn
-            [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]  # everything off
-        ]
+    #     turn_signal_data = [
+    #         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30],  # hazards
+    #         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20],  # right turn
+    #         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10],  # left turn
+    #         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # everything off
+    #     ]
 
-        def emulate_can():
-            app.updateVar("vehicle_speed",
-                          randrange(speed_params["min"], speed_params["max"]))
-            app.updateVar("rpm", randrange(rpm_params["min"],
-                                           rpm_params["max"]))
-            app.updateVar(
-                "left_sw_stock",
-                can_data.left_sw_stock(turn_signal_data[randrange(
-                    0,
-                    len(turn_signal_data) - 1)]))
+    #     def emulate_can():
+    #         app.updateVar("vehicle_speed",
+    #                       randrange(speed_params["min"], speed_params["max"]))
+    #         app.updateVar("rpm", randrange(rpm_params["min"],
+    #                                        rpm_params["max"]))
+    #         app.updateVar(
+    #             "left_sw_stock",
+    #             can_data.left_sw_stock(turn_signal_data[randrange(
+    #                 0,
+    #                 len(turn_signal_data) - 1)]))
 
-        def run():
-            timer = QTimer(app)
-            timer.timeout.connect(emulate_can)
-            timer.start(0.1)
+    #     def run():
+    #         timer = QTimer(app)
+    #         timer.timeout.connect(emulate_can)
+    #         timer.start(0.1)
 
-        app.awakened.connect(run)
-    else:
-        screen = screens[0]
+    #     app.awakened.connect(run)
+    # else:
+    #     screen = screens[0]
+    #     app.primary_container.move(screen.geometry().topLeft())
+    #     app.primary_container.showFullScreen()
+    #     app.primary_container.setFixedSize(screen_size[0], screen_size[1])
+
+    #     try:
+    #         shutdown_can = subprocess.run(
+    #             ["sudo", "/sbin/ip", "link", "set", "can0", "down"],
+    #             check=True)
+    #         setup_can = subprocess.run([
+    #             "sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can",
+    #             "bitrate", "500000"
+    #         ],
+    #                                    check=True)
+    #         can_app = CanApplication()
+    #     except:
+    #         print("Could not find PiCan device! Quitting.")
+    #         del app
+    #         exit()
+
+    #     can_app.updated.connect(app.updateVar)
+
+    #     def read_can():
+    #         msg = can_app.get_data()
+
+    #         if msg:
+    #             can_app.parse_data(msg)
+
+    #     def run():
+    #         timer = QTimer(app)
+    #         timer.timeout.connect(read_can)
+    #         timer.start(0.05)
+
+    #     app.awakened.connect(run)
+
+    import can_data
+
+    if len(screens) > 1:
+        screen = screens[1]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
+    else:
         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
 
-        try:
-            shutdown_can = subprocess.run(
-                ["sudo", "/sbin/ip", "link", "set", "can0", "down"],
-                check=True)
-            setup_can = subprocess.run([
-                "sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can",
-                "bitrate", "500000"
-            ],
-                                       check=True)
-            can_app = CanApplication()
-        except:
-            print("Could not find PiCan device! Quitting.")
-            del app
-            exit()
+    turn_signal_data = [
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30],  # hazards
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20],  # right turn
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10],  # left turn
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # everything off
+    ]
 
-        can_app.updated.connect(app.updateVar)
+    def emulate_can():
+        app.updateVar("vehicle_speed",
+                        randrange(speed_params["min"], speed_params["max"]))
+        app.updateVar("rpm", randrange(rpm_params["min"],
+                                        rpm_params["max"]))
+        app.updateVar(
+            "left_sw_stock",
+            can_data.left_sw_stock(turn_signal_data[randrange(
+                0,
+                len(turn_signal_data) - 1)]))
 
-        def read_can():
-            msg = can_app.get_data()
+    def emulate_can():
+        app.updateVar("vehicle_speed",
+                        randrange(speed_params["min"], speed_params["max"]))
+        app.updateVar("rpm", randrange(rpm_params["min"],
+                                        rpm_params["max"]))
+        app.updateVar(
+            "left_sw_stock",
+            can_data.left_sw_stock(turn_signal_data[randrange(
+                0,
+                len(turn_signal_data) - 1)]))
 
-            if msg:
-                can_app.parse_data(msg)
+    def run():
+        timer = QTimer(app)
+        timer.timeout.connect(emulate_can)
+        timer.start(0.1)
 
-        def run():
-            timer = QTimer(app)
-            timer.timeout.connect(read_can)
-            timer.start(0.05)
-
-        app.awakened.connect(run)
+    app.awakened.connect(run)
 
     app.primary_container.show()
     app.primary_container.setFocus()
