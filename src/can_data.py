@@ -23,25 +23,31 @@ def turn_signals(data: bytearray) -> dict[str, int]:
     return new_data
 
 if __name__ == "__main__":
+    from time import time
     # rpm
+    start = time()
     array = [0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00]
     data = bytearray(array)
-    print(rpm(data))
+    print(time() - start)
 
     # vehicle speed
+    start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
     data = bytearray(array)
-    print(vehicle_speed(data))
+    print(time() - start)
 
     # steering wheel left stock
+    start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] # everything off
     data = bytearray(array)
-    print(turn_signals(data))
+    print(time() - start)
 
+    start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x10] # left turn signal
     data = bytearray(array)
-    print(turn_signals(data))
+    print(time() - start)
 
+    start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x20] # right turn signal
     data = bytearray(array)
-    print(turn_signals(data))
+    print(time() - start)
