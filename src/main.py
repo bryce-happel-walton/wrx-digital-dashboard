@@ -360,7 +360,7 @@ if __name__ == "__main__":
         app.primary_container.showFullScreen()
         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
 
-        using_pican = True
+        using_pican = False
 
         try:
             shutdown_can = subprocess.run(
@@ -386,7 +386,7 @@ if __name__ == "__main__":
             def run():
                 timer = QTimer(app)
                 timer.timeout.connect(read_can)
-                timer.start(1 / 1000000)
+                timer.start(1 / 500000)
 
             app.awakened.connect(run)
             can_app.updated.connect(app.updateVar)
