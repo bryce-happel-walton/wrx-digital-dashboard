@@ -157,17 +157,17 @@ class MainWindow(QMainWindow):
         left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
         left_turn_signal_image.show()
 
-        # rpm_label = QLabel(self)
-        # rpm_label.setStyleSheet("background:transparent")
-        # rpm_label.setText(f"{0}")
-        # rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25),
-        #                int(screen_size[1] / 2 - cluster_size / 2 + 200))
-        # rpm_label.setStyleSheet("background:transparent")
-        # rpm_label.setFont(label_font)
-        # rpm_label.setPalette(palette)
-        # rpm_label.setFont(label_font)
-        # rpm_label.resize(200, 200)
-        # rpm_label.show()
+        rpm_label = QLabel(self)
+        rpm_label.setStyleSheet("background:transparent")
+        rpm_label.setText(f"{0}")
+        rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25),
+                       int(screen_size[1] / 2 - cluster_size / 2 + 200))
+        rpm_label.setStyleSheet("background:transparent")
+        rpm_label.setFont(label_font)
+        rpm_label.setPalette(palette)
+        rpm_label.setFont(label_font)
+        rpm_label.resize(200, 200)
+        rpm_label.show()
 
         speed_label_size = 200
 
@@ -184,7 +184,7 @@ class MainWindow(QMainWindow):
         speed_label.resize(speed_label_size * scale, speed_label_size * scale)
         speed_label.show()
 
-        # self.rpm_label = rpm_label
+        self.rpm_label = rpm_label
         self.speed_label = speed_label
         self.right_turn_signal_image = right_turn_signal_image
         self.left_turn_signal_image = left_turn_signal_image
@@ -289,6 +289,8 @@ class Application(QApplication):
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(f"{val}")
+        if var == "rpm":
+            self.primary_container.rpm_label.setText(f"{val}")
         elif var == "left_sw_stock":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
