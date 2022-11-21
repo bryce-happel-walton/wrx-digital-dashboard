@@ -72,4 +72,4 @@ if __name__ == "__main__":
         msg = can_app.get_data()
 
         if msg is not None:
-            can_app.parse_data(msg)
+            print(can_app.parse_data(msg))
