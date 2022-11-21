@@ -28,26 +28,31 @@ if __name__ == "__main__":
     start = time()
     array = [0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00]
     data = bytearray(array)
+    rpm(data)
     print(time() - start)
 
     # vehicle speed
     start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
     data = bytearray(array)
+    vehicle_speed(data)
     print(time() - start)
 
     # steering wheel left stock
     start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] # everything off
     data = bytearray(array)
+    turn_signals(data)
     print(time() - start)
 
     start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x10] # left turn signal
     data = bytearray(array)
+    turn_signals(data)
     print(time() - start)
 
     start = time()
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x20] # right turn signal
     data = bytearray(array)
+    turn_signals(data)
     print(time() - start)
