@@ -287,6 +287,23 @@ class Application(QApplication):
         self.cluster_vars[var] = val
         self.clusterUpdate()
 
+        if var == "vehicle_speed":
+            self.primary_container.speed_label.setText(f"{val}")
+        elif var == "left_sw_stock":
+            if val["left_turn_signal"]:
+                self.primary_container.left_turn_signal_image.setPixmap(
+                    self.primary_container.left_arrow_image_green)
+            else:
+                self.primary_container.left_turn_signal_image.setPixmap(
+                    self.primary_container.left_arrow_image_black)
+
+            if val["right_turn_signal"]:
+                self.primary_container.right_turn_signal_image.setPixmap(
+                    self.primary_container.right_arrow_image_green)
+            else:
+                self.primary_container.right_turn_signal_image.setPixmap(
+                    self.primary_container.right_arrow_image_black)
+
 
 if __name__ == "__main__":
     system = platform.system()
