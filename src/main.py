@@ -261,11 +261,10 @@ class Application(QApplication):
         timer.start(t_step)
 
     def clusterUpdate(self):
-        self.primary_container.tachometer.setUnit(self.cluster_vars["rpm"])
-        self.primary_container.speedometer.setUnit(
-            self.cluster_vars["vehicle_speed"])
-        #rpm = self.cluster_vars["rpm"]
         speed = self.cluster_vars["vehicle_speed"]
+        #rpm = self.cluster_vars["rpm"]
+        #self.primary_container.tachometer.setUnit(rpm)
+        #self.primary_container.speedometer.setUnit(speed)
         #self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
@@ -276,6 +275,7 @@ class Application(QApplication):
         else:
             self.primary_container.left_turn_signal_image.setPixmap(
                 self.primary_container.left_arrow_image_black)
+
         if sw_stock["right_turn_signal"]:
             self.primary_container.right_turn_signal_image.setPixmap(
                 self.primary_container.right_arrow_image_green)
