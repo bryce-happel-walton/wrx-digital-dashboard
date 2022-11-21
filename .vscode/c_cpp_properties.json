@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${default}"
+                "${default}",
+                "C:\\Qt\\5.15.7-Build\\include"
             ],
             "defines": [
                 "_DEBUG",
