@@ -360,7 +360,7 @@ if __name__ == "__main__":
         app.primary_container.showFullScreen()
         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
 
-        using_pican = False
+        using_pican = True
 
         try:
             shutdown_can = subprocess.run(
