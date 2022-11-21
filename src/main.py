@@ -134,7 +134,7 @@ class MainWindow(QMainWindow):
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        turn_signal_offset = -20 * scale
+        turn_signal_offset = -30 * scale
         turn_signal_size = 50 * scale
 
         right_turn_signal_image = QLabel(self)
@@ -211,7 +211,7 @@ class Application(QApplication):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow(scale)
-        color = (50, 50, 50)
+        color = (100, 100, 100)
         primary_container.setStyleSheet(
             f"background-color: rgb({color[0]}, {color[1]}, {color[2]})")
 
@@ -289,10 +289,10 @@ class Application(QApplication):
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(f"{val}")
-            self.primary_container.speedometer.setUnit(val)
+            #self.primary_container.speedometer.setUnit(val)
         if var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            self.primary_container.tachometer.setUnit(val)
+            #self.primary_container.tachometer.setUnit(val)
         elif var == "left_sw_stock":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
