@@ -5,14 +5,14 @@ from util import event
 from inspect import getmembers, isfunction
 
 can_ids = {
-    'left_sw_stock': 0x152,
+    #'left_sw_stock': 0x152,
     'turn_signals': 0x282,
-    'throttle_pedal': 0x140,
+    #'throttle_pedal': 0x140,
     'vehicle_speed': 0x0D1,
-    'wheel_speeds': 0x0D4,
-    'door_states': 0x375,
-    'steering_wheel_position': 0x002,
-    'climate_control': 0x281,
+    #'wheel_speeds': 0x0D4,
+    #'door_states': 0x375,
+    #'steering_wheel_position': 0x002,
+    #'climate_control': 0x281,
     'rpm': 0x141
 }
 
