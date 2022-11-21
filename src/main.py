@@ -285,12 +285,14 @@ class Application(QApplication):
 
     def updateVar(self, var, val):
         self.cluster_vars[var] = val
-        self.clusterUpdate()
+        #self.clusterUpdate()
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(f"{val}")
+            self.primary_container.speedometer.setUnit(val)
         if var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
+            self.primary_container.tachometer.setUnit(val)
         elif var == "left_sw_stock":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
