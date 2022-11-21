@@ -386,7 +386,7 @@ if __name__ == "__main__":
             def run():
                 timer = QTimer(app)
                 timer.timeout.connect(read_can)
-                timer.start(0.1)
+                timer.start(1/75)
 
             app.awakened.connect(run)
             can_app.updated.connect(app.updateVar)
