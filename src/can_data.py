@@ -12,12 +12,12 @@ def vehicle_speed(data: bytearray) -> int:
     b1 = f"{data[1]:08b}"
     return int(int(b1 + b0, base=2) * speed_mult)
 
-def left_sw_stock(data: bytearray) -> dict[str, int]:
-    b7 = f"{data[7]:08b}"
+def turn_signals(data: bytearray) -> dict[str, int]:
+    b5 = f"{data[5]:08b}"
 
     new_data = {
-        "left_turn_signal": int(b7[3]),
-        "right_turn_signal": int(b7[2])
+        "left_turn_signal": int(b5[3]),
+        "right_turn_signal": int(b5[2])
     }
 
     return new_data
@@ -36,12 +36,12 @@ if __name__ == "__main__":
     # steering wheel left stock
     array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] # everything off
     data = bytearray(array)
-    print(left_sw_stock(data))
+    print(turn_signals(data))
 
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10] # left turn signal
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x10] # left turn signal
     data = bytearray(array)
-    print(left_sw_stock(data))
+    print(turn_signals(data))
 
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20] # right turn signal
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x20] # right turn signal
     data = bytearray(array)
-    print(left_sw_stock(data))
+    print(turn_signals(data))

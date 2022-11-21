@@ -160,13 +160,13 @@ class MainWindow(QMainWindow):
         rpm_label = QLabel(self)
         rpm_label.setStyleSheet("background:transparent")
         rpm_label.setText(f"{0}")
-        rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25),
-                       int(screen_size[1] / 2 - cluster_size / 2 + 200))
+        rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25 * scale),
+                       int(screen_size[1] / 2 - cluster_size / 2 + 200 * scale))
         rpm_label.setStyleSheet("background:transparent")
         rpm_label.setFont(label_font)
         rpm_label.setPalette(palette)
         rpm_label.setFont(label_font)
-        rpm_label.resize(200, 200)
+        rpm_label.resize(200 * scale, 200 * scale)
         rpm_label.show()
 
         speed_label_size = 200
@@ -199,7 +199,7 @@ class Application(QApplication):
     cluster_vars = {
         "rpm": 0,
         "vehicle_speed": 0,
-        "left_sw_stock": {
+        "turn_signals": {
             "left_turn_signal": 0,
             "right_turn_signal": 0
         }
@@ -268,15 +268,15 @@ class Application(QApplication):
         #self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
-        sw_stock = self.cluster_vars["left_sw_stock"]
-        if sw_stock["left_turn_signal"]:
+        turn_signals = self.cluster_vars["turn_signals"]
+        if turn_signals["left_turn_signal"]:
             self.primary_container.left_turn_signal_image.setPixmap(
                 self.primary_container.left_arrow_image_green)
         else:
             self.primary_container.left_turn_signal_image.setPixmap(
                 self.primary_container.left_arrow_image_black)
 
-        if sw_stock["right_turn_signal"]:
+        if turn_signals["right_turn_signal"]:
             self.primary_container.right_turn_signal_image.setPixmap(
                 self.primary_container.right_arrow_image_green)
         else:
@@ -293,7 +293,7 @@ class Application(QApplication):
         if var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
             #self.primary_container.tachometer.setUnit(val)
-        elif var == "left_sw_stock":
+        elif var == "turn_signals":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
                     self.primary_container.left_arrow_image_green)
@@ -321,9 +321,9 @@ if __name__ == "__main__":
     screens = app.screens()
 
     turn_signal_data = [
-        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30],  # hazards
-        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20],  # right turn
-        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10],  # left turn
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x30, 0x00, 0x00],  # hazards
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00],  # right turn
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00],  # left turn
         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # everything off
     ]
 
@@ -335,8 +335,8 @@ if __name__ == "__main__":
         app.updateVar("rpm", randrange(rpm_params["min"],
                                         rpm_params["max"]))
         app.updateVar(
-            "left_sw_stock",
-            can_data.left_sw_stock(turn_signal_data[randrange(
+            "turn_signals",
+            can_data.turn_signals(turn_signal_data[randrange(
                 0,
                 len(turn_signal_data) - 1)]))
 

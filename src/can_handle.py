@@ -6,6 +6,7 @@ from inspect import getmembers, isfunction
 
 can_ids = {
     'left_sw_stock': 0x152,
+    'turn_signals': 0x282,
     'throttle_pedal': 0x140,
     'vehicle_speed': 0x0D1,
     'wheel_speeds': 0x0D4,
