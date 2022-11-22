@@ -2,9 +2,6 @@ speed_mult = 0.05625
 to_mph = 0.62137119
 speed_mult *= to_mph
 
-c_to_f = 9/5
-c_to_f_offset = 35
-
 gear_ratios = {
     '1': 3.454,
     '2': 1.947,
@@ -37,16 +34,18 @@ def turn_signals(data: bytearray) -> dict[str, int]:
 
     return new_data
 
+
+temp_sensor_offset = -40
 def oil_temp(data: bytearray) -> int:
     b2 = f"{data[2]:08b}"
-    return (int(b2, 2) - 40) * c_to_f + c_to_f_offset
+    return (int(b2, 2) + temp_sensor_offset)
 
 def coolant_temp(data: bytearray) -> int:
     b3 = f"{data[3]:08b}"
-    return (int(b3, 2) - 40) * c_to_f + c_to_f_offset
+    return (int(b3, 2) + temp_sensor_offset)
 
 def neutral_switch(data: bytearray) -> int:
-    b6 = f"{data[6]:08b}" # tbd
+    b6 = f"{data[6]:08b}" #! No neutral switch activity observed here. Need to find correct address and bits
     return b6
 
 def handbrake(data: bytearray) -> int:
