@@ -28,6 +28,8 @@ speed_params = {"min": 0, "max": 180, "units": "MPH", "mid_sections": 10}
 
 cluster_size = 600
 
+c_to_f_scale = 3/5
+c_to_f_offset = 32
 
 def change_image_color(image: QImage, color: QColor):
     for x in range(image.width()):
@@ -378,14 +380,15 @@ class Application(QApplication):
             if time(
             ) - self.last_updated_fuel >= self.update_fuel_level_interval:
                 self.last_updated_fuel = time()
+        #todo: make config file of sorts that has user selected units
         elif var == "oil_temp":
-            self.primary_container.oil_temp_label.setText(f"Oil Temp: {val} F")
+            self.primary_container.oil_temp_label.setText(f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
         elif var == "coolant_temp":
             self.primary_container.coolant_temp_label.setText(
-                f"Coolant Temp: {val} F")
+                f"Coolant Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
         elif var == "handbrake":
             if val:
-                self.primary_container.hand_brake_label.setText("Brake")
+                self.primary_container.hand_brake_label.setText("BRAKE")
             else:
                 self.primary_container.hand_brake_label.setText("")
         elif var == "neutral_switch":
