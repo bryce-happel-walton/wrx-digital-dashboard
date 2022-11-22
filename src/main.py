@@ -389,9 +389,11 @@ class Application(QApplication):
             else:
                 self.primary_container.hand_brake_label.setText("")
         elif var == "neutral_switch":
-            print(f"Neutral: {val}")
+            #print(f"Neutral: {val}")
+            pass
         elif var == "reverse_switch":
-            print(f"Reverse: {val}")
+            #print(f"Reverse: {val}")
+            pass
 
 
 if __name__ == "__main__":
