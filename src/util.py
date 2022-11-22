@@ -1,3 +1,7 @@
+def clamp(low, n, high):
+    return min(max(n, low), high)
+
+
 class connection():
 
     def __init__(self, event, func):
@@ -6,7 +10,6 @@ class connection():
 
     def disconnect(self):
         self.event.connections.pop(self.func)
-
 
 
 class event():

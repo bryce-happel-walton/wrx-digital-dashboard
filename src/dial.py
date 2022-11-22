@@ -1,4 +1,5 @@
 from math import ceil, cos, degrees, floor, pi, sin
+from util import clamp
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont, QPainter, QPalette
@@ -6,10 +7,6 @@ from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 #todo: make resize event redraw everything
 #todo: make updating center label with unit
-
-
-def clamp(low, n, high):
-    return min(max(n, low), high)
 
 
 class Line(QWidget):
