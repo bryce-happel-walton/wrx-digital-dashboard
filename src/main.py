@@ -419,7 +419,8 @@ if __name__ == "__main__":
     def emulate_can():
         app.updateVar("vehicle_speed",
                       randrange(speed_params["min"], speed_params["max"] + 1))
-        app.updateVar("rpm", randrange(rpm_params["min"], rpm_params["max"] + 1))
+        app.updateVar("rpm", randrange(rpm_params["min"],
+                                       rpm_params["max"] + 1))
         app.updateVar(
             "turn_signals",
             can_data.turn_signals(turn_signal_data[randrange(
@@ -427,7 +428,6 @@ if __name__ == "__main__":
         app.updateVar("handbrake", randrange(0, 2))
         app.updateVar("oil_temp", randrange(0, 220 + 1))
         app.updateVar("coolant_temp", randrange(0, 220 + 1))
-
 
     def run():
         timer = QTimer(app)
