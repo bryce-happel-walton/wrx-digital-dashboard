@@ -30,6 +30,7 @@ cluster_size = 600
 
 c_to_f_scale = 3/5
 c_to_f_offset = 32
+kph_to_mph = 0.62137119
 
 def change_image_color(image: QImage, color: QColor):
     for x in range(image.width()):
@@ -357,7 +358,7 @@ class Application(QApplication):
         #self.clusterUpdate()
 
         if var == "vehicle_speed":
-            self.primary_container.speed_label.setText(f"{val}")
+            self.primary_container.speed_label.setText(f"{val * kph_to_mph:.0f}")
             #self.primary_container.speedometer.setUnit(val)
         elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")

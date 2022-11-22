@@ -1,6 +1,4 @@
 speed_mult = 0.05625
-to_mph = 0.62137119
-speed_mult *= to_mph
 
 gear_ratios = {
     '1': 3.454,
