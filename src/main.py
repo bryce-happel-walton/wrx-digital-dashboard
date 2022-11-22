@@ -356,10 +356,10 @@ class Application(QApplication):
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(f"{val}")
-            self.primary_container.speedometer.setUnit(val)
+            #self.primary_container.speedometer.setUnit(val)
         elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            self.primary_container.tachometer.setUnit(val)
+            #self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
