@@ -2,6 +2,18 @@ speed_mult = 0.05625
 to_mph = 0.62137119
 speed_mult *= to_mph
 
+gear_ratios = {
+    '1': 3.454,
+    '2': 1.947,
+    '3': 1.296,
+    '4': 0.972,
+    '5': 0.78,
+    '6': 0.666,
+    'r': 3.636,
+    'final_drive': 4.111,
+    'tire': 26
+}
+
 def rpm(data: bytearray) -> int:
     b4 = f"{data[4]:08b}"
     b5 = f"{data[5]:08b}"[-4:]
@@ -21,6 +33,29 @@ def turn_signals(data: bytearray) -> dict[str, int]:
     }
 
     return new_data
+
+def oil_temp(data: bytearray) -> int:
+    b2 = f"{data[2]:08b}"
+    return int(b2, 2) - 40
+
+def coolant_temp(data: bytearray) -> int:
+    b3 = f"{data[3]:08b}"
+    return int(b3, 2) - 40
+
+def neutral_switch(data: bytearray) -> int:
+    # b6 = f"{data[6]:08b}"
+    if data[6] == 27:
+        return 1
+    elif data[6] == 20:
+        return 0
+
+def handbrake(data: bytearray) -> int:
+    b6 = f"{data[6]:08b}"
+    return int(b6[3], 2)
+
+def reverse_switch(data: bytearray) -> int:
+    b6 = f"{data[6]:08b}"
+    return int(b6[2], 2)
 
 if __name__ == "__main__":
     from time import time
