@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
                          mid_sections=rpm_params["mid_sections"],
                          denomination=rpm_params["denomination"],
                          visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont(f"{font_group}", 21 * scale,
+                         label_font=QFont(f"{font_group}", 19 * scale,
                                           font_weight),
                          angle_offset=pi,
                          angle_range=big_dial_angle_range,
@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
 
         color_black = QColor(0, 0, 0)
         color_green = QColor(0, 255, 0)
-        transform = QTransform().rotate(180)
+        vertical_mirror = QTransform().rotate(180)
 
         right_arrow_image_black = QImage("resources/turn-signal-arrow.png")
         change_image_color(right_arrow_image_black, color_black)
@@ -117,19 +117,21 @@ class MainWindow(QMainWindow):
         left_arrow_image_black = QImage("resources/turn-signal-arrow.png")
         change_image_color(left_arrow_image_black, color_black)
         left_arrow_image_black = QPixmap.fromImage(left_arrow_image_black)
-        left_arrow_image_black = left_arrow_image_black.transformed(transform)
+        left_arrow_image_black = left_arrow_image_black.transformed(
+            vertical_mirror)
 
         left_arrow_image_green = QImage("resources/turn-signal-arrow.png")
         change_image_color(left_arrow_image_green, color_green)
         left_arrow_image_green = QPixmap.fromImage(left_arrow_image_green)
-        left_arrow_image_green = left_arrow_image_green.transformed(transform)
+        left_arrow_image_green = left_arrow_image_green.transformed(
+            vertical_mirror)
 
         self.right_arrow_image_black = right_arrow_image_black
         self.right_arrow_image_green = right_arrow_image_green
         self.left_arrow_image_black = left_arrow_image_black
         self.left_arrow_image_green = left_arrow_image_green
 
-        label_font = QFont("Sans-serif", 17 * scale)
+        label_font = QFont("Sans-serif", 22 * scale)
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
@@ -157,18 +159,6 @@ class MainWindow(QMainWindow):
         left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
         left_turn_signal_image.show()
 
-        rpm_label = QLabel(self)
-        rpm_label.setStyleSheet("background:transparent")
-        rpm_label.setText(f"{0}")
-        rpm_label.move(int(cluster_size / 4 + cluster_size / 2 - 25 * scale),
-                       int(screen_size[1] / 2 - cluster_size / 2 + 200 * scale))
-        rpm_label.setStyleSheet("background:transparent")
-        rpm_label.setFont(label_font)
-        rpm_label.setPalette(palette)
-        rpm_label.setFont(label_font)
-        rpm_label.resize(200 * scale, 200 * scale)
-        rpm_label.show()
-
         speed_label_size = 200
 
         speed_label = QLabel(self)
@@ -184,6 +174,75 @@ class MainWindow(QMainWindow):
         speed_label.resize(speed_label_size * scale, speed_label_size * scale)
         speed_label.show()
 
+        rpm_label_size = speed_label_size
+
+        rpm_label = QLabel(self)
+        rpm_label.setStyleSheet("background:transparent")
+        rpm_label.setText(f"{0}")
+        rpm_label.move(
+            int(cluster_size / 4 + cluster_size / 2 - 25 * scale),
+            int(screen_size[1] / 2 - cluster_size / 2 +
+                rpm_label_size * scale))
+        rpm_label.setFont(label_font)
+        rpm_label.setPalette(palette)
+        rpm_label.resize(rpm_label_size * scale, rpm_label_size * scale)
+        rpm_label.show()
+
+        label_font = QFont("Sans-serif", 16 * scale)
+        color = QColor(255, 255, 255)
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.WindowText, color)
+
+        oil_temp_label = QLabel(self)
+        oil_temp_label.setStyleSheet("background:transparent")
+        oil_temp_label.setText(f"Oil Temp: {0} F")
+        oil_temp_label.setFont(label_font)
+        oil_temp_label.setPalette(palette)
+        oil_temp_label.resize(300 * scale, rpm_label_size * scale)
+        oil_temp_label.move(
+            int(screen_size[0] / 2 -
+                oil_temp_label.frameGeometry().width() / 2 * scale),
+            int(screen_size[1] / 2 -
+                oil_temp_label.frameGeometry().height() / 2 * scale))
+        oil_temp_label.show()
+
+        coolant_temp_label = QLabel(self)
+        coolant_temp_label.setStyleSheet("background:transparent")
+        coolant_temp_label.setText(f"Coolant Temp: {0} F")
+        coolant_temp_label.setFont(label_font)
+        coolant_temp_label.setPalette(palette)
+        coolant_temp_label.resize(300 * scale, 75 * scale)
+        coolant_temp_label.move(
+            int(screen_size[0] / 2 -
+                coolant_temp_label.frameGeometry().width() / 2 * scale),
+            int(screen_size[1] / 2 -
+                coolant_temp_label.frameGeometry().height() * scale))
+        coolant_temp_label.show()
+
+        label_font = QFont("Sans-serif", 17 * scale)
+        color = QColor(255, 0, 0)
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.WindowText, color)
+
+        hand_brake_label = QLabel(self)
+        hand_brake_label.setStyleSheet("background:transparent")
+        hand_brake_label.setText(f"BRAKE")
+        hand_brake_label.setFont(label_font)
+        hand_brake_label.setPalette(palette)
+        hand_brake_label.resize(80 * scale, 75 * scale)
+        hand_brake_label.move(
+            int(screen_size[0] - cluster_size - cluster_size / 4 +
+                cluster_size / 2 -
+                hand_brake_label.frameGeometry().width() / 2 * scale),
+            int(screen_size[1] / 2 - cluster_size / 2 +
+                speed_label_size * scale +
+                hand_brake_label.frameGeometry().height() * 4 * scale))
+        hand_brake_label.show()
+
+        self.oil_temp_label = oil_temp_label
+        self.coolant_temp_label = coolant_temp_label
+        self.hand_brake_label = hand_brake_label
+
         self.rpm_label = rpm_label
         self.speed_label = speed_label
         self.right_turn_signal_image = right_turn_signal_image
@@ -196,6 +255,7 @@ class Application(QApplication):
 
     awakened = pyqtSignal()
     started = pyqtSignal()
+
     cluster_vars = {
         "rpm": 0,
         "vehicle_speed": 0,
@@ -204,19 +264,26 @@ class Application(QApplication):
             "right_turn_signal": 0
         }
     }
+
     awaken_sequence_duration_ms = 2500
     awaken_sequence_steps = 2000
+
+    update_fuel_level_interval = 1
+    last_updated_fuel = time()
 
     def __init__(self, scale=1):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow(scale)
-        color = (100, 100, 100)
+        background_color = (100, 100, 100)
         primary_container.setStyleSheet(
-            f"background-color: rgb({color[0]}, {color[1]}, {color[2]})")
+            f"background-color: rgb({background_color[0]}, {background_color[1]}, {background_color[2]})"
+        )
 
         self.start_time = time()
         self.primary_container = primary_container
+
+        self.update_funcs = {}
 
         self.awaken_clusters()
 
@@ -262,10 +329,10 @@ class Application(QApplication):
 
     def clusterUpdate(self):
         speed = self.cluster_vars["vehicle_speed"]
-        #rpm = self.cluster_vars["rpm"]
+        rpm = self.cluster_vars["rpm"]
         #self.primary_container.tachometer.setUnit(rpm)
         #self.primary_container.speedometer.setUnit(speed)
-        #self.primary_container.rpm_label.setText(f"{rpm}")
+        self.primary_container.rpm_label.setText(f"{rpm}")
         self.primary_container.speed_label.setText(f"{speed}")
 
         turn_signals = self.cluster_vars["turn_signals"]
@@ -289,10 +356,10 @@ class Application(QApplication):
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(f"{val}")
-            #self.primary_container.speedometer.setUnit(val)
-        if var == "rpm":
+            self.primary_container.speedometer.setUnit(val)
+        elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            #self.primary_container.tachometer.setUnit(val)
+            self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
@@ -307,6 +374,24 @@ class Application(QApplication):
             else:
                 self.primary_container.right_turn_signal_image.setPixmap(
                     self.primary_container.right_arrow_image_black)
+        elif var == "fuel_level":
+            if time(
+            ) - self.last_updated_fuel >= self.update_fuel_level_interval:
+                self.last_updated_fuel = time()
+        elif var == "oil_temp":
+            self.primary_container.oil_temp_label.setText(f"Oil Temp: {val} F")
+        elif var == "coolant_temp":
+            self.primary_container.coolant_temp_label.setText(
+                f"Coolant Temp: {val} F")
+        elif var == "handbrake":
+            if val:
+                self.primary_container.hand_brake_label.setText("Brake")
+            else:
+                self.primary_container.hand_brake_label.setText("")
+        elif var == "neutral_switch":
+            print(f"Neutral: {val}")
+        elif var == "reverse_switch":
+            print(f"Reverse: {val}")
 
 
 if __name__ == "__main__":
@@ -314,6 +399,8 @@ if __name__ == "__main__":
 
     if system == "Darwin":
         scale = 1 / 1.3325
+    elif system == "Windows":
+        scale = 1 / 1.25
 
     screen_size = [1920 * scale, 720 * scale]
     cluster_size *= scale
@@ -324,21 +411,23 @@ if __name__ == "__main__":
         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x30, 0x00, 0x00],  # hazards
         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00],  # right turn
         [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00],  # left turn
-        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # everything off
+        [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]  # everything off
     ]
 
     import can_data
 
     def emulate_can():
         app.updateVar("vehicle_speed",
-                        randrange(speed_params["min"], speed_params["max"]))
-        app.updateVar("rpm", randrange(rpm_params["min"],
-                                        rpm_params["max"]))
+                      randrange(speed_params["min"], speed_params["max"] + 1))
+        app.updateVar("rpm", randrange(rpm_params["min"], rpm_params["max"] + 1))
         app.updateVar(
             "turn_signals",
             can_data.turn_signals(turn_signal_data[randrange(
-                0,
-                len(turn_signal_data) - 1)]))
+                0, len(turn_signal_data))]))
+        app.updateVar("handbrake", randrange(0, 2))
+        app.updateVar("oil_temp", randrange(0, 220 + 1))
+        app.updateVar("coolant_temp", randrange(0, 220 + 1))
+
 
     def run():
         timer = QTimer(app)
@@ -377,6 +466,7 @@ if __name__ == "__main__":
             using_pican = False
 
         if using_pican:
+
             def read_can():
                 msg = can_app.get_data()
 
