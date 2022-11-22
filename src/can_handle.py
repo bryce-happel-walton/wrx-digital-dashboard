@@ -5,28 +5,35 @@ from util import event
 from inspect import getmembers, isfunction
 
 can_ids = {
-    #'left_sw_stock': 0x152,
     'turn_signals': 0x282,
-    #'throttle_pedal': 0x140,
+
     'vehicle_speed': 0x0D1,
-    #'wheel_speeds': 0x0D4,
+    'brake_pedal_position': 0x0D1,
+
+    'wheel_speeds': 0x0D4,
+
     #'door_states': 0x375,
     #'steering_wheel_position': 0x002,
     #'climate_control': 0x281,
-    'rpm': 0x141
+
+    'coolant_temp': 0x360,
+    'oil_temp': 0x360,
+
+    'throttle_pedal_position': 0x140,
+    'throttle_plate_position': 0x140,
+
+    'headlights': 0x152,
+    'handbrake': 0x152,
+    'reverse_switch': 0x152,
+    'brake_switch': 0x152,
+
+    'clutch_switch': 0x144,
+
+    'rpm': 0x141,
+    'neutral_switch': 0x141
 }
 
 parsers = {x[0]: x[1] for x in getmembers(can_data, isfunction)}
-
-can_id_keys = list(can_ids.keys())
-can_id_values = list(can_ids.values())
-
-
-def get_can_index(id: int):
-    if not id in can_id_values:
-        return None
-    return can_id_keys[can_id_values.index(id)]
-
 
 class CanApplication():
 
@@ -44,9 +51,9 @@ class CanApplication():
         id = msg.arbitration_id
         data = msg.data
 
-        can_str_id = get_can_index(id)
-        if can_str_id in parsers:
-            self.updated.emit(can_str_id, parsers[can_str_id](data))
+        for i, v in can_ids.items():
+            if v == id and i in parsers:
+                self.updated.emit(i, parsers[i](data))
 
 
 if __name__ == "__main__":
@@ -54,6 +61,24 @@ if __name__ == "__main__":
     import platform
 
     if platform != "Linux":
+
+        def parse_test(msg):
+            id = msg.arbitration_id
+            data = msg.data
+
+            for i, v in can_ids.items():
+                if v == id and i in parsers:
+                    print(i, parsers[i](data))
+
+        # parse_test(
+        #     can.Message(arbitration_id=0x141,
+        #                 data=bytearray(
+        #                     [0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00])))
+
+        for i, v in can_ids.items():
+            if i in parsers:
+                print(i)
+
         exit()
 
     try:
