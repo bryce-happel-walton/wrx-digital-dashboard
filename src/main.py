@@ -1,7 +1,7 @@
 # formatted with yapf
 # Bryce Happel Walton
 
-#! This program is far too slow on the RPi
+#! This program may be too slow on the RPi
 
 import platform, sys, subprocess
 from math import pi
