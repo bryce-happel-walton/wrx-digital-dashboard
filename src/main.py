@@ -38,7 +38,7 @@ coolant_temp_params = {
 }
 
 visual_update_intervals = {
-    "coolant_temp": 0.5,
+    "coolant_temp": 0.75,
     "oil_temp": 0.5,
     "rpm": 1 / screen_refresh_rate,
     "vehicle_speed": 1 / screen_refresh_rate
@@ -46,7 +46,7 @@ visual_update_intervals = {
 
 cluster_size = 660
 
-c_to_f_scale = 3 / 5
+c_to_f_scale = 9 / 5
 c_to_f_offset = 32
 kph_to_mph = 0.62137119
 
@@ -242,13 +242,13 @@ class MainWindow(QMainWindow):
         oil_temp_label.setText(f"Oil Temp: {0} F")
         oil_temp_label.setFont(label_font)
         oil_temp_label.setPalette(palette)
-        oil_temp_label.resize(300 * scale, rpm_label_size * scale)
+        oil_temp_label.resize(150 * scale, rpm_label_size * scale)
+        oil_temp_label.show()
         oil_temp_label.move(
             int(screen_size[0] / 2 -
                 oil_temp_label.frameGeometry().width() / 2 * scale),
             int(screen_size[1] / 2 -
                 oil_temp_label.frameGeometry().height() / 2 * scale))
-        oil_temp_label.show()
 
         label_font = QFont("Sans-serif", 17 * scale)
         color = QColor(255, 0, 0)
@@ -357,19 +357,21 @@ class Application(QApplication):
         t = time()
         self.cluster_vars[var] = val
 
-        if var in visual_update_intervals and var in self.cluster_vars_update_ts and t - self.cluster_vars_update_ts[
-                var] <= visual_update_intervals[var]:
+        if var in visual_update_intervals and var in self.cluster_vars_update_ts and (t - self.cluster_vars_update_ts[
+                var]) <= visual_update_intervals[var]:
             return
 
-        self.cluster_vars_update_ts[var] = t
-
         if var == "vehicle_speed":
+            if var in self.cluster_vars_update_ts:
+                print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
+                      visual_update_intervals[var],
+                      (t - self.cluster_vars_update_ts[var]) >= visual_update_intervals[var])
             self.primary_container.speed_label.setText(
                 f"{val * kph_to_mph:.0f}")
-            self.primary_container.speedometer.setUnit(val)
+            # self.primary_container.speedometer.setUnit(val)
         elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            self.primary_container.tachometer.setUnit(val)
+            # self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
@@ -409,6 +411,7 @@ class Application(QApplication):
             pass
 
         self.cluster_vars[var] = val
+        self.cluster_vars_update_ts[var] = t
 
 
 if __name__ == "__main__":
@@ -443,11 +446,11 @@ if __name__ == "__main__":
             can_data.turn_signals(turn_signal_data[randrange(
                 0, len(turn_signal_data))]))
         app.updateVar("handbrake", randrange(0, 2))
-        app.updateVar("oil_temp", randrange(0, 220 + 1))
+        app.updateVar("oil_temp", randrange(0, 104 + 1))
         app.updateVar(
             "coolant_temp",
             randrange(coolant_temp_params["min"],
-                      coolant_temp_params["max"] + 1))
+                      104 + 1))
 
     def run():
         timer = QTimer(app)
