@@ -58,7 +58,8 @@ class Dial(QWidget):
                  angle_range=2 * pi - pi / 2,
                  angle_offset=pi - pi / 4,
                  blueline=-1,
-                 no_font=False):
+                 no_font=False,
+                 dymanic_mask=False):
         super().__init__(parent)
 
         visual_min_unit = floor(min_unit / visual_num_gap)
@@ -124,20 +125,25 @@ class Dial(QWidget):
         unit_dial = QFrame(frame)
         unit_dial.resize(section_x_radius + x_rad_offset - section_radius * 2,
                          section_y_radius + y_rad_offset - section_radius * 2)
+        self.dial_corner_radius = int(unit_dial.geometry().width() / 2)
+        unit_dial.setStyleSheet(f"border-radius: {self.dial_corner_radius}")
+        unit_dial.show()
         unit_dial.move(
             int(x_rad_offset - unit_dial.frameGeometry().width() / 2),
             int(y_rad_offset - unit_dial.frameGeometry().height() / 2))
-        unit_dial.show()
 
         unit_dial_top = QFrame(frame)
         unit_dial_top.resize(unit_dial.frameGeometry().size())
         unit_dial_top.show()
+        unit_dial_top.setStyleSheet(f"border-radius: {self.dial_corner_radius}")
         unit_dial_top.move(
             int(x_rad_offset - unit_dial_top.frameGeometry().width() / 2),
             int(y_rad_offset - unit_dial_top.frameGeometry().height() / 2))
 
         unit_dial_bottom = QFrame(frame)
         unit_dial_bottom.resize(unit_dial.frameGeometry().size())
+        unit_dial_bottom.setStyleSheet(
+            f"border-radius: {self.dial_corner_radius}")
         unit_dial_bottom.move(
             x_rad_offset - unit_dial_bottom.frameGeometry().width() / 2,
             y_rad_offset - unit_dial_bottom.frameGeometry().height() / 2)
@@ -146,25 +152,34 @@ class Dial(QWidget):
         unit_dial_inner_border = QFrame(frame)
         unit_dial_inner_border.resize(dial_inner_border_rad,
                                       dial_inner_border_rad)
+        self.unit_dial_inner_border_radius = int(
+            unit_dial_inner_border.geometry().width() / 2)
         unit_dial_inner_border.move(
             int(x_rad_offset -
                 unit_dial_inner_border.frameGeometry().width() / 2),
             int(y_rad_offset -
                 unit_dial_inner_border.frameGeometry().height() / 2))
+        unit_dial_inner_border.setStyleSheet(f"border-radius: {self.unit_dial_inner_border_radius}")
         unit_dial_inner_border.show()
-
-        gradient_angle = (self.max_unit - self.max_unit *
-                          (self.rad_range_a)) / self.unit_range
 
         unit_dial_mask = QFrame(frame)
         unit_dial_mask.resize(dial_mask_rad, dial_mask_rad)
         unit_dial_mask.move(
             x_rad_offset - unit_dial_mask.frameGeometry().width() / 2,
             y_rad_offset - unit_dial_mask.frameGeometry().height() / 2)
-        unit_dial_mask.setStyleSheet(
-            f"border-radius: {int(unit_dial_mask.geometry().width()/2)}px;\
-             background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{-(self.dial_offset_angle_deg)}, stop:{gradient_angle - 0.001} rgba(255, 255, 255, 0%), stop:{gradient_angle} rgb({background_color[0]}, {background_color[1]}, {background_color[2]}));"
-        )
+
+        if dymanic_mask:
+            gradient_angle = (self.max_unit - self.max_unit * self.rad_range_a
+                              - pi) / (self.unit_range)
+
+            unit_dial_mask.setStyleSheet(
+                f"border-radius: {int(unit_dial_mask.geometry().width()/2)}px;\
+                background-color: qconicalgradient(cx:0.5, cy:0.5, angle:{-(self.dial_offset_angle_deg + (self.rad_range_a - pi) / 2)}, stop:{gradient_angle - 0.001} rgba(255, 255, 255, 0%), stop:{gradient_angle} rgb({background_color[0]}, {background_color[1]}, {background_color[2]}));"
+            )
+        else:
+            unit_dial_mask.setStyleSheet(
+                f"border-radius: {int(unit_dial_mask.geometry().width()/2)}px; background-color: rgb({background_color[0]}, {background_color[1]}, {background_color[2]});"
+            )
         unit_dial_mask.show()
 
         self.unit_dial_inner_border = unit_dial_inner_border
@@ -172,10 +187,6 @@ class Dial(QWidget):
         self.unit_dial_top = unit_dial_top
         self.unit_dial_bottom = unit_dial_bottom
         self.frame = frame
-
-        self.dial_corner_radius = int(self.unit_dial.geometry().width() / 2)
-        self.unit_dial_inner_border_radius = int(
-            self.unit_dial_inner_border.geometry().width() / 2)
 
         color = QColor(*default_color)
         palette = QPalette()
