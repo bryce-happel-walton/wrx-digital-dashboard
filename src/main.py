@@ -16,7 +16,10 @@ from can_handle import CanApplication
 from dial import Dial
 
 system = platform.system()
+
 screen_size = [1920, 720]
+screen_refresh_rate = 75
+
 rpm_params = {
     "min": 0,
     "max": 8000,
@@ -25,12 +28,28 @@ rpm_params = {
     "denomination": 1000
 }
 speed_params = {"min": 0, "max": 180, "units": "MPH", "mid_sections": 10}
+coolant_temp_params = {
+    "min": 0,
+    "max": 230,
+    "units": "F",
+    "mid_sections": 3,
+    "redline": 230 - 46,
+    "blueline": 80
+}
 
-cluster_size = 600
+visual_update_intervals = {
+    "coolant_temp": 0.5,
+    "oil_temp": 0.5,
+    "rpm": 1 / screen_refresh_rate,
+    "vehicle_speed": 1 / screen_refresh_rate
+}  # save rendering where we can
 
-c_to_f_scale = 3/5
+cluster_size = 650
+
+c_to_f_scale = 3 / 5
 c_to_f_offset = 32
 kph_to_mph = 0.62137119
+
 
 def change_image_color(image: QImage, color: QColor):
     for x in range(image.width()):
@@ -61,8 +80,7 @@ class MainWindow(QMainWindow):
                          mid_sections=rpm_params["mid_sections"],
                          denomination=rpm_params["denomination"],
                          visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont(f"{font_group}", 19 * scale,
-                                          font_weight),
+                         label_font=QFont(font_group, 19 * scale, font_weight),
                          angle_offset=pi,
                          angle_range=big_dial_angle_range,
                          buffer_radius=20 * scale,
@@ -71,14 +89,11 @@ class MainWindow(QMainWindow):
                          minor_section_rad_offset=3 * scale,
                          middle_section_rad_offset=43 * scale,
                          major_section_rad_offset=40 * scale,
-                         dial_mask_rad=290 * scale,
+                         dial_mask_rad=360 * scale,
                          dial_inner_border_rad=4 * scale)
-
         rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
-
         rpm_gauge.show()
-        self.tachometer = rpm_gauge
 
         speed_gauge = Dial(self,
                            size=cluster_size,
@@ -86,9 +101,8 @@ class MainWindow(QMainWindow):
                            max_unit=speed_params["max"],
                            redline=speed_params["max"] + 1,
                            mid_sections=speed_params["mid_sections"],
-                           units=speed_params["units"],
                            visual_num_gap=20,
-                           label_font=QFont(f"{font_group}", 18 * scale,
+                           label_font=QFont(font_group, 18 * scale,
                                             font_weight),
                            angle_offset=pi,
                            angle_range=big_dial_angle_range,
@@ -98,12 +112,37 @@ class MainWindow(QMainWindow):
                            minor_section_rad_offset=3 * scale,
                            middle_section_rad_offset=43 * scale,
                            major_section_rad_offset=40 * scale,
-                           dial_mask_rad=290 * scale,
+                           dial_mask_rad=360 * scale,
                            dial_inner_border_rad=4 * scale)
-
         speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
         speed_gauge.show()
+
+        coolant_temp_gauge = Dial(
+            self,
+            size=cluster_size,
+            min_unit=coolant_temp_params["min"],
+            max_unit=coolant_temp_params["max"],
+            redline=coolant_temp_params["redline"],
+            blueline=coolant_temp_params["blueline"],
+            blueline_color=[125, 125, 255],
+            mid_sections=coolant_temp_params["mid_sections"],
+            no_font=True,
+            visual_num_gap=28.75,
+            angle_offset=big_dial_angle_range - pi + pi / 5,
+            angle_range=2 * pi - big_dial_angle_range - pi / 5 * 2,
+            buffer_radius=20 * scale,
+            num_radius=50 * scale,
+            section_radius=15 * scale,
+            minor_section_rad_offset=3 * scale,
+            middle_section_rad_offset=58 * scale,
+            major_section_rad_offset=40 * scale,
+            dial_mask_rad=525 * scale,
+            dial_inner_border_rad=3 * scale)
+        coolant_temp_gauge.frame.setStyleSheet("background:transparent")
+        coolant_temp_gauge.move(int(cluster_size / 4),
+                                int(screen_size[1] / 2 - cluster_size / 2))
+        coolant_temp_gauge.show()
 
         color_black = QColor(0, 0, 0)
         color_green = QColor(0, 255, 0)
@@ -209,19 +248,6 @@ class MainWindow(QMainWindow):
                 oil_temp_label.frameGeometry().height() / 2 * scale))
         oil_temp_label.show()
 
-        coolant_temp_label = QLabel(self)
-        coolant_temp_label.setStyleSheet("background:transparent")
-        coolant_temp_label.setText(f"Coolant Temp: {0} F")
-        coolant_temp_label.setFont(label_font)
-        coolant_temp_label.setPalette(palette)
-        coolant_temp_label.resize(300 * scale, 75 * scale)
-        coolant_temp_label.move(
-            int(screen_size[0] / 2 -
-                coolant_temp_label.frameGeometry().width() / 2 * scale),
-            int(screen_size[1] / 2 -
-                coolant_temp_label.frameGeometry().height() * scale))
-        coolant_temp_label.show()
-
         label_font = QFont("Sans-serif", 17 * scale)
         color = QColor(255, 0, 0)
         palette = QPalette()
@@ -243,15 +269,17 @@ class MainWindow(QMainWindow):
         hand_brake_label.show()
 
         self.oil_temp_label = oil_temp_label
-        self.coolant_temp_label = coolant_temp_label
         self.hand_brake_label = hand_brake_label
 
         self.rpm_label = rpm_label
         self.speed_label = speed_label
+
         self.right_turn_signal_image = right_turn_signal_image
         self.left_turn_signal_image = left_turn_signal_image
 
         self.speedometer = speed_gauge
+        self.tachometer = rpm_gauge
+        self.coolant_temp_gauge = coolant_temp_gauge
 
 
 class Application(QApplication):
@@ -259,14 +287,8 @@ class Application(QApplication):
     awakened = pyqtSignal()
     started = pyqtSignal()
 
-    cluster_vars = {
-        "rpm": 0,
-        "vehicle_speed": 0,
-        "turn_signals": {
-            "left_turn_signal": 0,
-            "right_turn_signal": 0
-        }
-    }
+    cluster_vars = {}
+    cluster_vars_update_ts = {}
 
     awaken_sequence_duration_ms = 2500
     awaken_sequence_steps = 2000
@@ -330,39 +352,23 @@ class Application(QApplication):
         timer.timeout.connect(dialMove)
         timer.start(t_step)
 
-    def clusterUpdate(self):
-        speed = self.cluster_vars["vehicle_speed"]
-        rpm = self.cluster_vars["rpm"]
-        #self.primary_container.tachometer.setUnit(rpm)
-        #self.primary_container.speedometer.setUnit(speed)
-        self.primary_container.rpm_label.setText(f"{rpm}")
-        self.primary_container.speed_label.setText(f"{speed}")
-
-        turn_signals = self.cluster_vars["turn_signals"]
-        if turn_signals["left_turn_signal"]:
-            self.primary_container.left_turn_signal_image.setPixmap(
-                self.primary_container.left_arrow_image_green)
-        else:
-            self.primary_container.left_turn_signal_image.setPixmap(
-                self.primary_container.left_arrow_image_black)
-
-        if turn_signals["right_turn_signal"]:
-            self.primary_container.right_turn_signal_image.setPixmap(
-                self.primary_container.right_arrow_image_green)
-        else:
-            self.primary_container.right_turn_signal_image.setPixmap(
-                self.primary_container.right_arrow_image_black)
-
     def updateVar(self, var, val):
+        t = time()
         self.cluster_vars[var] = val
-        #self.clusterUpdate()
+
+        if var in visual_update_intervals and var in self.cluster_vars_update_ts and t - self.cluster_vars_update_ts[
+                var] <= visual_update_intervals[var]:
+            return
+
+        self.cluster_vars_update_ts[var] = t
 
         if var == "vehicle_speed":
-            self.primary_container.speed_label.setText(f"{val * kph_to_mph:.0f}")
-            #self.primary_container.speedometer.setUnit(val)
+            self.primary_container.speed_label.setText(
+                f"{val * kph_to_mph:.0f}")
+            self.primary_container.speedometer.setUnit(val)
         elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            #self.primary_container.tachometer.setUnit(val)
+            self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
@@ -383,10 +389,12 @@ class Application(QApplication):
                 self.last_updated_fuel = time()
         #todo: make config file of sorts that has user selected units
         elif var == "oil_temp":
-            self.primary_container.oil_temp_label.setText(f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
+            self.primary_container.oil_temp_label.setText(
+                f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
         elif var == "coolant_temp":
-            self.primary_container.coolant_temp_label.setText(
-                f"Coolant Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
+            self.primary_container.coolant_temp_gauge.setUnit(val *
+                                                              c_to_f_scale +
+                                                              c_to_f_offset)
         elif var == "handbrake":
             if val:
                 self.primary_container.hand_brake_label.setText("BRAKE")
@@ -398,6 +406,8 @@ class Application(QApplication):
         elif var == "reverse_switch":
             #print(f"Reverse: {val}")
             pass
+
+        self.cluster_vars[var] = val
 
 
 if __name__ == "__main__":
@@ -433,12 +443,15 @@ if __name__ == "__main__":
                 0, len(turn_signal_data))]))
         app.updateVar("handbrake", randrange(0, 2))
         app.updateVar("oil_temp", randrange(0, 220 + 1))
-        app.updateVar("coolant_temp", randrange(0, 220 + 1))
+        app.updateVar(
+            "coolant_temp",
+            randrange(coolant_temp_params["min"],
+                      coolant_temp_params["max"] + 1))
 
     def run():
         timer = QTimer(app)
         timer.timeout.connect(emulate_can)
-        timer.start(0.1)
+        timer.start(1/screen_refresh_rate)
 
     if system != "Linux":
         if len(screens) > 1:
