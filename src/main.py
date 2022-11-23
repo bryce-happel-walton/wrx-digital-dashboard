@@ -18,7 +18,7 @@ from dial import Dial
 system = platform.system()
 
 screen_size = [1920, 720]
-screen_refresh_rate = 75
+screen_refresh_rate = 75 if system == "Linux" else 144
 
 rpm_params = {
     "min": 0,
@@ -44,7 +44,7 @@ visual_update_intervals = {
     "vehicle_speed": 1 / screen_refresh_rate
 }  # save rendering where we can
 
-cluster_size = 650
+cluster_size = 660
 
 c_to_f_scale = 3 / 5
 c_to_f_offset = 32
@@ -72,6 +72,33 @@ class MainWindow(QMainWindow):
         font_weight = 600
         big_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
 
+        coolant_temp_gauge = Dial(
+            self,
+            size=cluster_size,
+            min_unit=coolant_temp_params["min"],
+            max_unit=coolant_temp_params["max"],
+            redline=coolant_temp_params["redline"],
+            blueline=coolant_temp_params["blueline"],
+            blueline_color=[125, 125, 255],
+            dial_opacity="10%",
+            mid_sections=coolant_temp_params["mid_sections"],
+            no_font=True,
+            visual_num_gap=28.75,
+            angle_offset=big_dial_angle_range - pi + pi / 5,
+            angle_range=2 * pi - big_dial_angle_range - pi / 5 * 2,
+            buffer_radius=20 * scale,
+            num_radius=50 * scale,
+            section_radius=15 * scale,
+            minor_section_rad_offset=3 * scale,
+            middle_section_rad_offset=58 * scale,
+            major_section_rad_offset=40 * scale,
+            dial_mask_rad=525 * scale,
+            dial_inner_border_rad=3 * scale,
+            dymanic_mask=True)
+        coolant_temp_gauge.move(int(cluster_size / 4),
+                                int(screen_size[1] / 2 - cluster_size / 2))
+        coolant_temp_gauge.show()
+
         rpm_gauge = Dial(self,
                          size=cluster_size,
                          min_unit=rpm_params["min"],
@@ -91,6 +118,7 @@ class MainWindow(QMainWindow):
                          major_section_rad_offset=40 * scale,
                          dial_mask_rad=360 * scale,
                          dial_inner_border_rad=4 * scale)
+        rpm_gauge.frame.setStyleSheet("background:transparent")
         rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
         rpm_gauge.show()
@@ -117,32 +145,6 @@ class MainWindow(QMainWindow):
         speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
         speed_gauge.show()
-
-        coolant_temp_gauge = Dial(
-            self,
-            size=cluster_size,
-            min_unit=coolant_temp_params["min"],
-            max_unit=coolant_temp_params["max"],
-            redline=coolant_temp_params["redline"],
-            blueline=coolant_temp_params["blueline"],
-            blueline_color=[125, 125, 255],
-            mid_sections=coolant_temp_params["mid_sections"],
-            no_font=True,
-            visual_num_gap=28.75,
-            angle_offset=big_dial_angle_range - pi + pi / 5,
-            angle_range=2 * pi - big_dial_angle_range - pi / 5 * 2,
-            buffer_radius=20 * scale,
-            num_radius=50 * scale,
-            section_radius=15 * scale,
-            minor_section_rad_offset=3 * scale,
-            middle_section_rad_offset=58 * scale,
-            major_section_rad_offset=40 * scale,
-            dial_mask_rad=525 * scale,
-            dial_inner_border_rad=3 * scale)
-        coolant_temp_gauge.frame.setStyleSheet("background:transparent")
-        coolant_temp_gauge.move(int(cluster_size / 4),
-                                int(screen_size[1] / 2 - cluster_size / 2))
-        coolant_temp_gauge.show()
 
         color_black = QColor(0, 0, 0)
         color_green = QColor(0, 255, 0)
@@ -291,7 +293,6 @@ class Application(QApplication):
     cluster_vars_update_ts = {}
 
     awaken_sequence_duration_ms = 2500
-    awaken_sequence_steps = 2000
 
     update_fuel_level_interval = 1
     last_updated_fuel = time()
@@ -318,7 +319,7 @@ class Application(QApplication):
         self._awaken_a = 0
         self._awaken_t = 0
 
-        t_step = self.awaken_sequence_duration_ms / self.awaken_sequence_steps
+        t_step = self.awaken_sequence_duration_ms / screen_refresh_rate
         a_step = t_step / self.awaken_sequence_duration_ms
 
         self.primary_container.tachometer.setDial(0)
@@ -416,7 +417,7 @@ if __name__ == "__main__":
     if system == "Darwin":
         scale = 1 / 1.3325
     elif system == "Windows":
-        scale = 1 / 1.25
+        scale = 1# / 1.25
 
     screen_size = [1920 * scale, 720 * scale]
     cluster_size *= scale
