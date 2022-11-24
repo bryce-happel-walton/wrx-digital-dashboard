@@ -12,13 +12,13 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QFont, QPixmap, QPalette, QColor, QImage, QTransform
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 
-from can_handle import CanApplication
+from can_handle import CanApplication, can_ids
 from dial import Dial
 
 system = platform.system()
 
 screen_size = [1920, 720]
-screen_refresh_rate = 75 if system == "Linux" else 144
+screen_refresh_rate = 75 if system == "Linux" else 60 if system == "Darwin" else 144
 
 rpm_params = {
     "min": 0,
@@ -39,10 +39,12 @@ coolant_temp_params = {
 
 visual_update_intervals = {
     "coolant_temp": 0.75,
-    "oil_temp": 0.5,
-    "rpm": 1 / screen_refresh_rate,
-    "vehicle_speed": 1 / screen_refresh_rate
-}  # save rendering where we can
+    "oil_temp": 0.75
+}
+
+for i in can_ids.keys():
+    if not i in visual_update_intervals:
+        visual_update_intervals[i] = 1 / screen_refresh_rate
 
 cluster_size = 660
 
@@ -290,12 +292,9 @@ class Application(QApplication):
     started = pyqtSignal()
 
     cluster_vars = {}
-    cluster_vars_update_ts = {}
+    cluster_vars_update_ts = {i: time() for i in visual_update_intervals.keys()}
 
     awaken_sequence_duration_ms = 2500
-
-    update_fuel_level_interval = 1
-    last_updated_fuel = time()
 
     def __init__(self, scale=1):
         super().__init__([])
@@ -357,21 +356,21 @@ class Application(QApplication):
         t = time()
         self.cluster_vars[var] = val
 
-        if var in visual_update_intervals and var in self.cluster_vars_update_ts and (t - self.cluster_vars_update_ts[
-                var]) <= visual_update_intervals[var]:
+        if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
             return
 
+        print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
+                visual_update_intervals[var],
+                (t - self.cluster_vars_update_ts[var]) >=
+                visual_update_intervals[var])
+
         if var == "vehicle_speed":
-            if var in self.cluster_vars_update_ts:
-                print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
-                      visual_update_intervals[var],
-                      (t - self.cluster_vars_update_ts[var]) >= visual_update_intervals[var])
             self.primary_container.speed_label.setText(
                 f"{val * kph_to_mph:.0f}")
-            # self.primary_container.speedometer.setUnit(val)
+            #self.primary_container.speedometer.setUnit(val)
         elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            # self.primary_container.tachometer.setUnit(val)
+            #self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
                 self.primary_container.left_turn_signal_image.setPixmap(
