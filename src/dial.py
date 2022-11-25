@@ -1,5 +1,6 @@
 from math import ceil, cos, degrees, floor, pi, sin
 from util import clamp
+import platform
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont, QPainter, QPalette
@@ -7,6 +8,8 @@ from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 #todo: make resize event redraw everything
 #todo: make updating center label with unit
+
+system = platform.system()
 
 
 class Line(QWidget):
@@ -92,7 +95,6 @@ class Dial(QWidget):
             f"background-color: rgb({background_color[0]}, {background_color[1]}, {background_color[2]}); border-radius: {int(size/2)}px"
         )
         frame.resize(self.geometry().size())
-        frame.show()
 
         rad_offset = angle_offset
         rad_step = angle_range / visual_max_unit
@@ -123,19 +125,19 @@ class Dial(QWidget):
         y_rad_offset = frame.frameGeometry().height() / 2
 
         unit_dial = QFrame(frame)
-        unit_dial.resize(int(section_x_radius + x_rad_offset - section_radius * 2),
-                         int(section_y_radius + y_rad_offset - section_radius * 2))
+        unit_dial.resize(
+            int(section_x_radius + x_rad_offset - section_radius * 2),
+            int(section_y_radius + y_rad_offset - section_radius * 2))
         self.dial_corner_radius = int(unit_dial.geometry().width() / 2)
         unit_dial.setStyleSheet(f"border-radius: {self.dial_corner_radius}")
-        unit_dial.show()
         unit_dial.move(
             int(x_rad_offset - unit_dial.frameGeometry().width() / 2),
             int(y_rad_offset - unit_dial.frameGeometry().height() / 2))
 
         unit_dial_top = QFrame(frame)
         unit_dial_top.resize(unit_dial.frameGeometry().size())
-        unit_dial_top.show()
-        unit_dial_top.setStyleSheet(f"border-radius: {self.dial_corner_radius}")
+        unit_dial_top.setStyleSheet(
+            f"border-radius: {self.dial_corner_radius}")
         unit_dial_top.move(
             int(x_rad_offset - unit_dial_top.frameGeometry().width() / 2),
             int(y_rad_offset - unit_dial_top.frameGeometry().height() / 2))
@@ -147,7 +149,6 @@ class Dial(QWidget):
         unit_dial_bottom.move(
             int(x_rad_offset - unit_dial_bottom.frameGeometry().width() / 2),
             int(y_rad_offset - unit_dial_bottom.frameGeometry().height() / 2))
-        unit_dial_bottom.show()
 
         unit_dial_inner_border = QFrame(frame)
         unit_dial_inner_border.resize(int(dial_inner_border_rad),
@@ -159,8 +160,8 @@ class Dial(QWidget):
                 unit_dial_inner_border.frameGeometry().width() / 2),
             int(y_rad_offset -
                 unit_dial_inner_border.frameGeometry().height() / 2))
-        unit_dial_inner_border.setStyleSheet(f"border-radius: {self.unit_dial_inner_border_radius}")
-        unit_dial_inner_border.show()
+        unit_dial_inner_border.setStyleSheet(
+            f"border-radius: {self.unit_dial_inner_border_radius}")
 
         unit_dial_mask = QFrame(frame)
         unit_dial_mask.resize(int(dial_mask_rad), int(dial_mask_rad))
@@ -180,7 +181,6 @@ class Dial(QWidget):
             unit_dial_mask.setStyleSheet(
                 f"border-radius: {int(unit_dial_mask.geometry().width()/2)}px; background-color: rgb({background_color[0]}, {background_color[1]}, {background_color[2]});"
             )
-        unit_dial_mask.show()
 
         self.unit_dial_inner_border = unit_dial_inner_border
         self.unit_dial = unit_dial
@@ -209,11 +209,12 @@ class Dial(QWidget):
                 label.setFont(label_font)
                 label.show()
                 label.move(
-                    int(cos(i * rad_step + rad_offset) * num_x_radius +
-                    x_rad_offset - label.geometry().width() / 2),
-                    int(sin(i * rad_step + rad_offset) * num_y_radius +
-                    y_rad_offset - label.geometry().height() / 2))
-                label.show()
+                    int(
+                        cos(i * rad_step + rad_offset) * num_x_radius +
+                        x_rad_offset - label.geometry().width() / 2),
+                    int(
+                        sin(i * rad_step + rad_offset) * num_y_radius +
+                        y_rad_offset - label.geometry().height() / 2))
 
             for z in range(mid_sections):
                 if i + z / mid_sections >= redline / visual_num_gap:
@@ -239,29 +240,31 @@ class Dial(QWidget):
                 y_inner_radius = min(y_inner_radius,
                                      y_radius - minor_section_rad_offset)
 
-                line = Line(
-                    frame,
-                    (int(cos(i * rad_step + rad_offset + z * rad_section_step) *
-                     x_radius + x_rad_offset),
-                     int(sin(i * rad_step + rad_offset + z * rad_section_step) *
-                     y_radius + y_rad_offset),
-                     int(cos(i * rad_step + rad_offset + z * rad_section_step) *
-                     x_inner_radius + x_rad_offset),
-                     int(sin(i * rad_step + rad_offset + z * rad_section_step) *
-                     y_inner_radius + y_rad_offset)), color)
-
-                line.show()
+                line = Line(frame, (
+                    int(
+                        cos(i * rad_step + rad_offset + z * rad_section_step) *
+                        x_radius + x_rad_offset),
+                    int(
+                        sin(i * rad_step + rad_offset + z * rad_section_step) *
+                        y_radius + y_rad_offset),
+                    int(
+                        cos(i * rad_step + rad_offset + z * rad_section_step) *
+                        x_inner_radius + x_rad_offset),
+                    int(
+                        sin(i * rad_step + rad_offset + z * rad_section_step) *
+                        y_inner_radius + y_rad_offset)), color)
 
                 if i == visual_max_unit:
                     break
 
-    def setDial(self, alpha):
+    def setDial(self, alpha: float) -> None:
         alpha = clamp(0, alpha, 1)
         self.setUnit(ceil(alpha * self.unit_range))
 
-    def setUnit(self, value):
+    def setUnit(self, value: int | float) -> None:
         self.unit = value
-        self.updateUnit()
+        if system != "Linux":
+            self.updateUnit()
 
     def updateUnit(self):
         current_unit = self.unit
