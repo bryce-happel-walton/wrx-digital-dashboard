@@ -367,10 +367,10 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
             return
 
-        # print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
-        #         visual_update_intervals[var],
-        #         (t - self.cluster_vars_update_ts[var]) >=
-        #         visual_update_intervals[var])
+        print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
+                visual_update_intervals[var],
+                (t - self.cluster_vars_update_ts[var]) >=
+                visual_update_intervals[var])
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
