@@ -10,12 +10,11 @@ import tomllib
 from math import pi
 from random import randrange
 from time import time
-
+from qutil import change_image_color
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import (QColor, QCursor, QFont, QImage, QPalette, QPixmap,
                          QTransform)
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
-
 from can_handle import CanApplication, can_ids
 from dial import Dial
 
@@ -27,10 +26,7 @@ screen_refresh_rate = 75 if system == "Linux" else 60 if system == "Darwin" else
 visual_update_intervals = {"coolant_temp": 0.75, "oil_temp": 0.75}
 
 with open("config/gauge_config.toml", "rb") as f:
-    gauge_config = tomllib.load(f)
-    rpm_params = gauge_config["tachometer"]
-    speed_params = gauge_config["speedometer"]
-    coolant_temp_params = gauge_config["coolant_temp"]
+    gauge_params = tomllib.load(f)
 
 for i in can_ids.keys():
     if not i in visual_update_intervals:
@@ -41,16 +37,6 @@ original_cluster_size = 660
 c_to_f_scale = 1.8
 c_to_f_offset = 32
 kph_to_mph = 0.62137119
-
-
-def change_image_color(image: QImage, color: QColor):
-    for x in range(image.width()):
-        for y in range(image.height()):
-            pcolor = image.pixelColor(x, y)
-            if pcolor.alpha() > 0:
-                n_color = QColor(color)
-                n_color.setAlpha(pcolor.alpha())
-                image.setPixelColor(x, y, n_color)
 
 
 class MainWindow(QMainWindow):
@@ -71,13 +57,13 @@ class MainWindow(QMainWindow):
         coolant_temp_gauge = Dial(
             self,
             size=cluster_size,
-            min_unit=coolant_temp_params["min"],
-            max_unit=coolant_temp_params["max"],
-            redline=coolant_temp_params["redline"],
-            blueline=coolant_temp_params["blueline"],
+            min_unit=gauge_params["coolant_temp"]["min"],
+            max_unit=gauge_params["coolant_temp"]["max"],
+            redline=gauge_params["coolant_temp"]["redline"],
+            blueline=gauge_params["coolant_temp"]["blueline"],
             blueline_color=[125, 125, 255],
             dial_opacity="10%",
-            mid_sections=coolant_temp_params["mid_sections"],
+            mid_sections=gauge_params["coolant_temp"]["mid_sections"],
             no_font=True,
             visual_num_gap=28.75,
             angle_offset=big_dial_angle_range - pi + pi / 5,
@@ -94,49 +80,49 @@ class MainWindow(QMainWindow):
         coolant_temp_gauge.move(int(cluster_size / 4),
                                 int(screen_size[1] / 2 - cluster_size / 2))
 
-        rpm_gauge = Dial(self,
-                         size=cluster_size,
-                         min_unit=rpm_params["min"],
-                         max_unit=rpm_params["max"],
-                         redline=rpm_params["redline"],
-                         mid_sections=rpm_params["mid_sections"],
-                         denomination=rpm_params["denomination"],
-                         visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont(font_group, int(19 * scale),
-                                          font_weight),
-                         angle_offset=pi,
-                         angle_range=big_dial_angle_range,
-                         buffer_radius=20 * scale,
-                         num_radius=54 * scale,
-                         section_radius=20 * scale,
-                         minor_section_rad_offset=3 * scale,
-                         middle_section_rad_offset=43 * scale,
-                         major_section_rad_offset=40 * scale,
-                         dial_mask_rad=360 * scale,
-                         dial_inner_border_rad=4 * scale)
+        rpm_gauge = Dial(
+            self,
+            size=cluster_size,
+            min_unit=gauge_params["tachometer"]["min"],
+            max_unit=gauge_params["tachometer"]["max"],
+            redline=gauge_params["tachometer"]["redline"],
+            mid_sections=gauge_params["tachometer"]["mid_sections"],
+            denomination=gauge_params["tachometer"]["denomination"],
+            visual_num_gap=gauge_params["tachometer"]["denomination"],
+            label_font=QFont(font_group, int(19 * scale), font_weight),
+            angle_offset=pi,
+            angle_range=big_dial_angle_range,
+            buffer_radius=20 * scale,
+            num_radius=54 * scale,
+            section_radius=20 * scale,
+            minor_section_rad_offset=3 * scale,
+            middle_section_rad_offset=43 * scale,
+            major_section_rad_offset=40 * scale,
+            dial_mask_rad=360 * scale,
+            dial_inner_border_rad=4 * scale)
         rpm_gauge.frame.setStyleSheet("background:transparent")
         rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
 
-        speed_gauge = Dial(self,
-                           size=cluster_size,
-                           min_unit=speed_params["min"],
-                           max_unit=speed_params["max"],
-                           redline=speed_params["max"] + 1,
-                           mid_sections=speed_params["mid_sections"],
-                           visual_num_gap=20,
-                           label_font=QFont(font_group, int(18 * scale),
-                                            font_weight),
-                           angle_offset=pi,
-                           angle_range=big_dial_angle_range,
-                           buffer_radius=20 * scale,
-                           num_radius=54 * scale,
-                           section_radius=20 * scale,
-                           minor_section_rad_offset=3 * scale,
-                           middle_section_rad_offset=43 * scale,
-                           major_section_rad_offset=40 * scale,
-                           dial_mask_rad=360 * scale,
-                           dial_inner_border_rad=4 * scale)
+        speed_gauge = Dial(
+            self,
+            size=cluster_size,
+            min_unit=gauge_params["speedometer"]["min"],
+            max_unit=gauge_params["speedometer"]["max"],
+            redline=gauge_params["speedometer"]["max"] + 1,
+            mid_sections=gauge_params["speedometer"]["mid_sections"],
+            visual_num_gap=20,
+            label_font=QFont(font_group, int(18 * scale), font_weight),
+            angle_offset=pi,
+            angle_range=big_dial_angle_range,
+            buffer_radius=20 * scale,
+            num_radius=54 * scale,
+            section_radius=20 * scale,
+            minor_section_rad_offset=3 * scale,
+            middle_section_rad_offset=43 * scale,
+            major_section_rad_offset=40 * scale,
+            dial_mask_rad=360 * scale,
+            dial_inner_border_rad=4 * scale)
         speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
 
@@ -459,18 +445,27 @@ if __name__ == "__main__":
     import can_data
 
     def emulate_can():
-        app.updateVar("vehicle_speed",
-                      randrange(speed_params["min"], speed_params["max"] + 1))
-        app.updateVar("rpm", randrange(rpm_params["min"],
-                                       rpm_params["max"] + 1))
+        app.updateVar(
+            "vehicle_speed",
+            randrange(gauge_params["speedometer"]["min"],
+                      gauge_params["speedometer"]["max"] + 1))
+        app.updateVar(
+            "rpm",
+            randrange(gauge_params["tachometer"]["min"],
+                      gauge_params["tachometer"]["max"] + 1))
         app.updateVar(
             "turn_signals",
             can_data.turn_signals(turn_signal_data[randrange(
                 0, len(turn_signal_data))]))
         app.updateVar("handbrake", randrange(0, 2))
-        app.updateVar("oil_temp", randrange(0, 104 + 1))
-        app.updateVar("coolant_temp",
-                      randrange(coolant_temp_params["min"], 104 + 1))
+        app.updateVar(
+            "oil_temp",
+            randrange(gauge_params["oil_temp"]["min"],
+                      (gauge_params["oil_temp"]["max"] - 32) / 1.8 + 1))
+        app.updateVar(
+            "coolant_temp",
+            randrange(gauge_params["coolant_temp"]["min"],
+                      gauge_params["coolant_temp"]["max"] + 1))
 
     def run():
         timer = QTimer(app)

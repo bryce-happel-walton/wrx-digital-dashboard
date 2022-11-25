@@ -15,4 +15,12 @@ min = 0
 max = 230
 mid_sections = 3
 redline = 184
+blueline = 65
+
+[oil_temp]
+min = 0
+max = 230
+mid_sections = 3
+redline = 220
 blueline = 80
+
