@@ -6,6 +6,7 @@
 import platform
 import subprocess
 import sys
+import tomllib
 from math import pi
 from random import randrange
 from time import time
@@ -23,24 +24,13 @@ system = platform.system()
 screen_size = [1920, 720]
 screen_refresh_rate = 75 if system == "Linux" else 60 if system == "Darwin" else 144
 
-rpm_params = {
-    "min": 0,
-    "max": 8000,
-    "redline": 6700,
-    "mid_sections": 10,
-    "denomination": 1000
-}
-speed_params = {"min": 0, "max": 180, "units": "MPH", "mid_sections": 10}
-coolant_temp_params = {
-    "min": 0,
-    "max": 230,
-    "units": "F",
-    "mid_sections": 3,
-    "redline": 230 - 46,
-    "blueline": 80
-}
-
 visual_update_intervals = {"coolant_temp": 0.75, "oil_temp": 0.75}
+
+with open("config/gauge_config.toml", "rb") as f:
+    gauge_config = tomllib.load(f)
+    rpm_params = gauge_config["tachometer"]
+    speed_params = gauge_config["speedometer"]
+    coolant_temp_params = gauge_config["coolant_temp"]
 
 for i in can_ids.keys():
     if not i in visual_update_intervals:
@@ -103,7 +93,6 @@ class MainWindow(QMainWindow):
             dymanic_mask=True)
         coolant_temp_gauge.move(int(cluster_size / 4),
                                 int(screen_size[1] / 2 - cluster_size / 2))
-        coolant_temp_gauge.show()
 
         rpm_gauge = Dial(self,
                          size=cluster_size,
@@ -128,7 +117,6 @@ class MainWindow(QMainWindow):
         rpm_gauge.frame.setStyleSheet("background:transparent")
         rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
-        rpm_gauge.show()
 
         speed_gauge = Dial(self,
                            size=cluster_size,
@@ -151,7 +139,6 @@ class MainWindow(QMainWindow):
                            dial_inner_border_rad=4 * scale)
         speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
-        speed_gauge.show()
 
         color_black = QColor(0, 0, 0)
         color_green = QColor(0, 255, 0)
@@ -198,7 +185,16 @@ class MainWindow(QMainWindow):
             int(screen_size[1] / 2 - cluster_size / 2))
         right_turn_signal_image.setScaledContents(True)
         right_turn_signal_image.resize(turn_signal_size, turn_signal_size)
-        right_turn_signal_image.show()
+
+        right_turn_signal_image_active = QLabel(self)
+        right_turn_signal_image_active.setPixmap(right_arrow_image_green)
+        right_turn_signal_image_active.move(
+            int(screen_size[0] - cluster_size -
+                cluster_size / 4 - turn_signal_offset),
+            int(screen_size[1] / 2 - cluster_size / 2))
+        right_turn_signal_image_active.setScaledContents(True)
+        right_turn_signal_image_active.resize(turn_signal_size,
+                                              turn_signal_size)
 
         left_turn_signal_image = QLabel(self)
         left_turn_signal_image.setPixmap(left_arrow_image_black)
@@ -208,7 +204,16 @@ class MainWindow(QMainWindow):
             int(screen_size[1] / 2 - cluster_size / 2))
         left_turn_signal_image.setScaledContents(True)
         left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
-        left_turn_signal_image.show()
+
+        left_turn_signal_image_active = QLabel(self)
+        left_turn_signal_image_active.setPixmap(left_arrow_image_green)
+        left_turn_signal_image_active.move(
+            int(cluster_size / 4 + cluster_size -
+                turn_signal_size + turn_signal_offset),
+            int(screen_size[1] / 2 - cluster_size / 2))
+        left_turn_signal_image_active.setScaledContents(True)
+        left_turn_signal_image_active.resize(turn_signal_size,
+                                             turn_signal_size)
 
         speed_label_size = 200
 
@@ -222,8 +227,8 @@ class MainWindow(QMainWindow):
                 cluster_size / 2 - 25 * scale / 2),
             int(screen_size[1] / 2 - cluster_size / 2 +
                 speed_label_size * scale))
-        speed_label.resize(int(speed_label_size * scale), int(speed_label_size * scale))
-        speed_label.show()
+        speed_label.resize(int(speed_label_size * scale),
+                           int(speed_label_size * scale))
 
         rpm_label_size = speed_label_size
 
@@ -236,8 +241,8 @@ class MainWindow(QMainWindow):
                 rpm_label_size * scale))
         rpm_label.setFont(label_font)
         rpm_label.setPalette(palette)
-        rpm_label.resize(int(rpm_label_size * scale), int(rpm_label_size * scale))
-        rpm_label.show()
+        rpm_label.resize(int(rpm_label_size * scale),
+                         int(rpm_label_size * scale))
 
         label_font = QFont("Sans-serif", int(16 * scale))
         color = QColor(255, 255, 255)
@@ -250,7 +255,6 @@ class MainWindow(QMainWindow):
         oil_temp_label.setFont(label_font)
         oil_temp_label.setPalette(palette)
         oil_temp_label.resize(int(150 * scale), int(rpm_label_size * scale))
-        oil_temp_label.show()
         oil_temp_label.move(
             int(screen_size[0] / 2 -
                 oil_temp_label.frameGeometry().width() / 2 * scale),
@@ -275,7 +279,6 @@ class MainWindow(QMainWindow):
             int(screen_size[1] / 2 - cluster_size / 2 +
                 speed_label_size * scale +
                 hand_brake_label.frameGeometry().height() * 4 * scale))
-        hand_brake_label.show()
 
         self.oil_temp_label = oil_temp_label
         self.hand_brake_label = hand_brake_label
@@ -285,6 +288,8 @@ class MainWindow(QMainWindow):
 
         self.right_turn_signal_image = right_turn_signal_image
         self.left_turn_signal_image = left_turn_signal_image
+        self.right_turn_signal_image_active = right_turn_signal_image_active
+        self.left_turn_signal_image_active = left_turn_signal_image_active
 
         self.speedometer = speed_gauge
         self.tachometer = rpm_gauge
@@ -368,9 +373,9 @@ class Application(QApplication):
             return
 
         print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
-                visual_update_intervals[var],
-                (t - self.cluster_vars_update_ts[var]) >=
-                visual_update_intervals[var])
+              visual_update_intervals[var],
+              (t - self.cluster_vars_update_ts[var]) >=
+              visual_update_intervals[var])
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
@@ -381,30 +386,46 @@ class Application(QApplication):
             #self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
-                self.primary_container.left_turn_signal_image.setPixmap(
-                    self.primary_container.left_arrow_image_green)
+                # self.primary_container.left_turn_signal_image.setPixmap(
+                #     self.primary_container.left_arrow_image_green)
+
+                self.primary_container.left_turn_signal_image.setHidden(False)
+                self.primary_container.left_turn_signal_image_active.setHidden(
+                    True)
             else:
-                self.primary_container.left_turn_signal_image.setPixmap(
-                    self.primary_container.left_arrow_image_black)
+                # self.primary_container.left_turn_signal_image.setPixmap(
+                #     self.primary_container.left_arrow_image_black)
+
+                self.primary_container.left_turn_signal_image.setHidden(True)
+                self.primary_container.left_turn_signal_image_active.setHidden(
+                    False)
 
             if val["right_turn_signal"]:
-                self.primary_container.right_turn_signal_image.setPixmap(
-                    self.primary_container.right_arrow_image_green)
+                # self.primary_container.right_turn_signal_image.setPixmap(
+                #     self.primary_container.right_arrow_image_green)
+
+                self.primary_container.right_turn_signal_image.setHidden(False)
+                self.primary_container.right_turn_signal_image_active.setHidden(
+                    True)
             else:
-                self.primary_container.right_turn_signal_image.setPixmap(
-                    self.primary_container.right_arrow_image_black)
+                # self.primary_container.right_turn_signal_image.setPixmap(
+                #     self.primary_container.right_arrow_image_black)
+
+                self.primary_container.right_turn_signal_image.setHidden(True)
+                self.primary_container.right_turn_signal_image_active.setHidden(
+                    False)
         elif var == "fuel_level":
-            if time(
-            ) - self.last_updated_fuel >= self.update_fuel_level_interval:
-                self.last_updated_fuel = time()
+            pass
         #todo: make config file of sorts that has user selected units
         elif var == "oil_temp":
             self.primary_container.oil_temp_label.setText(
                 f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
         elif var == "coolant_temp":
-            self.primary_container.coolant_temp_gauge.setUnit(val *
-                                                              c_to_f_scale +
-                                                              c_to_f_offset)
+            # dials are too expensive at the moment
+            # self.primary_container.coolant_temp_gauge.setUnit(val *
+            #                                                   c_to_f_scale +
+            #                                                   c_to_f_offset)
+            pass
         elif var == "handbrake":
             if val:
                 self.primary_container.hand_brake_label.setText("BRAKE")
@@ -427,7 +448,7 @@ if __name__ == "__main__":
     if system == "Darwin":
         scale = 1 / 1.3325
     elif system == "Windows":
-        scale = 1  # / 1.25
+        scale = 1  #/ 1.25
 
     screen_size = [int(1920 * scale), int(720 * scale)]
     app = Application(scale=scale)

@@ -1,0 +1,18 @@
+[tachometer]
+	min = 0
+	max = 8000
+	redline = 6700
+	mid_sections = 10
+	denomination = 1000
+
+[speedometer]
+	min = 0
+	max = 180
+	mid_sections = 10
+
+[coolant_temp]
+	min = 0
+    max = 230
+    mid_sections = 3
+    redline = 184
+    blueline = 80
