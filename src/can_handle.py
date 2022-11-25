@@ -1,37 +1,16 @@
 import can
 import can_data
+import tomllib
 
 from util import event
 from inspect import getmembers, isfunction
 
-can_ids = {
-    'turn_signals': 0x282,
+can_ids = {}
 
-    'vehicle_speed': 0x0D1,
-    'brake_pedal_position': 0x0D1,
-
-    'wheel_speeds': 0x0D4,
-
-    #'door_states': 0x375,
-    #'steering_wheel_position': 0x002,
-    #'climate_control': 0x281,
-
-    'coolant_temp': 0x360,
-    'oil_temp': 0x360,
-
-    'throttle_pedal_position': 0x140,
-    'throttle_plate_position': 0x140,
-
-    'headlights': 0x152,
-    'handbrake': 0x152,
-    'reverse_switch': 0x152,
-    'brake_switch': 0x152,
-
-    'clutch_switch': 0x144,
-
-    'rpm': 0x141,
-    'neutral_switch': 0x141
-}
+with open("config/can.toml", "rb") as f:
+    config = tomllib.load(f)
+    for i, v in config.items():
+        can_ids[i] = int(v, base=16)
 
 parsers = {x[0]: x[1] for x in getmembers(can_data, isfunction)}
 
