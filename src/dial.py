@@ -123,8 +123,8 @@ class Dial(QWidget):
         y_rad_offset = frame.frameGeometry().height() / 2
 
         unit_dial = QFrame(frame)
-        unit_dial.resize(section_x_radius + x_rad_offset - section_radius * 2,
-                         section_y_radius + y_rad_offset - section_radius * 2)
+        unit_dial.resize(int(section_x_radius + x_rad_offset - section_radius * 2),
+                         int(section_y_radius + y_rad_offset - section_radius * 2))
         self.dial_corner_radius = int(unit_dial.geometry().width() / 2)
         unit_dial.setStyleSheet(f"border-radius: {self.dial_corner_radius}")
         unit_dial.show()
@@ -145,13 +145,13 @@ class Dial(QWidget):
         unit_dial_bottom.setStyleSheet(
             f"border-radius: {self.dial_corner_radius}")
         unit_dial_bottom.move(
-            x_rad_offset - unit_dial_bottom.frameGeometry().width() / 2,
-            y_rad_offset - unit_dial_bottom.frameGeometry().height() / 2)
+            int(x_rad_offset - unit_dial_bottom.frameGeometry().width() / 2),
+            int(y_rad_offset - unit_dial_bottom.frameGeometry().height() / 2))
         unit_dial_bottom.show()
 
         unit_dial_inner_border = QFrame(frame)
-        unit_dial_inner_border.resize(dial_inner_border_rad,
-                                      dial_inner_border_rad)
+        unit_dial_inner_border.resize(int(dial_inner_border_rad),
+                                      int(dial_inner_border_rad))
         self.unit_dial_inner_border_radius = int(
             unit_dial_inner_border.geometry().width() / 2)
         unit_dial_inner_border.move(
@@ -163,10 +163,10 @@ class Dial(QWidget):
         unit_dial_inner_border.show()
 
         unit_dial_mask = QFrame(frame)
-        unit_dial_mask.resize(dial_mask_rad, dial_mask_rad)
+        unit_dial_mask.resize(int(dial_mask_rad), int(dial_mask_rad))
         unit_dial_mask.move(
-            x_rad_offset - unit_dial_mask.frameGeometry().width() / 2,
-            y_rad_offset - unit_dial_mask.frameGeometry().height() / 2)
+            int(x_rad_offset - unit_dial_mask.frameGeometry().width() / 2),
+            int(y_rad_offset - unit_dial_mask.frameGeometry().height() / 2))
 
         if dymanic_mask:
             gradient_angle = (self.max_unit - self.max_unit * self.rad_range_a
@@ -209,10 +209,10 @@ class Dial(QWidget):
                 label.setFont(label_font)
                 label.show()
                 label.move(
-                    cos(i * rad_step + rad_offset) * num_x_radius +
-                    x_rad_offset - label.geometry().width() / 2,
-                    sin(i * rad_step + rad_offset) * num_y_radius +
-                    y_rad_offset - label.geometry().height() / 2)
+                    int(cos(i * rad_step + rad_offset) * num_x_radius +
+                    x_rad_offset - label.geometry().width() / 2),
+                    int(sin(i * rad_step + rad_offset) * num_y_radius +
+                    y_rad_offset - label.geometry().height() / 2))
                 label.show()
 
             for z in range(mid_sections):
@@ -241,14 +241,14 @@ class Dial(QWidget):
 
                 line = Line(
                     frame,
-                    (cos(i * rad_step + rad_offset + z * rad_section_step) *
-                     x_radius + x_rad_offset,
-                     sin(i * rad_step + rad_offset + z * rad_section_step) *
-                     y_radius + y_rad_offset,
-                     cos(i * rad_step + rad_offset + z * rad_section_step) *
-                     x_inner_radius + x_rad_offset,
-                     sin(i * rad_step + rad_offset + z * rad_section_step) *
-                     y_inner_radius + y_rad_offset), color)
+                    (int(cos(i * rad_step + rad_offset + z * rad_section_step) *
+                     x_radius + x_rad_offset),
+                     int(sin(i * rad_step + rad_offset + z * rad_section_step) *
+                     y_radius + y_rad_offset),
+                     int(cos(i * rad_step + rad_offset + z * rad_section_step) *
+                     x_inner_radius + x_rad_offset),
+                     int(sin(i * rad_step + rad_offset + z * rad_section_step) *
+                     y_inner_radius + y_rad_offset)), color)
 
                 line.show()
 

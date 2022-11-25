@@ -3,14 +3,17 @@
 
 #! This program may be too slow on the RPi
 
-import platform, sys, subprocess
+import platform
+import subprocess
+import sys
 from math import pi
 from random import randrange
 from time import time
 
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QCursor, QFont, QPixmap, QPalette, QColor, QImage, QTransform
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtGui import (QColor, QCursor, QFont, QImage, QPalette, QPixmap,
+                         QTransform)
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
 
 from can_handle import CanApplication, can_ids
 from dial import Dial
@@ -37,16 +40,13 @@ coolant_temp_params = {
     "blueline": 80
 }
 
-visual_update_intervals = {
-    "coolant_temp": 0.75,
-    "oil_temp": 0.75
-}
+visual_update_intervals = {"coolant_temp": 0.75, "oil_temp": 0.75}
 
 for i in can_ids.keys():
     if not i in visual_update_intervals:
         visual_update_intervals[i] = 1 / screen_refresh_rate
 
-cluster_size = 660
+original_cluster_size = 660
 
 c_to_f_scale = 9 / 5
 c_to_f_offset = 32
@@ -70,9 +70,13 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Digital Cluster")
 
-        font_group = "Sans Serif Collection"
+        font_group = "Sans Serif"
+        if system != "Windows":
+            font_group = "Microsoft Sans Serif"
         font_weight = 600
         big_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
+
+        cluster_size = int(original_cluster_size * scale)
 
         coolant_temp_gauge = Dial(
             self,
@@ -109,7 +113,8 @@ class MainWindow(QMainWindow):
                          mid_sections=rpm_params["mid_sections"],
                          denomination=rpm_params["denomination"],
                          visual_num_gap=rpm_params["denomination"],
-                         label_font=QFont(font_group, 19 * scale, font_weight),
+                         label_font=QFont(font_group, int(19 * scale),
+                                          font_weight),
                          angle_offset=pi,
                          angle_range=big_dial_angle_range,
                          buffer_radius=20 * scale,
@@ -132,7 +137,7 @@ class MainWindow(QMainWindow):
                            redline=speed_params["max"] + 1,
                            mid_sections=speed_params["mid_sections"],
                            visual_num_gap=20,
-                           label_font=QFont(font_group, 18 * scale,
+                           label_font=QFont(font_group, int(18 * scale),
                                             font_weight),
                            angle_offset=pi,
                            angle_range=big_dial_angle_range,
@@ -177,13 +182,13 @@ class MainWindow(QMainWindow):
         self.left_arrow_image_black = left_arrow_image_black
         self.left_arrow_image_green = left_arrow_image_green
 
-        label_font = QFont("Sans-serif", 22 * scale)
+        label_font = QFont(font_group, int(22 * scale))
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        turn_signal_offset = -30 * scale
-        turn_signal_size = 50 * scale
+        turn_signal_offset = int(-30 * scale)
+        turn_signal_size = int(50 * scale)
 
         right_turn_signal_image = QLabel(self)
         right_turn_signal_image.setPixmap(right_arrow_image_black)
@@ -217,7 +222,7 @@ class MainWindow(QMainWindow):
                 cluster_size / 2 - 25 * scale / 2),
             int(screen_size[1] / 2 - cluster_size / 2 +
                 speed_label_size * scale))
-        speed_label.resize(speed_label_size * scale, speed_label_size * scale)
+        speed_label.resize(int(speed_label_size * scale), int(speed_label_size * scale))
         speed_label.show()
 
         rpm_label_size = speed_label_size
@@ -231,10 +236,10 @@ class MainWindow(QMainWindow):
                 rpm_label_size * scale))
         rpm_label.setFont(label_font)
         rpm_label.setPalette(palette)
-        rpm_label.resize(rpm_label_size * scale, rpm_label_size * scale)
+        rpm_label.resize(int(rpm_label_size * scale), int(rpm_label_size * scale))
         rpm_label.show()
 
-        label_font = QFont("Sans-serif", 16 * scale)
+        label_font = QFont("Sans-serif", int(16 * scale))
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
@@ -244,7 +249,7 @@ class MainWindow(QMainWindow):
         oil_temp_label.setText(f"Oil Temp: {0} F")
         oil_temp_label.setFont(label_font)
         oil_temp_label.setPalette(palette)
-        oil_temp_label.resize(150 * scale, rpm_label_size * scale)
+        oil_temp_label.resize(int(150 * scale), int(rpm_label_size * scale))
         oil_temp_label.show()
         oil_temp_label.move(
             int(screen_size[0] / 2 -
@@ -252,7 +257,7 @@ class MainWindow(QMainWindow):
             int(screen_size[1] / 2 -
                 oil_temp_label.frameGeometry().height() / 2 * scale))
 
-        label_font = QFont("Sans-serif", 17 * scale)
+        label_font = QFont("Sans-serif", int(17 * scale))
         color = QColor(255, 0, 0)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
@@ -262,7 +267,7 @@ class MainWindow(QMainWindow):
         hand_brake_label.setText(f"BRAKE")
         hand_brake_label.setFont(label_font)
         hand_brake_label.setPalette(palette)
-        hand_brake_label.resize(80 * scale, 75 * scale)
+        hand_brake_label.resize(int(80 * scale), int(75 * scale))
         hand_brake_label.move(
             int(screen_size[0] - cluster_size - cluster_size / 4 +
                 cluster_size / 2 -
@@ -292,7 +297,10 @@ class Application(QApplication):
     started = pyqtSignal()
 
     cluster_vars = {}
-    cluster_vars_update_ts = {i: time() for i in visual_update_intervals.keys()}
+    cluster_vars_update_ts = {
+        i: time()
+        for i in visual_update_intervals.keys()
+    }
 
     awaken_sequence_duration_ms = 2500
 
@@ -318,7 +326,7 @@ class Application(QApplication):
         self._awaken_a = 0
         self._awaken_t = 0
 
-        t_step = self.awaken_sequence_duration_ms / screen_refresh_rate
+        t_step = self.awaken_sequence_duration_ms // screen_refresh_rate
         a_step = t_step / self.awaken_sequence_duration_ms
 
         self.primary_container.tachometer.setDial(0)
@@ -359,10 +367,10 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
             return
 
-        print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
-                visual_update_intervals[var],
-                (t - self.cluster_vars_update_ts[var]) >=
-                visual_update_intervals[var])
+        # print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
+        #         visual_update_intervals[var],
+        #         (t - self.cluster_vars_update_ts[var]) >=
+        #         visual_update_intervals[var])
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
@@ -419,10 +427,9 @@ if __name__ == "__main__":
     if system == "Darwin":
         scale = 1 / 1.3325
     elif system == "Windows":
-        scale = 1# / 1.25
+        scale = 1  # / 1.25
 
-    screen_size = [1920 * scale, 720 * scale]
-    cluster_size *= scale
+    screen_size = [int(1920 * scale), int(720 * scale)]
     app = Application(scale=scale)
     screens = app.screens()
 
@@ -446,15 +453,13 @@ if __name__ == "__main__":
                 0, len(turn_signal_data))]))
         app.updateVar("handbrake", randrange(0, 2))
         app.updateVar("oil_temp", randrange(0, 104 + 1))
-        app.updateVar(
-            "coolant_temp",
-            randrange(coolant_temp_params["min"],
-                      104 + 1))
+        app.updateVar("coolant_temp",
+                      randrange(coolant_temp_params["min"], 104 + 1))
 
     def run():
         timer = QTimer(app)
         timer.timeout.connect(emulate_can)
-        timer.start(1/screen_refresh_rate)
+        timer.start(1 // screen_refresh_rate)
 
     if system != "Linux":
         if len(screens) > 1:
