@@ -1,3 +1,4 @@
+[can_ids]
 turn_signals = "0x282"
 vehicle_speed = "0x0D1"
 brake_pedal_position = "0x0D1"

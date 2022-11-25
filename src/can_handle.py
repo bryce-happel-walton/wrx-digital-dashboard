@@ -9,7 +9,7 @@ can_ids = {}
 
 with open("config/can.toml", "rb") as f:
     config = tomllib.load(f)
-    for i, v in config.items():
+    for i, v in config["can_ids"].items():
         can_ids[i] = int(v, base=16)
 
 parsers = {x[0]: x[1] for x in getmembers(can_data, isfunction)}
