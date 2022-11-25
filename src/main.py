@@ -38,7 +38,7 @@ for i in can_ids.keys():
 
 original_cluster_size = 660
 
-c_to_f_scale = 9 / 5
+c_to_f_scale = 1.8
 c_to_f_offset = 32
 kph_to_mph = 0.62137119
 
@@ -169,11 +169,6 @@ class MainWindow(QMainWindow):
         self.left_arrow_image_black = left_arrow_image_black
         self.left_arrow_image_green = left_arrow_image_green
 
-        label_font = QFont(font_group, int(22 * scale))
-        color = QColor(255, 255, 255)
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, color)
-
         turn_signal_offset = int(-30 * scale)
         turn_signal_size = int(50 * scale)
 
@@ -216,6 +211,10 @@ class MainWindow(QMainWindow):
                                              turn_signal_size)
 
         speed_label_size = 200
+        label_font = QFont(font_group, int(22 * scale))
+        color = QColor(255, 255, 255)
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.WindowText, color)
 
         speed_label = QLabel(self)
         speed_label.setText(f"{0}")
@@ -244,7 +243,7 @@ class MainWindow(QMainWindow):
         rpm_label.resize(int(rpm_label_size * scale),
                          int(rpm_label_size * scale))
 
-        label_font = QFont("Sans-serif", int(16 * scale))
+        label_font = QFont(font_group, int(16 * scale))
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
@@ -261,7 +260,7 @@ class MainWindow(QMainWindow):
             int(screen_size[1] / 2 -
                 oil_temp_label.frameGeometry().height() / 2 * scale))
 
-        label_font = QFont("Sans-serif", int(17 * scale))
+        label_font = QFont(font_group, int(17 * scale))
         color = QColor(255, 0, 0)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
@@ -373,9 +372,7 @@ class Application(QApplication):
             return
 
         print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
-              visual_update_intervals[var],
-              (t - self.cluster_vars_update_ts[var]) >=
-              visual_update_intervals[var])
+              f"{visual_update_intervals[var]:.5f}")
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
@@ -432,10 +429,8 @@ class Application(QApplication):
             else:
                 self.primary_container.hand_brake_label.setText("")
         elif var == "neutral_switch":
-            #print(f"Neutral: {val}")
             pass
         elif var == "reverse_switch":
-            #print(f"Reverse: {val}")
             pass
 
         self.cluster_vars[var] = val
@@ -480,7 +475,7 @@ if __name__ == "__main__":
     def run():
         timer = QTimer(app)
         timer.timeout.connect(emulate_can)
-        timer.start(1 // screen_refresh_rate)
+        timer.start(1000 // screen_refresh_rate)
 
     if system != "Linux":
         if len(screens) > 1:
@@ -524,7 +519,7 @@ if __name__ == "__main__":
             def run():
                 timer = QTimer(app)
                 timer.timeout.connect(read_can)
-                timer.start(1 / 500000)
+                timer.start(1000 / 500000)
 
             app.awakened.connect(run)
             can_app.updated.connect(app.updateVar)
