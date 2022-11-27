@@ -6,7 +6,6 @@
 import platform
 import subprocess
 import sys
-import tomllib
 from math import pi
 from random import randrange
 from time import time
@@ -19,6 +18,10 @@ from can_handle import CanApplication, can_ids
 from dial import Dial
 
 system = platform.system()
+if system != "Linux":
+    import tomllib
+else:
+    import toml
 
 screen_size = [1920, 720]
 screen_refresh_rate = 75 if system == "Linux" else 60 if system == "Darwin" else 144
@@ -514,7 +517,7 @@ if __name__ == "__main__":
             def run():
                 timer = QTimer(app)
                 timer.timeout.connect(read_can)
-                timer.start(1000 / 500000)
+                timer.start(1000 // 500000)
 
             app.awakened.connect(run)
             can_app.updated.connect(app.updateVar)
