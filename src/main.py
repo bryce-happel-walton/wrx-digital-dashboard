@@ -92,8 +92,8 @@ class MainWindow(QMainWindow):
             visual_num_gap=gauge_params["tachometer"]["denomination"],
             label_font=QFont(font_group, int(19 * scale), font_weight),
             angle_offset=pi,
-            dial_opacity = dial_opacity,
-            dial_width = dial_width,
+            dial_opacity=dial_opacity,
+            dial_width=dial_width,
             angle_range=big_dial_angle_range,
             buffer_radius=20 * scale,
             num_radius=54 * scale,
@@ -113,8 +113,8 @@ class MainWindow(QMainWindow):
             redline=gauge_params["speedometer"]["max"] + 1,
             mid_sections=gauge_params["speedometer"]["mid_sections"],
             visual_num_gap=20,
-            dial_opacity = dial_opacity,
-            dial_width = dial_width,
+            dial_opacity=dial_opacity,
+            dial_width=dial_width,
             label_font=QFont(font_group, int(18 * scale), font_weight),
             angle_offset=pi,
             angle_range=big_dial_angle_range,
@@ -405,7 +405,6 @@ class Application(QApplication):
             self.primary_container.oil_temp_label.setText(
                 f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
         elif var == "coolant_temp":
-            # dials are too expensive at the moment
             self.primary_container.coolant_temp_gauge.setUnit(val *
                                                               c_to_f_scale +
                                                               c_to_f_offset)
@@ -462,10 +461,10 @@ if __name__ == "__main__":
             "oil_temp",
             randrange(gauge_params["oil_temp"]["min"],
                       (gauge_params["oil_temp"]["max"] - 32) / 1.8 + 1))
-        app.updateVar(
-            "coolant_temp",
-            (randrange(gauge_params["coolant_temp"]["min"],
-                      gauge_params["coolant_temp"]["max"] + 1) - c_to_f_offset)/c_to_f_scale)
+        app.updateVar("coolant_temp",
+                      (randrange(gauge_params["coolant_temp"]["min"],
+                                 gauge_params["coolant_temp"]["max"] + 1) -
+                       c_to_f_offset) / c_to_f_scale)
 
     def run():
         timer = QTimer(app)
@@ -487,7 +486,7 @@ if __name__ == "__main__":
         app.primary_container.showFullScreen()
         app.primary_container.setFixedSize(screen_size[0], screen_size[1])
 
-        using_pican = True
+        using_pican = False
 
         try:
             shutdown_can = subprocess.run(
