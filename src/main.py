@@ -6,11 +6,12 @@
 import platform
 import subprocess
 import sys
+import tomllib
 from math import pi
 from random import randrange
 from time import time
 from qutil import change_image_color
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize
 from PyQt5.QtGui import (QColor, QCursor, QFont, QImage, QPalette, QPixmap,
                          QTransform)
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
@@ -18,10 +19,6 @@ from can_handle import CanApplication, can_ids
 from dial import Dial
 
 system = platform.system()
-if system != "Linux":
-    import tomllib
-else:
-    import toml
 
 screen_size = [1920, 720]
 screen_refresh_rate = 75 if system == "Linux" else 60 if system == "Darwin" else 144
@@ -59,13 +56,13 @@ class MainWindow(QMainWindow):
 
         coolant_temp_gauge = Dial(
             self,
-            size=cluster_size,
+            size=QSize(cluster_size, cluster_size),
             min_unit=gauge_params["coolant_temp"]["min"],
             max_unit=gauge_params["coolant_temp"]["max"],
             redline=gauge_params["coolant_temp"]["redline"],
             blueline=gauge_params["coolant_temp"]["blueline"],
-            blueline_color=[125, 125, 255],
-            dial_opacity="10%",
+            blueline_color=QColor(125, 125, 255),
+            dial_opacity=0.1,
             mid_sections=gauge_params["coolant_temp"]["mid_sections"],
             no_font=True,
             visual_num_gap=28.75,
@@ -76,16 +73,13 @@ class MainWindow(QMainWindow):
             section_radius=15 * scale,
             minor_section_rad_offset=3 * scale,
             middle_section_rad_offset=58 * scale,
-            major_section_rad_offset=40 * scale,
-            dial_mask_rad=525 * scale,
-            dial_inner_border_rad=3 * scale,
-            dymanic_mask=True)
+            major_section_rad_offset=40 * scale)
         coolant_temp_gauge.move(int(cluster_size / 4),
                                 int(screen_size[1] / 2 - cluster_size / 2))
 
         rpm_gauge = Dial(
             self,
-            size=cluster_size,
+            size=QSize(cluster_size, cluster_size),
             min_unit=gauge_params["tachometer"]["min"],
             max_unit=gauge_params["tachometer"]["max"],
             redline=gauge_params["tachometer"]["redline"],
@@ -100,16 +94,14 @@ class MainWindow(QMainWindow):
             section_radius=20 * scale,
             minor_section_rad_offset=3 * scale,
             middle_section_rad_offset=43 * scale,
-            major_section_rad_offset=40 * scale,
-            dial_mask_rad=360 * scale,
-            dial_inner_border_rad=4 * scale)
+            major_section_rad_offset=40 * scale)
         rpm_gauge.frame.setStyleSheet("background:transparent")
         rpm_gauge.move(int(cluster_size / 4),
                        int(screen_size[1] / 2 - cluster_size / 2))
 
         speed_gauge = Dial(
             self,
-            size=cluster_size,
+            size=QSize(cluster_size, cluster_size),
             min_unit=gauge_params["speedometer"]["min"],
             max_unit=gauge_params["speedometer"]["max"],
             redline=gauge_params["speedometer"]["max"] + 1,
@@ -123,9 +115,7 @@ class MainWindow(QMainWindow):
             section_radius=20 * scale,
             minor_section_rad_offset=3 * scale,
             middle_section_rad_offset=43 * scale,
-            major_section_rad_offset=40 * scale,
-            dial_mask_rad=360 * scale,
-            dial_inner_border_rad=4 * scale)
+            major_section_rad_offset=40 * scale)
         speed_gauge.move(int(screen_size[0] - cluster_size - cluster_size / 4),
                          int(screen_size[1] / 2 - cluster_size / 2))
 
@@ -360,16 +350,16 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
             return
 
-        print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
-              f"{visual_update_intervals[var]:.5f}")
+        # print(f"{(t - self.cluster_vars_update_ts[var]):.5f}",
+        #       f"{visual_update_intervals[var]:.5f}")
 
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
                 f"{val * kph_to_mph:.0f}")
-            #self.primary_container.speedometer.setUnit(val)
+            self.primary_container.speedometer.setUnit(val)
         elif var == "rpm":
             self.primary_container.rpm_label.setText(f"{val}")
-            #self.primary_container.tachometer.setUnit(val)
+            self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             if val["left_turn_signal"]:
                 # self.primary_container.left_turn_signal_image.setPixmap(
@@ -408,10 +398,9 @@ class Application(QApplication):
                 f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
         elif var == "coolant_temp":
             # dials are too expensive at the moment
-            # self.primary_container.coolant_temp_gauge.setUnit(val *
-            #                                                   c_to_f_scale +
-            #                                                   c_to_f_offset)
-            pass
+            self.primary_container.coolant_temp_gauge.setUnit(val *
+                                                              c_to_f_scale +
+                                                              c_to_f_offset)
         elif var == "handbrake":
             if val:
                 self.primary_container.hand_brake_label.setText("BRAKE")
