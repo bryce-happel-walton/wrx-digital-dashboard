@@ -2,15 +2,16 @@ from math import ceil, cos, degrees, floor, pi, sin
 from util import clamp
 import platform
 
-from PyQt5.QtCore import QRectF, QObject, QSize, QLineF, QLine
+from PyQt5.QtCore import QRectF, QObject, QSize, QLineF, QLine, Qt
 import PyQt5.QtGui as QtGui
-from PyQt5.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPaintEvent, QGradient
+from PyQt5.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPaintEvent, QGradient, QBrush
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 #todo: make resize event redraw everything
 #todo: make updating center label with unit
 
-system = platform.system()
+SYSTEM = platform.system()
+Q_DEGREE_MULT = 16
 
 
 class Line(QWidget):
@@ -26,6 +27,7 @@ class Line(QWidget):
         self.resize(parent.geometry().width(), parent.geometry().height())
         self.line = line
         self.pen = QPen(color, width)
+        self.pen.setCapStyle(Qt.RoundCap)
 
     def paintEvent(self, a0: QtGui.QPaintEvent):
         painter = self.painter
@@ -48,6 +50,7 @@ class Arc(QWidget):
         super().__init__(parent)
         self.resize(size)
         self.pen = QPen(color, width)
+        self.pen.setCapStyle(Qt.FlatCap)
         self.arc_edge_offest = width // 2
         self.size_x = size.width() - width
         self.arc_start = self.arc_end = 0
@@ -56,8 +59,8 @@ class Arc(QWidget):
         self.pen.setColor(color)
 
     def set_arc(self, start: int, end: int) -> None:
-        self.arc_start = start * 16
-        self.arc_end = end * 16
+        self.arc_start = start * Q_DEGREE_MULT
+        self.arc_end = end * Q_DEGREE_MULT
         self.update()
 
     def paintEvent(self, a0: QPaintEvent) -> None:
@@ -139,16 +142,16 @@ class Dial(QWidget):
 
         self.rad_range = angle_range
         self.rad_range_deg = degrees(angle_range)
-        self.dial_offset_angle_deg = degrees(rad_offset)
+        self.dial_offset_angle_deg = 360 - degrees(rad_offset)
         self.dial_angle_step = self.rad_range_deg / self.unit_range
 
-        arc_size_offset = buffer_radius + num_radius + 2
+        arc_size_offset = buffer_radius + num_radius
         arc = Arc(self, size - QSize(arc_size_offset, arc_size_offset),
                   self.default_color_dial, dial_width)
         arc.move(
             int(x_rad_offset) - arc.geometry().width() // 2,
             int(y_rad_offset) - arc.geometry().height() // 2)
-        arc.set_arc(int(rad_offset), 0)
+        arc.set_arc(int(self.dial_offset_angle_deg), 0)
         self.arc = arc
 
         palette = QPalette()
@@ -227,8 +230,7 @@ class Dial(QWidget):
 
     def setUnit(self, value: int | float) -> None:
         self.unit = value
-        if system != "Linux":
-            self.updateUnit()
+        self.updateUnit()
 
     def updateUnit(self):
         angle = -int(self.unit * self.dial_angle_step)

@@ -54,6 +54,9 @@ class MainWindow(QMainWindow):
 
         cluster_size = int(original_cluster_size * scale)
 
+        dial_opacity = 0.375
+        dial_width = 110
+
         coolant_temp_gauge = Dial(
             self,
             size=QSize(cluster_size, cluster_size),
@@ -62,7 +65,8 @@ class MainWindow(QMainWindow):
             redline=gauge_params["coolant_temp"]["redline"],
             blueline=gauge_params["coolant_temp"]["blueline"],
             blueline_color=QColor(125, 125, 255),
-            dial_opacity=0.1,
+            dial_opacity=0.3,
+            dial_width=30,
             mid_sections=gauge_params["coolant_temp"]["mid_sections"],
             no_font=True,
             visual_num_gap=28.75,
@@ -88,6 +92,8 @@ class MainWindow(QMainWindow):
             visual_num_gap=gauge_params["tachometer"]["denomination"],
             label_font=QFont(font_group, int(19 * scale), font_weight),
             angle_offset=pi,
+            dial_opacity = dial_opacity,
+            dial_width = dial_width,
             angle_range=big_dial_angle_range,
             buffer_radius=20 * scale,
             num_radius=54 * scale,
@@ -107,6 +113,8 @@ class MainWindow(QMainWindow):
             redline=gauge_params["speedometer"]["max"] + 1,
             mid_sections=gauge_params["speedometer"]["mid_sections"],
             visual_num_gap=20,
+            dial_opacity = dial_opacity,
+            dial_width = dial_width,
             label_font=QFont(font_group, int(18 * scale), font_weight),
             angle_offset=pi,
             angle_range=big_dial_angle_range,
@@ -309,7 +317,7 @@ class Application(QApplication):
         self._awaken_a = 0
         self._awaken_t = 0
 
-        t_step = self.awaken_sequence_duration_ms // screen_refresh_rate
+        t_step = self.awaken_sequence_duration_ms // 1000
         a_step = t_step / self.awaken_sequence_duration_ms
 
         self.primary_container.tachometer.setDial(0)
@@ -456,8 +464,8 @@ if __name__ == "__main__":
                       (gauge_params["oil_temp"]["max"] - 32) / 1.8 + 1))
         app.updateVar(
             "coolant_temp",
-            randrange(gauge_params["coolant_temp"]["min"],
-                      gauge_params["coolant_temp"]["max"] + 1))
+            (randrange(gauge_params["coolant_temp"]["min"],
+                      gauge_params["coolant_temp"]["max"] + 1) - c_to_f_offset)/c_to_f_scale)
 
     def run():
         timer = QTimer(app)
