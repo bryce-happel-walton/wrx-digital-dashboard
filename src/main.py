@@ -9,7 +9,7 @@ import can
 from math import pi
 from time import time
 from qutil import change_image_color
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot, QPoint
 from PyQt5.QtGui import (QColor, QCursor, QFont, QImage, QPalette, QPixmap,
                          QTransform)
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
@@ -28,13 +28,48 @@ with open("config/gauge_config.toml", "rb") as f:
 
 for i in can_ids.keys():
     if not i in visual_update_intervals:
-        visual_update_intervals[i] = 1 / screen_refresh_rate
+        visual_update_intervals[i] = 1 / (screen_refresh_rate * 2)
 
 original_cluster_size = 660
 
 c_to_f_scale = 1.8
 c_to_f_offset = 32
 kph_to_mph = 0.62137119
+gear_calc = (5280 * 12) / (pi*60)
+
+gear_ratios = {
+    '1': 3.454,
+    '2': 1.947,
+    '3': 1.296,
+    '4': 0.972,
+    '5': 0.78,
+    '6': 0.666,
+    'r': 3.636
+}
+
+tire = 26
+final_drive = 4.111
+
+
+def calcGear(rpm: int, speed: int):
+    top = rpm * tire
+    bottom = final_drive * speed * kph_to_mph * gear_calc
+    ratio = top/bottom
+
+    if ratio >= gear_ratios['1']:
+        return '1'
+    elif ratio >= gear_ratios['2'] and ratio < gear_ratios['1']:
+        return '2'
+    elif ratio >= gear_ratios['3'] and ratio < gear_ratios['2']:
+        return '3'
+    elif ratio >= gear_ratios['4'] and ratio < gear_ratios['3']:
+        return '4'
+    elif ratio >= gear_ratios['5'] and ratio < gear_ratios['4']:
+        return '5'
+    elif ratio >= gear_ratios['6'] and ratio < gear_ratios['5']:
+        return '6'
+    else:
+        return 'N'
 
 
 class MainWindow(QMainWindow):
@@ -76,10 +111,10 @@ class MainWindow(QMainWindow):
         for i, v in dial_params_major.items():
             dial_params_major[i] = int(v)
 
-        dial_opacity = 0.225
-        dial_width = 110
+        dial_opacity = 0.3
+        dial_width = 120
 
-        coolant_temp_gauge = Dial(
+        self.coolant_temp_gauge = Dial(
             self,
             size=cluster_size,
             min_unit=gauge_params["coolant_temp"]["min"],
@@ -95,10 +130,10 @@ class MainWindow(QMainWindow):
             angle_offset=big_dial_angle_range - pi + pi / 5,
             angle_range=2 * pi - big_dial_angle_range - pi / 5 * 2,
             **dial_params_minor)
-        coolant_temp_gauge.move(int(int_size / 4),
-                                int(screen_size[1] / 2 - int_size / 2))
+        self.coolant_temp_gauge.move(int(int_size / 4),
+                                     int(screen_size[1] / 2 - int_size / 2))
 
-        rpm_gauge = Dial(
+        self.tachometer = Dial(
             self,
             size=cluster_size,
             min_unit=gauge_params["tachometer"]["min"],
@@ -107,17 +142,18 @@ class MainWindow(QMainWindow):
             mid_sections=gauge_params["tachometer"]["mid_sections"],
             denomination=gauge_params["tachometer"]["denomination"],
             visual_num_gap=gauge_params["tachometer"]["denomination"],
+            background_color=QColor(255, 255, 255),
             label_font=QFont(font_group, int(19 * scale), font_weight),
             angle_offset=pi,
             dial_opacity=dial_opacity,
             dial_width=dial_width,
             angle_range=big_dial_angle_range,
             **dial_params_major)
-        rpm_gauge.frame.setStyleSheet("background:transparent")
-        rpm_gauge.move(int(int_size / 4),
-                       int(screen_size[1] / 2 - int_size / 2))
+        self.tachometer.frame.setStyleSheet("background:transparent")
+        self.tachometer.move(int(int_size / 4),
+                             int(screen_size[1] / 2 - int_size / 2))
 
-        speed_gauge = Dial(
+        self.speedometer = Dial(
             self,
             size=cluster_size,
             min_unit=gauge_params["speedometer"]["min"],
@@ -131,8 +167,8 @@ class MainWindow(QMainWindow):
             angle_offset=pi,
             angle_range=big_dial_angle_range,
             **dial_params_major)
-        speed_gauge.move(int(screen_size[0] - int_size - int_size / 4),
-                         int(screen_size[1] / 2 - int_size / 2))
+        self.speedometer.move(int(screen_size[0] - int_size - int_size / 4),
+                              int(screen_size[1] / 2 - int_size / 2))
 
         color_black = QColor(0, 0, 0)
         color_green = QColor(0, 255, 0)
@@ -158,127 +194,106 @@ class MainWindow(QMainWindow):
         left_arrow_image_green = left_arrow_image_green.transformed(
             vertical_mirror)
 
-        self.right_arrow_image_black = right_arrow_image_black
-        self.right_arrow_image_green = right_arrow_image_green
-        self.left_arrow_image_black = left_arrow_image_black
-        self.left_arrow_image_green = left_arrow_image_green
-
         turn_signal_offset = int(-30 * scale)
         turn_signal_size = int(50 * scale)
 
-        right_turn_signal_image = QLabel(self)
-        right_turn_signal_image.setPixmap(right_arrow_image_black)
-        right_turn_signal_image.move(
+        self.right_turn_signal_image = QLabel(self)
+        self.right_turn_signal_image.setPixmap(right_arrow_image_black)
+        self.right_turn_signal_image.move(
             int(screen_size[0] - int_size - int_size / 4 - turn_signal_offset),
             int(screen_size[1] / 2 - int_size / 2))
-        right_turn_signal_image.setScaledContents(True)
-        right_turn_signal_image.resize(turn_signal_size, turn_signal_size)
+        self.right_turn_signal_image.setScaledContents(True)
+        self.right_turn_signal_image.resize(turn_signal_size, turn_signal_size)
 
-        right_turn_signal_image_active = QLabel(self)
-        right_turn_signal_image_active.setPixmap(right_arrow_image_green)
-        right_turn_signal_image_active.move(
+        self.right_turn_signal_image_active = QLabel(self)
+        self.right_turn_signal_image_active.setPixmap(right_arrow_image_green)
+        self.right_turn_signal_image_active.move(
             int(screen_size[0] - int_size - int_size / 4 - turn_signal_offset),
             int(screen_size[1] / 2 - int_size / 2))
-        right_turn_signal_image_active.setScaledContents(True)
-        right_turn_signal_image_active.resize(turn_signal_size,
-                                              turn_signal_size)
+        self.right_turn_signal_image_active.setScaledContents(True)
+        self.right_turn_signal_image_active.resize(turn_signal_size,
+                                                   turn_signal_size)
 
-        left_turn_signal_image = QLabel(self)
-        left_turn_signal_image.setPixmap(left_arrow_image_black)
-        left_turn_signal_image.move(
+        self.left_turn_signal_image = QLabel(self)
+        self.left_turn_signal_image.setPixmap(left_arrow_image_black)
+        self.left_turn_signal_image.move(
             int(int_size / 4 + int_size - turn_signal_size +
                 turn_signal_offset), int(screen_size[1] / 2 - int_size / 2))
-        left_turn_signal_image.setScaledContents(True)
-        left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
+        self.left_turn_signal_image.setScaledContents(True)
+        self.left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
 
-        left_turn_signal_image_active = QLabel(self)
-        left_turn_signal_image_active.setPixmap(left_arrow_image_green)
-        left_turn_signal_image_active.move(
+        self.left_turn_signal_image_active = QLabel(self)
+        self.left_turn_signal_image_active.setPixmap(left_arrow_image_green)
+        self.left_turn_signal_image_active.move(
             int(int_size / 4 + int_size - turn_signal_size +
                 turn_signal_offset), int(screen_size[1] / 2 - int_size / 2))
-        left_turn_signal_image_active.setScaledContents(True)
-        left_turn_signal_image_active.resize(turn_signal_size,
-                                             turn_signal_size)
+        self.left_turn_signal_image_active.setScaledContents(True)
+        self.left_turn_signal_image_active.resize(turn_signal_size,
+                                                  turn_signal_size)
 
-        speed_label_size = 200
-        label_font = QFont(font_group, int(22 * scale))
+        speed_label_size = rpm_label_size = 200
+        label_font = QFont(font_group, int(30 * scale))
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        speed_label = QLabel(self)
-        speed_label.setText(f"{0}")
-        speed_label.setStyleSheet("background:transparent")
-        speed_label.setFont(label_font)
-        speed_label.setPalette(palette)
-        speed_label.move(
+        self.speed_label = QLabel(self)
+        self.speed_label.setStyleSheet("background:transparent")
+        self.speed_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.speed_label.setFont(label_font)
+        self.speed_label.setPalette(palette)
+        self.speed_label.setText("0")
+        sl_size = self.speed_label.frameGeometry().size()
+        self.speed_label.move(
             int(screen_size[0] - int_size - int_size / 4 + int_size / 2 -
-                25 * scale / 2),
-            int(screen_size[1] / 2 - int_size / 2 + speed_label_size * scale))
-        speed_label.resize(int(speed_label_size * scale),
-                           int(speed_label_size * scale))
+                sl_size.width() / 2),
+            int(screen_size[1] / 2 - sl_size.height() / 2))
 
-        rpm_label_size = speed_label_size
-
-        rpm_label = QLabel(self)
-        rpm_label.setStyleSheet("background:transparent")
-        rpm_label.setText(f"{0}")
-        rpm_label.move(
-            int(int_size / 4 + int_size / 2 - 25 * scale),
-            int(screen_size[1] / 2 - int_size / 2 + rpm_label_size * scale))
-        rpm_label.setFont(label_font)
-        rpm_label.setPalette(palette)
-        rpm_label.resize(int(rpm_label_size * scale),
-                         int(rpm_label_size * scale))
+        self.gear_label = QLabel(self)
+        self.gear_label.setStyleSheet("background:transparent")
+        self.gear_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.gear_label.setFont(label_font)
+        self.gear_label.setPalette(palette)
+        self.gear_label.setText("N")
+        gl_size = self.speed_label.frameGeometry().size()
+        self.gear_label.move(
+            int(int_size / 4 + int_size / 2 - gl_size.width() / 2),
+            int(screen_size[1] / 2 - gl_size.height() / 2))
 
         label_font = QFont(font_group, int(16 * scale))
         color = QColor(255, 255, 255)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        oil_temp_label = QLabel(self)
-        oil_temp_label.setStyleSheet("background:transparent")
-        oil_temp_label.setText(f"Oil Temp: {0} F")
-        oil_temp_label.setFont(label_font)
-        oil_temp_label.setPalette(palette)
-        oil_temp_label.resize(int(150 * scale), int(rpm_label_size * scale))
-        oil_temp_label.move(
+        self.oil_temp_label = QLabel(self)
+        self.oil_temp_label.setStyleSheet("background:transparent")
+        self.oil_temp_label.setText(f"Oil Temp: {0} F")
+        self.oil_temp_label.setFont(label_font)
+        self.oil_temp_label.setPalette(palette)
+        self.oil_temp_label.resize(int(150 * scale),
+                                   int(rpm_label_size * scale))
+        self.oil_temp_label.move(
             int(screen_size[0] / 2 -
-                oil_temp_label.frameGeometry().width() / 2 * scale),
+                self.oil_temp_label.frameGeometry().width() / 2 * scale),
             int(screen_size[1] / 2 -
-                oil_temp_label.frameGeometry().height() / 2 * scale))
+                self.oil_temp_label.frameGeometry().height() / 2 * scale))
 
         label_font = QFont(font_group, int(17 * scale))
         color = QColor(255, 0, 0)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, color)
 
-        hand_brake_label = QLabel(self)
-        hand_brake_label.setStyleSheet("background:transparent")
-        hand_brake_label.setText(f"BRAKE")
-        hand_brake_label.setFont(label_font)
-        hand_brake_label.setPalette(palette)
-        hand_brake_label.resize(int(80 * scale), int(75 * scale))
-        hand_brake_label.move(
+        self.hand_brake_label = QLabel(self)
+        self.hand_brake_label.setStyleSheet("background:transparent")
+        self.hand_brake_label.setText(f"BRAKE")
+        self.hand_brake_label.setFont(label_font)
+        self.hand_brake_label.setPalette(palette)
+        self.hand_brake_label.resize(int(80 * scale), int(75 * scale))
+        self.hand_brake_label.move(
             int(screen_size[0] - int_size - int_size / 4 + int_size / 2 -
-                hand_brake_label.frameGeometry().width() / 2 * scale),
+                self.hand_brake_label.frameGeometry().width() / 2 * scale),
             int(screen_size[1] / 2 - int_size / 2 + speed_label_size * scale +
-                hand_brake_label.frameGeometry().height() * 4 * scale))
-
-        self.oil_temp_label = oil_temp_label
-        self.hand_brake_label = hand_brake_label
-
-        self.rpm_label = rpm_label
-        self.speed_label = speed_label
-
-        self.right_turn_signal_image = right_turn_signal_image
-        self.left_turn_signal_image = left_turn_signal_image
-        self.right_turn_signal_image_active = right_turn_signal_image_active
-        self.left_turn_signal_image_active = left_turn_signal_image_active
-
-        self.speedometer = speed_gauge
-        self.tachometer = rpm_gauge
-        self.coolant_temp_gauge = coolant_temp_gauge
+                self.hand_brake_label.frameGeometry().height() * 4 * scale))
 
 
 class Application(QApplication):
@@ -307,9 +322,9 @@ class Application(QApplication):
 
         self.update_funcs = {}
 
-        self.awaken_clusters()
+        self.awakenClusters()
 
-    def awaken_clusters(self) -> None:
+    def awakenClusters(self) -> None:
         timer = QTimer(self)
 
         self._awaken_a = 0
@@ -350,6 +365,16 @@ class Application(QApplication):
         timer.timeout.connect(dialMove)
         timer.start(t_step)
 
+    def updateGearIndicator(self) -> None:
+        speed = self.cluster_vars.get('vehicle_speed', 1)
+        rpm = self.cluster_vars.get('rpm', 1)
+
+        speed = max(speed, 1)
+        rpm = max(rpm, 1)
+
+        gear = calcGear(rpm, speed)
+        self.primary_container.gear_label.setText(gear)
+
     @pyqtSlot(tuple)
     def updateVar(self, new_vars: tuple) -> None:
         t = time()
@@ -359,13 +384,12 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
             return
 
-        # print(f"{t - self.cluster_vars_update_ts[var]:.09f}", f"{visual_update_intervals[var]:.09f}")
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
                 f"{val * kph_to_mph:.0f}")
-            self.primary_container.speedometer.setUnit(val)
+            self.primary_container.speedometer.setUnit(val * kph_to_mph)
         elif var == "rpm":
-            self.primary_container.rpm_label.setText(f"{val}")
+            self.updateGearIndicator()
             self.primary_container.tachometer.setUnit(val)
         elif var == "turn_signals":
             left_turn_signal = val["left_turn_signal"]
@@ -472,17 +496,6 @@ if __name__ == "__main__":
 
     can_app = CanApplication(app, bus)
     can_app.updated.connect(app.updateVar)
-
-    # @pyqtSlot()
-    # def read_can():
-    #     msg = can_app.get_data()
-    #     can_app.parse_data(msg)
-
-    # @pyqtSlot()
-    # def run():
-    #     timer = QTimer(app)
-    #     timer.timeout.connect(read_can)
-    #     timer.start(1000 // 500000)
 
     @pyqtSlot()
     def run():
