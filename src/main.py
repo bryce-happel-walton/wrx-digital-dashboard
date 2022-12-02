@@ -370,13 +370,13 @@ class Application(QApplication):
             right_turn_signal = val["right_turn_signal"]
 
             self.primary_container.left_turn_signal_image.setHidden(
-                not left_turn_signal)
-            self.primary_container.left_turn_signal_image_active.setHidden(
                 left_turn_signal)
+            self.primary_container.left_turn_signal_image_active.setHidden(
+                not left_turn_signal)
             self.primary_container.right_turn_signal_image.setHidden(
-                not right_turn_signal)
-            self.primary_container.right_turn_signal_image_active.setHidden(
                 right_turn_signal)
+            self.primary_container.right_turn_signal_image_active.setHidden(
+                not right_turn_signal)
         elif var == "fuel_level":
             pass
         #todo: make config file of sorts that has user selected units
