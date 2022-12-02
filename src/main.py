@@ -9,7 +9,7 @@ import can
 from math import pi
 from time import time
 from qutil import change_image_color
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, QEvent, pyqtSlot
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot
 from PyQt5.QtGui import (QColor, QCursor, QFont, QImage, QPalette, QPixmap,
                          QTransform)
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
         for i, v in dial_params_major.items():
             dial_params_major[i] = int(v)
 
-        dial_opacity = 0.375
+        dial_opacity = 0.225
         dial_width = 110
 
         coolant_temp_gauge = Dial(
@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
             redline=gauge_params["coolant_temp"]["redline"],
             blueline=gauge_params["coolant_temp"]["blueline"],
             blueline_color=QColor(125, 125, 255),
-            dial_opacity=0.3,
+            dial_opacity=dial_opacity,
             dial_width=30,
             mid_sections=gauge_params["coolant_temp"]["mid_sections"],
             no_font=True,
@@ -297,7 +297,7 @@ class Application(QApplication):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow(scale)
-        background_color = (100, 100, 100)
+        background_color = (20, 20, 20)
         primary_container.setStyleSheet(
             f"background-color: rgb({background_color[0]}, {background_color[1]}, {background_color[2]})"
         )
@@ -324,6 +324,7 @@ class Application(QApplication):
         self._last_time = time() * 1000
         start_time = self._last_time
 
+        @pyqtSlot()
         def dialMove():
             current_time = time() * 1000
             dt = current_time - self._last_time
@@ -358,6 +359,7 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
             return
 
+        # print(f"{t - self.cluster_vars_update_ts[var]:.09f}", f"{visual_update_intervals[var]:.09f}")
         if var == "vehicle_speed":
             self.primary_container.speed_label.setText(
                 f"{val * kph_to_mph:.0f}")
@@ -435,12 +437,13 @@ if __name__ == "__main__":
     if system == "Linux":
         try:
             shutdown_can = subprocess.run(
-                ["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
+                ["sudo", "/sbin/ip", "link", "set", "can0", "down"],
+                check=True)
             setup_can = subprocess.run([
                 "sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can",
                 "bitrate", "500000"
             ],
-                                    check=True)
+                                       check=True)
 
             bus = can.interface.Bus(channel='can0',
                                     bustype='socketcan',
@@ -455,9 +458,11 @@ if __name__ == "__main__":
         bus_virtual_car = can.interface.Bus(channel='test', bustype='virtual')
         bus = can.interface.Bus(channel='test', bustype='virtual')
 
+        @pyqtSlot()
         def emulate_car():
             bus_virtual_car.send(test_provider.provide_random_message())
 
+        @pyqtSlot()
         def run():
             timer = QTimer(app)
             timer.timeout.connect(emulate_car)
@@ -468,14 +473,20 @@ if __name__ == "__main__":
     can_app = CanApplication(app, bus)
     can_app.updated.connect(app.updateVar)
 
-    def read_can():
-        msg = can_app.get_data()
-        can_app.parse_data(msg)
+    # @pyqtSlot()
+    # def read_can():
+    #     msg = can_app.get_data()
+    #     can_app.parse_data(msg)
 
+    # @pyqtSlot()
+    # def run():
+    #     timer = QTimer(app)
+    #     timer.timeout.connect(read_can)
+    #     timer.start(1000 // 500000)
+
+    @pyqtSlot()
     def run():
-        timer = QTimer(app)
-        timer.timeout.connect(read_can)
-        timer.start(1000 // 500000)
+        can.Notifier(bus, [can_app.parse_data])
 
     app.awakened.connect(run)
     app.primary_container.show()

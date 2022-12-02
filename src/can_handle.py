@@ -1,7 +1,7 @@
 import can_data
 import tomllib
 import can
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction
 
@@ -23,9 +23,11 @@ class CanApplication(QWidget):
         self.bus = bus
         self.qApp = qApp
 
+    @pyqtSlot()
     def get_data(self) -> None:
         return self.bus.recv()
 
+    @pyqtSlot(can.Message)
     def parse_data(self, msg: can.Message) -> None:
         id = msg.arbitration_id
         data = msg.data

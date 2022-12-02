@@ -12,14 +12,14 @@ mid_sections = 10
 
 [coolant_temp]
 min = 0
-max = 230
+max = 250
 mid_sections = 3
-redline = 184
-blueline = 65
+redline = 200
+blueline = 80
 
 [oil_temp]
 min = 0
-max = 230
+max = 250
 mid_sections = 3
 redline = 220
 blueline = 80

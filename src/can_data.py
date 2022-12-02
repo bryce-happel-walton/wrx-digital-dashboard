@@ -15,7 +15,7 @@ gear_ratios = {
 
 def rpm(data: bytearray) -> int:
     b4 = f"{data[4]:08b}"
-    b5 = f"{data[5]:08b}"[-4:]
+    b5 = f"{data[5]:08b}"[-5:]
     return int(b5 + b4, base=2)
 
 
