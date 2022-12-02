@@ -24,7 +24,7 @@ class CanApplication(QWidget):
         self.qApp = qApp
 
     def get_data(self) -> None:
-        return self.bus.recv(None)
+        return self.bus.recv()
 
     def parse_data(self, msg: can.Message) -> None:
         id = msg.arbitration_id

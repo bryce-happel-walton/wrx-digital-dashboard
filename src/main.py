@@ -450,10 +450,6 @@ if __name__ == "__main__":
             print("Could not find PiCan device. Switching to emulation.")
             using_canbus = False
 
-        if bus.recv(10) is None:
-            print("No canbus activity. Switching to emulation.")
-            using_canbus = False
-
     if not using_canbus:
         import test_provider
 
