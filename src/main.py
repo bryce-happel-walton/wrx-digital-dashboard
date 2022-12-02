@@ -350,10 +350,9 @@ class Application(QApplication):
         timer.start(t_step)
 
     @pyqtSlot(tuple)
-    def updateVar(self, new: tuple) -> None:
+    def updateVar(self, new_vars: tuple) -> None:
         t = time()
-        var = new[0]
-        val = new[1]
+        var, val = new_vars
         self.cluster_vars[var] = val
 
         if t - self.cluster_vars_update_ts[var] <= visual_update_intervals[var]:
