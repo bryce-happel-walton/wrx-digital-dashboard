@@ -1,9 +1,8 @@
 from math import ceil, cos, degrees, floor, pi, sin
 from util import clamp
 import platform
-
-from PyQt5.QtCore import QRectF, QObject, QSize, QLineF, QLine, Qt
 import PyQt5.QtGui as QtGui
+from PyQt5.QtCore import QRectF, QObject, QSize, QLineF, QLine, Qt
 from PyQt5.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPaintEvent, QGradient, QBrush
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
@@ -19,17 +18,17 @@ class Line(QWidget):
     painter = QPainter()
 
     def __init__(self,
-                 parent: QObject,
+                 parent: QWidget,
                  line: QLineF | QLine,
                  color: QColor | QGradient,
-                 width: float = 1):
+                 width: float = 1) -> None:
         super().__init__(parent)
         self.resize(parent.geometry().width(), parent.geometry().height())
         self.line = line
         self.pen = QPen(color, width)
         self.pen.setCapStyle(Qt.RoundCap)
 
-    def paintEvent(self, a0: QtGui.QPaintEvent):
+    def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         painter = self.painter
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)
@@ -43,7 +42,7 @@ class Arc(QWidget):
     painter = QPainter()
 
     def __init__(self,
-                 parent: QObject,
+                 parent: QWidget,
                  size: QSize,
                  color: QColor = QColor(0, 255, 0),
                  width: float = 15) -> None:
@@ -73,23 +72,26 @@ class Arc(QWidget):
                    self.size_x), self.arc_start, self.arc_end)
         painter.end()
 
-
 class Dial(QWidget):
 
     def __init__(self,
-                 parent: QObject,
+                 parent: QWidget,
                  min_unit: float = 0,
                  max_unit: float = 1,
                  redline: float = 0.5,
+                 blueline: float = -1,
                  mid_sections: int = 2,
+                 denomination: int = 1,
                  size: QSize = QSize(500, 500),
+                 dial_width: float = 30,
+                 line_width: float = 1,
+                 no_font: bool = False,
                  label_font: QFont = QFont("Sans-serif", 16),
                  default_color: QColor = QColor(255, 255, 255),
                  redline_color: QColor = QColor(255, 0, 0),
                  blueline_color: QColor = QColor(0, 0, 255),
                  background_color: QColor = QColor(0, 0, 0),
                  dial_opacity: float = 0.3,
-                 denomination: int = 1,
                  visual_num_gap: float = 1,
                  buffer_radius: int = 20,
                  num_radius: int = 54,
@@ -98,10 +100,7 @@ class Dial(QWidget):
                  middle_section_rad_offset: int = 43,
                  major_section_rad_offset: int = 40,
                  angle_range: float = 2 * pi - pi / 2,
-                 angle_offset: float = pi - pi / 4,
-                 blueline: int = -1,
-                 no_font: bool = False,
-                 dial_width: float = 30):
+                 angle_offset: float = pi - pi / 4) -> None:
         super().__init__(parent)
 
         visual_min_unit = floor(min_unit / visual_num_gap)
@@ -219,7 +218,7 @@ class Dial(QWidget):
                         cos(i * rad_step + rad_offset + z * rad_section_step) *
                         x_inner_radius + x_rad_offset,
                         sin(i * rad_step + rad_offset + z * rad_section_step) *
-                        y_inner_radius + y_rad_offset), color)
+                        y_inner_radius + y_rad_offset), color, line_width)
 
                 if i == visual_max_unit:
                     break
@@ -232,7 +231,7 @@ class Dial(QWidget):
         self.unit = value
         self.updateUnit()
 
-    def updateUnit(self):
+    def updateUnit(self) -> None:
         angle = -int(self.unit * self.dial_angle_step)
         if self.unit >= self.redline:
             self.arc.set_color(self.redline_color_dial)
