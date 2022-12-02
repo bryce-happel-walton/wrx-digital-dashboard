@@ -1,0 +1,17 @@
+import can_handle
+import can
+from random import choice
+
+turn_signal_data = [
+    [0x0F, 0x04, 0x00, 0x00, 0x00, 0x30, 0x00, 0x00],  # hazards
+    [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00],  # right turn
+    [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00],  # left turn
+    [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]  # everything off
+]
+
+def provide_random_message():
+    key, val = choice(list(can_handle.can_ids.items()))
+    data = bytearray([0, 0, 0, 0, 0, 0, 0, 0])
+    if key == "turn_signals":
+        data = choice(turn_signal_data)
+    return can.Message(arbitration_id=val, data=data)
