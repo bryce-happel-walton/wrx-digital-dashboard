@@ -1,18 +1,5 @@
 speed_mult = 0.05625
 
-gear_ratios = {
-    '1': 3.454,
-    '2': 1.947,
-    '3': 1.296,
-    '4': 0.972,
-    '5': 0.78,
-    '6': 0.666,
-    'r': 3.636,
-    'final_drive': 4.111,
-    'tire': 26
-}
-
-
 def rpm(data: bytearray) -> int:
     b4 = f"{data[4]:08b}"
     b5 = f"{data[5]:08b}"[-5:]
