@@ -2,8 +2,8 @@ from math import ceil, cos, degrees, floor, pi, sin
 from util import clamp
 import platform
 import PyQt5.QtGui as QtGui
-from PyQt5.QtCore import QRectF, QObject, QSize, QLineF, QLine, Qt
-from PyQt5.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPaintEvent, QGradient, QBrush
+from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt
+from PyQt5.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPaintEvent, QGradient
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 #todo: make resize event redraw everything
@@ -57,9 +57,9 @@ class Arc(QWidget):
     def set_color(self, color: QColor | QGradient) -> None:
         self.pen.setColor(color)
 
-    def set_arc(self, start: int, end: int) -> None:
-        self.arc_start = start * Q_DEGREE_MULT
-        self.arc_end = end * Q_DEGREE_MULT
+    def set_arc(self, start: float, end: float) -> None:
+        self.arc_start = int(start * Q_DEGREE_MULT)
+        self.arc_end = int(end * Q_DEGREE_MULT)
         self.update()
 
     def paintEvent(self, a0: QPaintEvent) -> None:
@@ -71,6 +71,7 @@ class Arc(QWidget):
             QRectF(self.arc_edge_offest, self.arc_edge_offest, self.size_x,
                    self.size_x), self.arc_start, self.arc_end)
         painter.end()
+
 
 class Dial(QWidget):
 
@@ -130,6 +131,7 @@ class Dial(QWidget):
         frame.setStyleSheet(
             f"background-color: rgb({background_color.red()}, {background_color.green()}, {background_color.blue()}); border-radius: {int(size.width()/2)}px"
         )
+
         frame.resize(size)
         self.frame = frame
 
@@ -232,11 +234,11 @@ class Dial(QWidget):
         self.updateUnit()
 
     def updateUnit(self) -> None:
-        angle = -int(self.unit * self.dial_angle_step)
+        angle = -(self.unit * self.dial_angle_step)
         if self.unit >= self.redline:
             self.arc.set_color(self.redline_color_dial)
         elif self.unit <= self.blueline:
             self.arc.set_color(self.blueline_color_dial)
         else:
             self.arc.set_color(self.default_color_dial)
-        self.arc.set_arc(int(self.dial_offset_angle_deg), angle)
+        self.arc.set_arc(self.dial_offset_angle_deg, angle)
