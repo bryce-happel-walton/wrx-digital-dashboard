@@ -105,9 +105,9 @@ class MainWindow(QMainWindow):
             dial_width=30,
             mid_sections=gauge_params["coolant_temp"]["mid_sections"],
             no_font=True,
-            visual_num_gap=28.75,
-            angle_offset=big_dial_angle_range - pi + pi / 5,
-            angle_range=2 * pi - big_dial_angle_range - pi / 5 * 2,
+            visual_num_gap=gauge_params["coolant_temp"]["visual_num_gap"],
+            angle_offset=big_dial_angle_range - pi + pi / 2.5,
+            angle_range=2 * pi - big_dial_angle_range - pi / 4 * 2,
             **dial_params_minor)
         self.coolant_temp_gauge.move(int(int_size / 4),
                                      int(screen_size[1] / 2 - int_size / 2))
