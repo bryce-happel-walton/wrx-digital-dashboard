@@ -28,6 +28,9 @@ class CanApplication(QWidget):
         id = msg.arbitration_id
         data = msg.data
 
+        if id == 0x144:
+            print(data)
+
         for i, v in can_ids.items():
             if v == id and i in parsers:
                 self.updated.emit((i, parsers[i](data)))
