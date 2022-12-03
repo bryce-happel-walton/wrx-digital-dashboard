@@ -29,7 +29,8 @@ class CanApplication(QWidget):
         data = msg.data
 
         if id == 0x144:
-            print(list(data))
+            test_data = [f"{x:08b}" for x in data]
+            print(test_data)
 
         for i, v in can_ids.items():
             if v == id and i in parsers:
