@@ -47,11 +47,12 @@ def handbrake(data: bytearray) -> int:
 
 def reverse_switch(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"
-    return int(b6[2], 2)
+    return int(b6[5], 2)
 
 
 def clutch_switch(data: bytearray) -> bool:
-    return data[2] == 90
+    b1 = f"{data[2]:08b}"
+    return int(b1[0], 2)
 
 
 if __name__ == "__main__":
