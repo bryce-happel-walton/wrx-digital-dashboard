@@ -36,9 +36,8 @@ def coolant_temp(data: bytearray) -> int:
     return (int(b3, 2) + temp_sensor_offset)
 
 
-def neutral_switch(data: bytearray) -> int:
-    b6 = f"{data[6]:08b}"  #! No neutral switch activity observed here. Need to find correct address and bits
-    return b6
+def neutral_switch(data: bytearray) -> bool:
+    return data[6] == 27
 
 
 def handbrake(data: bytearray) -> int:
@@ -48,7 +47,11 @@ def handbrake(data: bytearray) -> int:
 
 def reverse_switch(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"
-    return int(b6[5], 2)
+    return int(b6[2], 2)
+
+
+def clutch_switch(data: bytearray) -> bool:
+    return data[2] == 90
 
 
 if __name__ == "__main__":
