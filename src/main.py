@@ -30,7 +30,7 @@ for i in can_ids.keys():
     if not i in visual_update_intervals:
         visual_update_intervals[i] = 1 / (screen_refresh_rate * 2)
 
-original_cluster_size = 660
+original_dial_size = 660
 
 c_to_f_scale = 1.8
 c_to_f_offset = 32
@@ -64,8 +64,8 @@ class MainWindow(QMainWindow):
         font_weight = 600
         big_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
 
-        int_size = int(original_cluster_size * scale)
-        cluster_size = QSize(int_size, int_size)
+        dial_size_int = int(original_dial_size * scale)
+        dial_size = QSize(dial_size_int, dial_size_int)
 
         dial_params_minor = {
             "buffer_radius": 20 * scale,
@@ -95,7 +95,7 @@ class MainWindow(QMainWindow):
 
         self.coolant_temp_gauge = Dial(
             self,
-            size=cluster_size,
+            size=dial_size,
             min_unit=gauge_params["coolant_temp"]["min"],
             max_unit=gauge_params["coolant_temp"]["max"],
             redline=gauge_params["coolant_temp"]["redline"],
@@ -109,19 +109,18 @@ class MainWindow(QMainWindow):
             angle_offset=big_dial_angle_range - pi + pi / 2.5,
             angle_range=2 * pi - big_dial_angle_range - pi / 4 * 2,
             **dial_params_minor)
-        self.coolant_temp_gauge.move(int(int_size / 4),
-                                     int(screen_size[1] / 2 - int_size / 2))
+        self.coolant_temp_gauge.move(int(dial_size_int / 4),
+                                     int(screen_size[1] / 2 - dial_size_int / 2))
 
         self.tachometer = Dial(
             self,
-            size=cluster_size,
+            size=dial_size,
             min_unit=gauge_params["tachometer"]["min"],
             max_unit=gauge_params["tachometer"]["max"],
             redline=gauge_params["tachometer"]["redline"],
             mid_sections=gauge_params["tachometer"]["mid_sections"],
             denomination=gauge_params["tachometer"]["denomination"],
             visual_num_gap=gauge_params["tachometer"]["denomination"],
-            background_color=QColor(255, 255, 255),
             label_font=QFont(font_group, int(19 * scale), font_weight),
             angle_offset=pi,
             dial_opacity=dial_opacity,
@@ -129,12 +128,12 @@ class MainWindow(QMainWindow):
             angle_range=big_dial_angle_range,
             **dial_params_major)
         self.tachometer.frame.setStyleSheet("background:transparent")
-        self.tachometer.move(int(int_size / 4),
-                             int(screen_size[1] / 2 - int_size / 2))
+        self.tachometer.move(int(dial_size_int / 4),
+                             int(screen_size[1] / 2 - dial_size_int / 2))
 
         self.speedometer = Dial(
             self,
-            size=cluster_size,
+            size=dial_size,
             min_unit=gauge_params["speedometer"]["min"],
             max_unit=gauge_params["speedometer"]["max"],
             redline=gauge_params["speedometer"]["max"] + 1,
@@ -146,12 +145,17 @@ class MainWindow(QMainWindow):
             angle_offset=pi,
             angle_range=big_dial_angle_range,
             **dial_params_major)
-        self.speedometer.move(int(screen_size[0] - int_size - int_size / 4),
-                              int(screen_size[1] / 2 - int_size / 2))
+        self.speedometer.move(int(screen_size[0] - dial_size_int - dial_size_int / 4),
+                              int(screen_size[1] / 2 - dial_size_int / 2))
 
         color_black = QColor(0, 0, 0)
         color_green = QColor(0, 255, 0)
         vertical_mirror = QTransform().rotate(180)
+        symbol_blue_color = QColor(0, 0, 255)
+        symbol_green_color = QColor(0, 230, 0)
+        symbol_white_color = QColor(255, 255, 255)
+        symbol_yellow_color = QColor(255, 179, 0)
+        symbol_red_color = QColor(255, 0, 0)
 
         right_arrow_image_black = QImage("resources/turn-signal-arrow.png")
         change_image_color(right_arrow_image_black, color_black)
@@ -173,39 +177,142 @@ class MainWindow(QMainWindow):
         left_arrow_image_green = left_arrow_image_green.transformed(
             vertical_mirror)
 
+        traction_mode_image = QImage(
+            "resources/traction-mode-indicator-light.png")
+        change_image_color(traction_mode_image, QColor(156, 204, 101))
+        traction_mode_image = QPixmap.fromImage(traction_mode_image)
+
+        traction_control_off_image = QImage(
+            "resources/vehicle-dynamics-control-off-indicator-light.png")
+        change_image_color(traction_control_off_image, symbol_yellow_color)
+        traction_control_off_image = QPixmap.fromImage(
+            traction_control_off_image)
+
+        seatbelt_warning_image = QImage("resources/seatbelt-warning-light.png")
+        change_image_color(seatbelt_warning_image, symbol_red_color)
+        seatbelt_warning_image = QPixmap.fromImage(seatbelt_warning_image)
+
+        cruise_control_image = QImage(
+            "resources/cruise-control-indicator-light.png")
+        change_image_color(cruise_control_image, symbol_white_color)
+        cruise_control_image = QPixmap.fromImage(cruise_control_image)
+
+        high_beam_image = QImage("resources/highbeam-indicator-light.png")
+        change_image_color(high_beam_image, symbol_blue_color)
+        high_beam_image = QPixmap.fromImage(high_beam_image)
+
+        low_beam_image = QImage("resources/headlight-indicator-light.png")
+        change_image_color(low_beam_image, symbol_green_color)
+        low_beam_image = QPixmap.fromImage(low_beam_image)
+
+        drl_image = low_beam_image
+
+        fog_light_image = QImage("resources/front-fog-indicator-light.png")
+        change_image_color(fog_light_image, symbol_green_color)
+        fog_light_image = QPixmap.fromImage(fog_light_image)
+
         turn_signal_offset = int(-30 * scale)
-        turn_signal_size = int(50 * scale)
+        turn_signal_size = int(55 * scale)
+        symbol_size = int(55 * scale)
+        bottom_symbol_y_offset = 10
+
+        self.traction_mode_image = QLabel(self)
+        self.traction_mode_image.setPixmap(traction_mode_image)
+        self.traction_mode_image.setStyleSheet("background:transparent")
+        self.traction_mode_image.move(
+            int(screen_size[0] / 2 - symbol_size / 2),
+            int(screen_size[1] - symbol_size - bottom_symbol_y_offset))
+        self.traction_mode_image.setScaledContents(True)
+        self.traction_mode_image.resize(symbol_size, symbol_size)
+
+        self.traction_control_off_image = QLabel(self)
+        self.traction_control_off_image.setPixmap(traction_control_off_image)
+        self.traction_control_off_image.setStyleSheet("background:transparent")
+        self.traction_control_off_image.move(
+            int(screen_size[0] / 2 - symbol_size / 2 + symbol_size + 5),
+            int(screen_size[1] - symbol_size - bottom_symbol_y_offset))
+        self.traction_control_off_image.setScaledContents(True)
+        self.traction_control_off_image.resize(symbol_size, symbol_size)
+
+        self.seatbelt_warning_image = QLabel(self)
+        self.seatbelt_warning_image.setPixmap(seatbelt_warning_image)
+        self.seatbelt_warning_image.setStyleSheet("background:transparent")
+        self.seatbelt_warning_image.move(
+            int(screen_size[0] / 2 - symbol_size / 2 + 4 * (symbol_size + 5)),
+            int(screen_size[1] - symbol_size - bottom_symbol_y_offset))
+        self.seatbelt_warning_image.setScaledContents(True)
+        self.seatbelt_warning_image.resize(symbol_size, symbol_size)
+
+        self.cruise_control_image = QLabel(self)
+        self.cruise_control_image.setPixmap(cruise_control_image)
+        self.cruise_control_image.setStyleSheet("background:transparent")
+        self.cruise_control_image.move(
+            int(screen_size[0] - dial_size_int - dial_size_int / 4 + dial_size_int / 2 -
+                symbol_size / 2 - 4),
+            int(screen_size[1] / 2 - symbol_size / 2 - symbol_size))
+        self.cruise_control_image.setScaledContents(True)
+        self.cruise_control_image.resize(symbol_size, symbol_size)
+
+        self.high_beam_image = QLabel(self)
+        self.high_beam_image.setPixmap(high_beam_image)
+        self.high_beam_image.setStyleSheet("background:transparent")
+        self.high_beam_image.move(int(dial_size_int / 4 + symbol_size),
+                                  int(screen_size[1] / 2 - dial_size_int / 2))
+        self.high_beam_image.setScaledContents(True)
+        self.high_beam_image.resize(int(symbol_size * 1.25), int(symbol_size * 1.25))
+
+        self.low_beam_image = QLabel(self)
+        self.low_beam_image.setPixmap(low_beam_image)
+        self.low_beam_image.setStyleSheet("background:transparent")
+        self.low_beam_image.move(int(screen_size[0] - dial_size_int - dial_size_int / 4 + dial_size_int - symbol_size * 2),
+                                 int(screen_size[1] / 2 - dial_size_int / 2))
+        self.low_beam_image.setScaledContents(True)
+        self.low_beam_image.resize(int(symbol_size * 1.25), int(symbol_size * 1.25))
+
+        self.fog_light_image = QLabel(self)
+        self.fog_light_image.setPixmap(fog_light_image)
+        self.fog_light_image.setStyleSheet("background:transparent")
+        self.fog_light_image.move(int(dial_size_int / 4),
+                                  int(screen_size[1] / 2 - dial_size_int / 2 + symbol_size + 5))
+        self.fog_light_image.setScaledContents(True)
+        self.fog_light_image.resize(symbol_size, symbol_size)
 
         self.right_turn_signal_image = QLabel(self)
         self.right_turn_signal_image.setPixmap(right_arrow_image_black)
+        self.right_turn_signal_image.setStyleSheet("background:transparent")
         self.right_turn_signal_image.move(
-            int(screen_size[0] - int_size - int_size / 4 - turn_signal_offset),
-            int(screen_size[1] / 2 - int_size / 2))
+            int(screen_size[0] - dial_size_int - dial_size_int / 4 - turn_signal_offset),
+            int(screen_size[1] / 2 - dial_size_int / 2))
         self.right_turn_signal_image.setScaledContents(True)
         self.right_turn_signal_image.resize(turn_signal_size, turn_signal_size)
 
         self.right_turn_signal_image_active = QLabel(self)
         self.right_turn_signal_image_active.setPixmap(right_arrow_image_green)
+        self.right_turn_signal_image_active.setStyleSheet(
+            "background:transparent")
         self.right_turn_signal_image_active.move(
-            int(screen_size[0] - int_size - int_size / 4 - turn_signal_offset),
-            int(screen_size[1] / 2 - int_size / 2))
+            int(screen_size[0] - dial_size_int - dial_size_int / 4 - turn_signal_offset),
+            int(screen_size[1] / 2 - dial_size_int / 2))
         self.right_turn_signal_image_active.setScaledContents(True)
         self.right_turn_signal_image_active.resize(turn_signal_size,
                                                    turn_signal_size)
 
         self.left_turn_signal_image = QLabel(self)
         self.left_turn_signal_image.setPixmap(left_arrow_image_black)
+        self.left_turn_signal_image.setStyleSheet("background:transparent")
         self.left_turn_signal_image.move(
-            int(int_size / 4 + int_size - turn_signal_size +
-                turn_signal_offset), int(screen_size[1] / 2 - int_size / 2))
+            int(dial_size_int / 4 + dial_size_int - turn_signal_size +
+                turn_signal_offset), int(screen_size[1] / 2 - dial_size_int / 2))
         self.left_turn_signal_image.setScaledContents(True)
         self.left_turn_signal_image.resize(turn_signal_size, turn_signal_size)
 
         self.left_turn_signal_image_active = QLabel(self)
         self.left_turn_signal_image_active.setPixmap(left_arrow_image_green)
+        self.left_turn_signal_image_active.setStyleSheet(
+            "background:transparent")
         self.left_turn_signal_image_active.move(
-            int(int_size / 4 + int_size - turn_signal_size +
-                turn_signal_offset), int(screen_size[1] / 2 - int_size / 2))
+            int(dial_size_int / 4 + dial_size_int - turn_signal_size +
+                turn_signal_offset), int(screen_size[1] / 2 - dial_size_int / 2))
         self.left_turn_signal_image_active.setScaledContents(True)
         self.left_turn_signal_image_active.resize(turn_signal_size,
                                                   turn_signal_size)
@@ -224,7 +331,7 @@ class MainWindow(QMainWindow):
         self.speed_label.setText("0")
         sl_size = self.speed_label.frameGeometry().size()
         self.speed_label.move(
-            int(screen_size[0] - int_size - int_size / 4 + int_size / 2 -
+            int(screen_size[0] - dial_size_int - dial_size_int / 4 + dial_size_int / 2 -
                 sl_size.width() / 2),
             int(screen_size[1] / 2 - sl_size.height() / 2))
 
@@ -236,7 +343,7 @@ class MainWindow(QMainWindow):
         self.gear_label.setText("N")
         gl_size = self.speed_label.frameGeometry().size()
         self.gear_label.move(
-            int(int_size / 4 + int_size / 2 - gl_size.width() / 2),
+            int(dial_size_int / 4 + dial_size_int / 2 - gl_size.width() / 2),
             int(screen_size[1] / 2 - gl_size.height() / 2))
 
         label_font = QFont(font_group, int(16 * scale))
@@ -269,9 +376,9 @@ class MainWindow(QMainWindow):
         self.hand_brake_label.setPalette(palette)
         self.hand_brake_label.resize(int(80 * scale), int(75 * scale))
         self.hand_brake_label.move(
-            int(screen_size[0] - int_size - int_size / 4 + int_size / 2 -
+            int(screen_size[0] - dial_size_int - dial_size_int / 4 + dial_size_int / 2 -
                 self.hand_brake_label.frameGeometry().width() / 2 * scale),
-            int(screen_size[1] / 2 - int_size / 2 + speed_label_size * scale +
+            int(screen_size[1] / 2 - dial_size_int / 2 + speed_label_size * scale +
                 self.hand_brake_label.frameGeometry().height() * 4 * scale))
 
 
@@ -291,7 +398,7 @@ class Application(QApplication):
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow(scale)
-        background_color = (20, 20, 20)
+        background_color = (15, 15, 15)
         primary_container.setStyleSheet(
             f"background-color: rgb({background_color[0]}, {background_color[1]}, {background_color[2]})"
         )
@@ -383,17 +490,16 @@ class Application(QApplication):
             left_turn_signal = val["left_turn_signal"]
             right_turn_signal = val["right_turn_signal"]
 
-            self.primary_container.left_turn_signal_image.setHidden(
-                left_turn_signal)
-            self.primary_container.left_turn_signal_image_active.setHidden(
+            self.primary_container.left_turn_signal_image.setVisible(
                 not left_turn_signal)
-            self.primary_container.right_turn_signal_image.setHidden(
-                right_turn_signal)
-            self.primary_container.right_turn_signal_image_active.setHidden(
+            self.primary_container.left_turn_signal_image_active.setVisible(
+                left_turn_signal)
+            self.primary_container.right_turn_signal_image.setVisible(
                 not right_turn_signal)
+            self.primary_container.right_turn_signal_image_active.setVisible(
+                right_turn_signal)
         elif var == "fuel_level":
             pass
-        #todo: make config file of sorts that has user selected units
         elif var == "oil_temp":
             self.primary_container.oil_temp_label.setText(
                 f"Oil Temp: {val * c_to_f_scale + c_to_f_offset:.0f} F")
@@ -402,11 +508,26 @@ class Application(QApplication):
                                                               c_to_f_scale +
                                                               c_to_f_offset)
         elif var == "handbrake":
-            self.primary_container.hand_brake_label.setHidden(not val)
+            self.primary_container.hand_brake_label.setVisible(val)
         elif var == "neutral_switch":
             self.updateGearIndicator()
         elif var == "reverse_switch":
             self.updateGearIndicator()
+        elif var == "traction_control":
+            self.primary_container.traction_control_off_image.setVisible(val)
+        elif var == "trac_mode":
+            self.primary_container.traction_mode_image.setVisible(val)
+        elif var == "seatbelt_driver":
+            self.primary_container.seatbelt_warning_image.setVisible(val)
+        elif var == "cruise_control":
+            self.primary_container.cruise_control_image.setVisible(val)
+        elif var == "fog_lights":
+            self.primary_container.fog_light_image.setVisible(val)
+        elif var == "door_states":
+            pass
+        elif var == "headlights":
+            self.primary_container.low_beam_image.setVisible(val["lowbeams"] or val["drls"])
+            self.primary_container.high_beam_image.setVisible(val["highbeams"])
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t

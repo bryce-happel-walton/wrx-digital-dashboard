@@ -86,7 +86,7 @@ def fog_lights(data: bytearray) -> int:
 
 
 def headlights(data: bytearray) -> dict[str, int]:
-    b7b = f"{data[7]:08b}"
+    # b7b = f"{data[7]:08b}"
     b7 = data[7]
 
     low = 0x8C
