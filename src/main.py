@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
             dial_params_major[i] = int(v)
 
         dial_opacity = 0.3
-        dial_width = 120
+        dial_width = 120 * scale
 
         self.coolant_temp_gauge = Dial(
             self,
