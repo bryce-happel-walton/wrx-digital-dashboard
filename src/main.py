@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
 
         traction_mode_image = QImage(
             "resources/traction-mode-indicator-light.png")
-        change_image_color(traction_mode_image, QColor(156, 204, 101))
+        change_image_color(traction_mode_image, symbol_green_color)
         traction_mode_image = QPixmap.fromImage(traction_mode_image)
 
         traction_control_off_image = QImage(
