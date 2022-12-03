@@ -37,7 +37,7 @@ def coolant_temp(data: bytearray) -> int:
 
 
 def neutral_switch(data: bytearray) -> bool:
-    return data[6] == 27
+    return data[6] == 39
 
 
 def handbrake(data: bytearray) -> int:
