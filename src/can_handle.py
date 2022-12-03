@@ -29,7 +29,7 @@ class CanApplication(QWidget):
         data = msg.data
 
         if id == 0x144:
-            print(data)
+            print(list(data))
 
         for i, v in can_ids.items():
             if v == id and i in parsers:
