@@ -351,14 +351,15 @@ class Application(QApplication):
         reverse = self.cluster_vars.get('reverse_switch', 0)
         clutch = self.cluster_vars.get('clutch_switch', 0)
 
-        speed = max(speed, 1)
-
         if reverse:
             gear = 'R'
         elif neutral:
             gear = 'N'
         else:
-            gear = calcGear(rpm, speed)
+            if speed == 0:
+                gear = ''
+            else:
+                gear = calcGear(rpm, speed)
 
         self.primary_container.gear_label.setText(gear)
 
