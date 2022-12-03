@@ -353,9 +353,7 @@ class Application(QApplication):
 
         speed = max(speed, 1)
 
-        if clutch:
-            gear = ''
-        elif reverse:
+        if reverse:
             gear = 'R'
         elif neutral:
             gear = 'N'
