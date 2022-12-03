@@ -35,41 +35,20 @@ original_cluster_size = 660
 c_to_f_scale = 1.8
 c_to_f_offset = 32
 kph_to_mph = 0.62137119
-gear_calc = (5280 * 12) / (pi*60)
-
-gear_ratios = {
-    '1': 3.454,
-    '2': 1.947,
-    '3': 1.296,
-    '4': 0.972,
-    '5': 0.78,
-    '6': 0.666,
-    'r': 3.636
-}
-
+gear_calc = (5280 * 12) / (pi * 60)
+gear_ratios_l = [3.454, 1.947, 1.296, 0.972, 0.78, 0.666]
 tire = 26
 final_drive = 4.111
 
 
 def calcGear(rpm: int, speed: int):
-    top = rpm * tire
-    bottom = final_drive * speed * kph_to_mph * gear_calc
-    ratio = top/bottom
+    ratio = (rpm * tire) / (final_drive * speed * kph_to_mph * gear_calc)
 
-    if ratio >= gear_ratios['1']:
-        return '1'
-    elif ratio >= gear_ratios['2'] and ratio < gear_ratios['1']:
-        return '2'
-    elif ratio >= gear_ratios['3'] and ratio < gear_ratios['2']:
-        return '3'
-    elif ratio >= gear_ratios['4'] and ratio < gear_ratios['3']:
-        return '4'
-    elif ratio >= gear_ratios['5'] and ratio < gear_ratios['4']:
-        return '5'
-    elif ratio >= gear_ratios['6'] and ratio < gear_ratios['5']:
-        return '6'
-    else:
-        return 'N'
+    for i, v in enumerate(gear_ratios_l):
+        if ratio >= v:
+            return f'{i+1}'
+
+    return 'N'
 
 
 class MainWindow(QMainWindow):
@@ -367,12 +346,22 @@ class Application(QApplication):
 
     def updateGearIndicator(self) -> None:
         speed = self.cluster_vars.get('vehicle_speed', 1)
-        rpm = self.cluster_vars.get('rpm', 1)
+        rpm = self.cluster_vars.get('rpm', 0)
+        neutral = self.cluster_vars.get('neutral_switch', 0)
+        reverse = self.cluster_vars.get('reverse_switch', 0)
+        clutch = self.cluster_vars.get('clutch_switch', 0)
 
         speed = max(speed, 1)
-        rpm = max(rpm, 1)
 
-        gear = calcGear(rpm, speed)
+        if clutch:
+            gear = ''
+        elif reverse:
+            gear = 'R'
+        elif neutral:
+            gear = 'N'
+        else:
+            gear = calcGear(rpm, speed)
+
         self.primary_container.gear_label.setText(gear)
 
     @pyqtSlot(tuple)
@@ -414,14 +403,11 @@ class Application(QApplication):
                                                               c_to_f_scale +
                                                               c_to_f_offset)
         elif var == "handbrake":
-            if val:
-                self.primary_container.hand_brake_label.setText("BRAKE")
-            else:
-                self.primary_container.hand_brake_label.setText("")
+            self.primary_container.hand_brake_label.setHidden(not val)
         elif var == "neutral_switch":
-            pass
+            self.updateGearIndicator()
         elif var == "reverse_switch":
-            pass
+            self.updateGearIndicator()
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
