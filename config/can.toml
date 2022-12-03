@@ -21,7 +21,7 @@ handbrake = "0x152"
 reverse_switch = "0x152"
 brake_switch = "0x152"
 
-clutch_switch = "0x144"
+clutch_switch = "0x140"
 
 rpm = "0x141"
 neutral_switch = "0x141"
