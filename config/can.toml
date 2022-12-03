@@ -2,13 +2,13 @@
 turn_signals = "0x282"
 
 vehicle_speed = "0x0D1"
-brake_pedal_position = "0x0D1"
+#brake_pedal_position = "0x0D1"
 
 wheel_speeds = "0x0D4"
 
 door_states = "0x375"
-steering_wheel_position = "0x002"
-climate_control = "0x281"
+#steering_wheel_position = "0x002"
+#climate_control = "0x281"
 
 coolant_temp = "0x360"
 oil_temp = "0x360"
@@ -17,6 +17,8 @@ throttle_pedal_position = "0x140"
 throttle_plate_position = "0x140"
 
 headlights = "0x152"
+#headlight_controls = "0x375"
+fog_lights = "0x374"
 handbrake = "0x152"
 reverse_switch = "0x152"
 brake_switch = "0x152"
@@ -25,3 +27,11 @@ clutch_switch = "0x140"
 
 rpm = "0x141"
 neutral_switch = "0x141"
+
+cruise_control = "0x144"
+
+seatbelt_driver = "0x282"
+dimmer_dial = "0x376"
+
+traction_control = "0x0D3"
+trac_mode = "0x0D3"
