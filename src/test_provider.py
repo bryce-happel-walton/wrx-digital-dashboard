@@ -22,14 +22,12 @@ def provide_random_message():
             randrange(0, int((0xfa - 32) / 1.8)), 0, 0, 0, 0
         ]
     elif key in ["headlights", "handbrake", "reverse_switch", "brake_switch"]:
-        data = [0, 0, 0, 0, 0, 0, int(f'0000{randrange(0,2)}000', 2), 0]
+        data = [0, 0, 0, 0, 0, 0, int(f'00{randrange(0,2)}0{randrange(0,2)}000', 2), 0]
     elif key in ["rpm", "neutral_switch"]:
-        data = [
-            0x00, 0x00, 0x00, 0x00,
-            randrange(0, 256),
-            randrange(0, 256), 0x00, 0x00
-        ]
+        data = [0, 0, 0, 0,randrange(0, 256),randrange(0, 256), choice([27, 20]), 0]
     elif key in ["vehicle_speed", "brake_pedal_position"]:
         speed_range_2 = 180 // 14
         data = [0, randrange(0, speed_range_2 + 1), 0, 0, 0, 0, 0, 0]
+    elif key == "clutch_switch":
+        data = [0, 0, choice([90, 89]), 0, 0, 0, 0, 0]
     return can.Message(arbitration_id=val, data=data)
