@@ -15,7 +15,7 @@ def vehicle_speed(data: bytearray) -> float:
 
 def cruise_control_speed(data: bytearray) -> float:
     b7 = f"{data[7]:08b}"
-    return int(b7, base=2) * speed_mult
+    return data[7]
 
 
 def turn_signals(data: bytearray) -> dict[str, int]:
