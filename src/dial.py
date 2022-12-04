@@ -23,7 +23,7 @@ class Line(QWidget):
                  color: QColor | QGradient,
                  width: float = 1) -> None:
         super().__init__(parent)
-        self.resize(parent.geometry().width(), parent.geometry().height())
+        self.resize(parent.size().width(), parent.size().height())
         self.line = line
         self.pen = QPen(color, width)
         self.pen.setCapStyle(Qt.RoundCap)
@@ -150,8 +150,8 @@ class Dial(QWidget):
         arc = Arc(self, size - QSize(arc_size_offset, arc_size_offset),
                   self.default_color_dial, dial_width)
         arc.move(
-            int(x_rad_offset) - arc.geometry().width() // 2,
-            int(y_rad_offset) - arc.geometry().height() // 2)
+            int(x_rad_offset) - arc.size().width() // 2,
+            int(y_rad_offset) - arc.size().height() // 2)
         arc.set_arc(int(self.dial_offset_angle_deg), 0)
         self.arc = arc
 
@@ -172,19 +172,19 @@ class Dial(QWidget):
             palette.setColor(QPalette.ColorRole.WindowText, color)
 
             if not no_font:
-                label = QLabel(f"{int(i * visual_num_gap / denomination)}",
-                               frame)
+                label = QLabel(frame)
                 label.setStyleSheet("background:transparent")
                 label.setPalette(palette)
                 label.setFont(label_font)
+                label.setText(f"{int(i * visual_num_gap / denomination)}")
                 label.show()
                 label.move(
                     int(
                         cos(i * rad_step + rad_offset) * num_x_radius +
-                        x_rad_offset - label.geometry().width() / 2),
+                        x_rad_offset - label.size().width() / 2),
                     int(
                         sin(i * rad_step + rad_offset) * num_y_radius +
-                        y_rad_offset - label.geometry().height() / 2))
+                        y_rad_offset - label.size().height() / 2))
 
             for z in range(mid_sections):
                 if i + z / mid_sections >= redline / visual_num_gap:
