@@ -24,6 +24,9 @@ class CanApplication(QWidget):
         self.bus = bus
         self.qApp = qApp
 
+    def send(self, message: can.Message) -> None:
+        self.bus.send(message)
+
     @pyqtSlot(can.Message)
     def parse_data(self, msg: can.Message) -> None:
         id = msg.arbitration_id
