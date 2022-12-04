@@ -267,6 +267,7 @@ class MainWindow(QMainWindow):
         self.speed_label.setFont(label_font)
         self.speed_label.setPalette(palette)
         self.speed_label.setText("0")
+        self.speed_label.resize(dial_size_int, dial_size_int)
         sl_size = self.speed_label.size()
         self.speed_label.move(
             int(SCREEN_SIZE[0] - dial_size_int - dial_size_int / 4 +
@@ -279,6 +280,7 @@ class MainWindow(QMainWindow):
         self.gear_label.setFont(label_font)
         self.gear_label.setPalette(palette)
         self.gear_label.setText("N")
+        self.gear_label.resize(dial_size_int, dial_size_int)
         gl_size = self.speed_label.size()
         self.gear_label.move(
             int(dial_size_int / 4 + dial_size_int / 2 - gl_size.width() / 2),
@@ -461,8 +463,7 @@ class Application(QApplication):
                                                              or val["drls"])
             self.primary_container.high_beam_image.setVisible(val["highbeams"])
         elif var == "cruise_control_speed":
-            self.primary_container.cruise_control_speed_label.setText(
-                f"Cruise Speed: {val + 20}")
+            self.primary_container.cruise_control_speed_label.setText(f"Cruise Speed: {val}")
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
