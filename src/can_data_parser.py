@@ -7,10 +7,16 @@ def rpm(data: bytearray) -> int:
     return int(b5 + b4, base=2)
 
 
-def vehicle_speed(data: bytearray) -> int:
+def vehicle_speed(data: bytearray) -> float:
     b0 = f"{data[0]:08b}"
     b1 = f"{data[1]:08b}"
-    return int(int(b1 + b0, base=2) * speed_mult)
+    return int(b1 + b0, base=2) * speed_mult
+
+
+def cruise_control_speed(data: bytearray) -> float:
+    b1 = f"{data[1]:08b}"
+    b2 = f"{data[2]:08b}"
+    return int(b2 + b1, base=2) * speed_mult
 
 
 def turn_signals(data: bytearray) -> dict[str, int]:
@@ -60,10 +66,6 @@ def cruise_control_status(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"
     return int(b6[7], 2)
 
-
-def cruise_control_speed(data: bytearray) -> int:
-    #b2 = f"{data[2]:08b}"
-    return data[2]
 
 def seatbelt_driver(data: bytearray) -> int:
     b5 = f"{data[5]:08b}"

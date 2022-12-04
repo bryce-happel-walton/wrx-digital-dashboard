@@ -26,8 +26,7 @@ def provide_random_message():
     elif key in ["rpm", "neutral_switch"]:
         data = [0, 0, 0, 0,randrange(0, 256),randrange(0, 256), choice([27, 20]), 0]
     elif key in ["vehicle_speed", "brake_pedal_position"]:
-        speed_range_2 = 180 // 14
-        data = [0, randrange(0, speed_range_2 + 1), 0, 0, 0, 0, 0, 0]
+        data = [0, randrange(0, 180 // 14 + 1), 0, 0, 0, 0, 0, 0]
     elif key == "clutch_switch":
         data = [0, 0, choice([90, 89]), 0, 0, 0, 0, 0]
     elif key == "traction_control":
@@ -37,7 +36,7 @@ def provide_random_message():
     elif key == "seatbelt_driver":
         data = [0, 0, 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0, 0]
     elif key in ["cruise_control_status", "cruise_control_speed"]:
-        data = [0, 0, randrange(0, 256), 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0]
+        data = [0, 0, randrange(0, 180 // 4 + 1), 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0]
     elif key == "fog_lights":
         data = [0, int(f"0{randrange(0,2)}000000", 2), 0, 0, 0, 0, 0, 0]
 
