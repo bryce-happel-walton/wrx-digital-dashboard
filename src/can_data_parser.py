@@ -15,6 +15,7 @@ def vehicle_speed(data: bytearray) -> float:
 
 def cruise_control_speed(data: bytearray) -> float:
     b7 = f"{data[7]:08b}"
+    print(f"{data[6]:08b} {data[7]:08b}", end='\r')
     return data[7]
 
 
