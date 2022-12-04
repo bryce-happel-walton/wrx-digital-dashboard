@@ -1,4 +1,4 @@
-# formatted with yapf
+# formatted with Google yapf
 # Bryce Happel Walton
 
 import platform
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
                                        max_unit=GAUGE_PARAMS["coolant_temp"]["max"],
                                        redline=GAUGE_PARAMS["coolant_temp"]["redline"],
                                        blueline=GAUGE_PARAMS["coolant_temp"]["blueline"],
-                                       blueline_color=QColor(125, 125, 255),
+                                       blueline_color=QColor(175, 150, 255),
                                        dial_opacity=minor_dial_opacity,
                                        dial_width=minor_dial_width,
                                        mid_sections=GAUGE_PARAMS["coolant_temp"]["mid_sections"],
@@ -188,9 +188,9 @@ class MainWindow(QMainWindow):
         self.cruise_control_status_image.move(
             self.speedometer.pos() + QPoint(dial_size_int // 2 - symbol_size // 2 - 3, dial_size_int // 2 -
                                             self.cruise_control_status_image.size().height() // 2) -
-            QPoint(0, int(symbol_size * 1.4)))
+            QPoint(0, int(symbol_size * 1.2)))
 
-        angle_mid = 35
+        angle_mid = 30
         arc_width = 1.5
         size_scale = 4.25
 
