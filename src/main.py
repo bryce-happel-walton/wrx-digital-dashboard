@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, scale: float = 1) -> None:
         super().__init__()
-        font_group = "Montserrat Black"
+        font_group = "Montserrat Bold"
 
         major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
         minor_dial_angle_range = 2 * pi - major_dial_angle_range - pi / 4 * 2
