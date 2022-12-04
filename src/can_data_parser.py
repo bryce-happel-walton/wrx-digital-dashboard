@@ -64,6 +64,7 @@ def clutch_switch(data: bytearray) -> int:
 
 def cruise_control_status(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"
+    print(b6[7])
     return int(b6[7], 2)
 
 
