@@ -9,7 +9,7 @@ import can
 from math import pi
 from time import time
 from qutil import change_image_color
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot, QPoint
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot
 from PyQt5.QtGui import (QColor, QCursor, QFont, QImage, QPalette, QPixmap,
                          QTransform)
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
