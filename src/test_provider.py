@@ -36,8 +36,8 @@ def provide_random_message():
         data = [int(f"0000{randrange(0,2)}000", 2), 0, 0, 0, 0, 0, 0, 0]
     elif key == "seatbelt_driver":
         data = [0, 0, 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0, 0]
-    elif key == "cruise_control":
-        data = [0, 0, 0, 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0]
+    elif key in ["cruise_control_status", "cruise_control_speed"]:
+        data = [0, 0, randrange(0, 256), 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0]
     elif key == "fog_lights":
         data = [0, int(f"0{randrange(0,2)}000000", 2), 0, 0, 0, 0, 0, 0]
 

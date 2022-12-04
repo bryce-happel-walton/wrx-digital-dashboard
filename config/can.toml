@@ -28,7 +28,8 @@ clutch_switch = "0x140"
 rpm = "0x141"
 neutral_switch = "0x141"
 
-cruise_control = "0x144"
+cruise_control_status = "0x144"
+cruise_control_speed = "0x144"
 
 seatbelt_driver = "0x282"
 dimmer_dial = "0x376"

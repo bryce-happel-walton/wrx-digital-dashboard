@@ -56,10 +56,14 @@ def clutch_switch(data: bytearray) -> int:
     return int(b2[0], 2)
 
 
-def cruise_control(data: bytearray) -> int:
+def cruise_control_status(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"
     return int(b6[7], 2)
 
+
+def cruise_control_speed(data: bytearray) -> int:
+    #b2 = f"{data[2]:08b}"
+    return data[2]
 
 def seatbelt_driver(data: bytearray) -> int:
     b5 = f"{data[5]:08b}"
