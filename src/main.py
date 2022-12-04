@@ -462,7 +462,7 @@ class Application(QApplication):
             self.primary_container.high_beam_image.setVisible(val["highbeams"])
         elif var == "cruise_control_speed":
             self.primary_container.cruise_control_speed_label.setText(
-                f"Cruise Speed: {val * KPH_TO_MPH_SCALE:.0f}")
+                f"Cruise Speed: {val + 20}")
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t

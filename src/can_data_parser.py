@@ -13,8 +13,7 @@ def vehicle_speed(data: bytearray) -> float:
     return int(b1 + b0, base=2) * speed_mult
 
 
-def cruise_control_speed(data: bytearray) -> float:
-    b7 = f"{data[7]:08b}"
+def cruise_control_speed(data: bytearray) -> int:
     print(f"{data[6]:08b} {data[7]:08b}", end='\r')
     return data[7]
 
