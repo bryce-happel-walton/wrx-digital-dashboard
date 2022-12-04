@@ -41,4 +41,4 @@ seatbelt_driver = "0x282"
 dimmer_dial = "0x376"
 
 traction_control = "0x0D3"
-trac_mode = "0x0D3"
+traction_control_mode = "0x0D3"

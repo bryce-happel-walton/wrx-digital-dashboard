@@ -20,10 +20,7 @@ def cruise_control_speed(data: bytearray) -> int:
 def turn_signals(data: bytearray) -> dict[str, int]:
     b5 = f"{data[5]:08b}"
 
-    new_data = {
-        "left_turn_signal": int(b5[3]),
-        "right_turn_signal": int(b5[2])
-    }
+    new_data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
 
     return new_data
 
@@ -79,7 +76,7 @@ def traction_control(data: bytearray) -> int:
     return int(b1[4], 2)
 
 
-def trac_mode(data: bytearray) -> int:
+def traction_control_mode(data: bytearray) -> int:
     b0 = f"{data[0]:08b}"
     return int(b0[4], 2)
 
@@ -112,13 +109,7 @@ def headlights(data: bytearray) -> dict[str, int]:
 def door_states(data: bytearray) -> dict[str, int]:
     b1 = f"{data[1]:08b}"
 
-    new_data = {
-        "lf": b1[7],
-        "rf": b1[6],
-        "lr": b1[4],
-        "rr": b1[5],
-        "trunk": b1[2]
-    }
+    new_data = {"lf": b1[7], "rf": b1[6], "lr": b1[4], "rr": b1[5], "trunk": b1[2]}
 
     return new_data
 
@@ -147,15 +138,13 @@ if __name__ == "__main__":
     print(time() - start)
 
     start = time()
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00,
-             0x00]  # left turn signal
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00]  # left turn signal
     data = bytearray(array)
     turn_signals(data)
     print(time() - start)
 
     start = time()
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00,
-             0x00]  # right turn signal
+    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]  # right turn signal
     data = bytearray(array)
     turn_signals(data)
     print(time() - start)
