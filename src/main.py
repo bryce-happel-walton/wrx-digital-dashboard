@@ -485,13 +485,13 @@ if __name__ == "__main__":
     if SYSTEM != "Linux":
         if len(screens) > 1:
             screen = screens[1]
-            app.primary_container.move(screen.size().topLeft())
+            app.primary_container.move(screen.geometry().topLeft())
             app.primary_container.showFullScreen()
         else:
             app.primary_container.setFixedSize(SCREEN_SIZE[0], SCREEN_SIZE[1])
     else:
         screen = screens[0]
-        app.primary_container.move(screen.size().topLeft())
+        app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
         app.primary_container.setFixedSize(SCREEN_SIZE[0], SCREEN_SIZE[1])
 
