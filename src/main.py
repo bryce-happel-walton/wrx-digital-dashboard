@@ -254,7 +254,7 @@ class MainWindow(QMainWindow):
         self.left_turn_signal_image_active.resize(turn_signal_size,
                                                   turn_signal_size)
 
-        speed_label_size = rpm_label_size = 200
+        rpm_label_size = 200
         label_font = QFont(font_group, int(30 * scale))
         color = QColor(255, 255, 255)
         palette = QPalette()
@@ -292,15 +292,29 @@ class MainWindow(QMainWindow):
         self.oil_temp_label.setStyleSheet("background:transparent")
         self.oil_temp_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         self.oil_temp_label.setFont(label_font)
-        self.oil_temp_label.setText(f"Oil Temp: {0} F")
+        self.oil_temp_label.setText("Oil Temp: 0 F")
         self.oil_temp_label.setPalette(palette)
         self.oil_temp_label.resize(int(200 * scale),
                                    int(rpm_label_size * scale))
         self.oil_temp_label.move(
             int(SCREEN_SIZE[0] / 2 -
-                self.oil_temp_label.size().width() / 2 * scale),
+                self.oil_temp_label.size().width() / 2),
             int(SCREEN_SIZE[1] / 2 -
-                self.oil_temp_label.size().height() / 2 * scale))
+                self.oil_temp_label.size().height() / 2))
+
+        self.cruise_control_speed_label = QLabel(self)
+        self.cruise_control_speed_label.setStyleSheet("background:transparent")
+        self.cruise_control_speed_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.cruise_control_speed_label.setFont(label_font)
+        self.cruise_control_speed_label.setText("Cruise Speed: 0")
+        self.cruise_control_speed_label.setPalette(palette)
+        self.cruise_control_speed_label.resize(int(200 * scale),
+                                   int(rpm_label_size * scale))
+        self.cruise_control_speed_label.move(
+            int(SCREEN_SIZE[0] / 2 -
+                self.cruise_control_speed_label.size().width() / 2),
+            int(SCREEN_SIZE[1] / 2 -
+                self.cruise_control_speed_label.size().height() / 2 + 30 * scale))
 
         label_font = QFont(font_group, int(17 * scale))
         color = QColor(255, 0, 0)
@@ -435,7 +449,7 @@ class Application(QApplication):
             self.primary_container.traction_mode_image.setVisible(val)
         elif var == "seatbelt_driver":
             self.primary_container.seatbelt_warning_image.setVisible(val)
-        elif var == "cruise_control":
+        elif var == "cruise_control_status":
             self.primary_container.cruise_control_image.setVisible(val)
         elif var == "fog_lights":
             self.primary_container.fog_light_image.setVisible(val)
@@ -445,6 +459,9 @@ class Application(QApplication):
             self.primary_container.low_beam_image.setVisible(val["lowbeams"]
                                                              or val["drls"])
             self.primary_container.high_beam_image.setVisible(val["highbeams"])
+        elif var == "cruise_control_speed":
+            self.primary_container.cruise_control_speed_label.setText(
+                f"Cruise Speed: {val}")
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
