@@ -26,6 +26,6 @@ class Image(QLabel):
             pixmap = pixmap.transformed(transform)
 
         self.setPixmap(pixmap)
-        super().setStyleSheet("background:transparent")
+        self.setStyleSheet("background:transparent")
         self.setScaledContents(True)
 

@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, scale: float = 1) -> None:
         super().__init__()
-        font_group = "Montserrat Bold"
+        font_group = "Montserrat Black"
 
         major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
         minor_dial_angle_range = 2 * pi - major_dial_angle_range - pi / 4 * 2
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
         turn_signal_offset = int(-30 * scale)
         turn_signal_size = int(55 * scale)
         dial_size_int = int(DIAL_SIZE * scale)
-        symbol_size = int(55 * scale)
+        symbol_size = int(60 * scale)
         bottom_symbol_y_offset = int(10 * scale)
         dial_size = QSize(dial_size_int, dial_size_int)
 
@@ -195,7 +195,7 @@ class MainWindow(QMainWindow):
         self.cruise_control_image.move(self.speedometer.pos() + QPoint(
             dial_size_int // 2 - symbol_size // 2 - 4, dial_size_int // 2 -
             self.cruise_control_image.size().height() // 2) -
-                                       QPoint(0, symbol_size))
+                                       QPoint(0, int(symbol_size * 1.5)))
         self.cruise_control_image.resize(symbol_size, symbol_size)
 
         self.high_beam_image = Image(
@@ -203,8 +203,8 @@ class MainWindow(QMainWindow):
             symbol_blue_color)
         self.high_beam_image.move(int(dial_size_int / 4 + symbol_size),
                                   int(SCREEN_SIZE[1] / 2 - dial_size_int / 2))
-        self.high_beam_image.resize(int(symbol_size * 1.25),
-                                    int(symbol_size * 1.25))
+        self.high_beam_image.resize(int(symbol_size * 1.2),
+                                    int(symbol_size * 1.2))
 
         self.low_beam_image = Image(
             self, IMAGE_PATH + "/headlight-indicator-light.png",
@@ -213,8 +213,8 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[0] - dial_size_int - dial_size_int / 4 +
                 dial_size_int - symbol_size * 2),
             int(SCREEN_SIZE[1] / 2 - dial_size_int / 2))
-        self.low_beam_image.resize(int(symbol_size * 1.25),
-                                   int(symbol_size * 1.25))
+        self.low_beam_image.resize(int(symbol_size * 1.2),
+                                   int(symbol_size * 1.2))
 
         self.fog_light_image = Image(
             self, IMAGE_PATH + "/front-fog-indicator-light.png",
