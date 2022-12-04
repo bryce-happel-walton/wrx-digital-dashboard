@@ -190,11 +190,12 @@ class MainWindow(QMainWindow):
         self.seatbelt_warning_image.resize(symbol_size, symbol_size)
 
         self.cruise_control_image = Image(
-            self, "/cruise-control-indicator-light.png", symbol_white_color)
-        self.cruise_control_image.move(
-            int(SCREEN_SIZE[0] - dial_size_int - dial_size_int / 4 +
-                dial_size_int / 2 - symbol_size / 2 - 4),
-            int(SCREEN_SIZE[1] / 2 - symbol_size / 2 - symbol_size))
+            self, IMAGE_PATH + "/cruise-control-indicator-light.png",
+            symbol_white_color)
+        self.cruise_control_image.move(self.speedometer.pos() + QPoint(
+            dial_size_int // 2 - symbol_size // 2 - 4, dial_size_int // 2 -
+            self.cruise_control_image.size().height() // 2) -
+                                       QPoint(0, symbol_size))
         self.cruise_control_image.resize(symbol_size, symbol_size)
 
         self.high_beam_image = Image(
@@ -227,13 +228,13 @@ class MainWindow(QMainWindow):
             self,
             IMAGE_PATH + "/brake-warning-indicator-light-letters-only.png",
             symbol_red_color)
-        self.brake_warning_image.resize(int(symbol_size * 1.4),
-                                        int(symbol_size * 1.4))
+        self.brake_warning_image.resize(int(symbol_size * 1.3),
+                                        int(symbol_size * 1.3))
         self.brake_warning_image.move(self.speedometer.pos() + QPoint(
             dial_size_int // 2 -
             self.brake_warning_image.size().width() // 2, dial_size_int // 2 -
             self.brake_warning_image.size().height() // 2) +
-                                      QPoint(0, int(symbol_size * 2.25)))
+                                      QPoint(0, int(symbol_size * 3)))
 
         self.right_turn_signal_image_active = Image(
             self, IMAGE_PATH + "/turn-signal-arrow.png", symbol_green_color)
