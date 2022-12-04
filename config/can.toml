@@ -30,6 +30,7 @@ neutral_switch = "0x141"
 
 cruise_control_status = "0x144"
 cruise_control_speed = "0x360"
+ac_status = "0x360" # byte 7 (literal)
 
 # on 0x144
 #literal, not offset by 1
