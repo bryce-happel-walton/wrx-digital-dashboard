@@ -28,6 +28,11 @@ def provide_random_message():
             int(f'00{randrange(0,2)}0{randrange(0,2)}000', 2),
             choice([0x8C, 0x80, 0x98, 0x9C, 0x84, 0x82])
         ]
+    elif key == "door_states":
+        data = [
+            0, int(f"00{randrange(0,2)}0{randrange(0,2)}{randrange(0,2)}{randrange(0,2)}{randrange(0,2)}", 2), 0, 0, 0,
+            0, 0, 0
+        ]
     elif key in ["rpm", "neutral_switch"]:
         data = [0, 0, 0, 0, randrange(0, 256), randrange(0, 256), choice([27, 20]), 0]
     elif key in ["vehicle_speed", "brake_pedal_position"]:

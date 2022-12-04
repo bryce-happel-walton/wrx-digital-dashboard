@@ -17,10 +17,11 @@ def cruise_control_speed(data: bytearray) -> int:
     return data[7]
 
 
-def turn_signals(data: bytearray) -> dict[str, int]:
+def turn_signals(data: bytearray) -> list[int]:
     b5 = f"{data[5]:08b}"
 
-    new_data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
+    #data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
+    new_data = [int(b5[3]), int(b5[2])]
 
     return new_data
 
@@ -86,30 +87,32 @@ def fog_lights(data: bytearray) -> int:
     return int(b1[1], 2)
 
 
-def headlights(data: bytearray) -> dict[str, int]:
-    # b7b = f"{data[7]:08b}"
+low = 0x8C
+pull_high = 0x98
+high = 0x9C
+drl_and_dim = 0x84
+drl_day = 0x82
+
+
+def headlights(data: bytearray) -> list[int]:
     b7 = data[7]
 
-    low = 0x8C
-    nothing = 0x80
-    pull_high = 0x98
-    high = 0x9C
-    drl_and_dim = 0x84
-    drl_day = 0x82
+    # data = {
+    #     "lowbeams": b7 == low,
+    #     "drls": 1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0,
+    #     "highbeams": b7 in [pull_high, high]
+    # }
 
-    new_data = {
-        "lowbeams": b7 == low,
-        "drls": 1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0,
-        "highbeams": b7 in [pull_high, high]
-    }
+    new_data = [b7 == low, 1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0, b7 in [pull_high, high]]
 
     return new_data
 
 
-def door_states(data: bytearray) -> dict[str, int]:
+def door_states(data: bytearray) -> dict[str]:
     b1 = f"{data[1]:08b}"
 
-    new_data = {"lf": b1[7], "rf": b1[6], "lr": b1[4], "rr": b1[5], "trunk": b1[2]}
+    #data = {"lf": b1[7], "rf": b1[6], "lr": b1[4], "rr": b1[5], "trunk": b1[2]}
+    new_data = [b1[7], b1[6], b1[4], b1[5], b1[2]]
 
     return new_data
 
