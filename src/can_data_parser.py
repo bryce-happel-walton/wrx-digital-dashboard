@@ -16,7 +16,7 @@ def vehicle_speed(data: bytearray) -> float:
 def cruise_control_speed(data: bytearray) -> float:
     b2 = f"{data[2]:08b}"
     print(
-        f"{data[0]:08b} {data[1]:08b} {data[2]:08b} {data[3]:08b} {data[4]:08b} {data[5]:08b} {data[6]:08b}", end='\r'
+        f"{data[0]:08b} {data[1]:08b} ________ {data[3]:08b} {data[4]:08b} {data[5]:08b} {data[6]:08b}", end='\r'
     )
     return int(b2, base=2) * speed_mult
 
