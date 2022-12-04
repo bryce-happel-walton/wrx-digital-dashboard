@@ -98,6 +98,7 @@ class Dial(QWidget):
         section_y_radius = y_rad_offset - buffer_radius - section_radius
 
         for i in range(visual_min_unit, visual_max_unit + 1):
+            redline / visual_num_gap
             if i >= redline / visual_num_gap:
                 color = redline_color
             elif i <= blueline / visual_num_gap:
@@ -123,6 +124,8 @@ class Dial(QWidget):
                     color = redline_color
                 elif i + z / mid_sections <= blueline / visual_num_gap:
                     color = blueline_color
+                else:
+                    color = default_color
 
                 x_radius = x_inner_radius = section_x_radius
                 y_radius = y_inner_radius = section_y_radius
