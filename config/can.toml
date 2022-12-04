@@ -29,7 +29,12 @@ rpm = "0x141"
 neutral_switch = "0x141"
 
 cruise_control_status = "0x144"
-cruise_control_speed = "0x144"
+cruise_control_speed = "0x360"
+
+# on 0x144
+#literal, not offset by 1
+# steering controls on b1: 3 cancel, 4 res/+, 5 set/-, 6 toggle button
+# status and brake on b8: 5 brake switch, 8 cruise on or off
 
 seatbelt_driver = "0x282"
 dimmer_dial = "0x376"
