@@ -23,6 +23,8 @@ RESOURCE_PATH = "resources"
 IMAGE_PATH = RESOURCE_PATH + "/images"
 FONT_PATH = RESOURCE_PATH + "/fonts"
 
+FONT_GROUP = "Montserrat Bold"
+
 SCREEN_SIZE = [1920, 720]
 SCREEN_REFRESH_RATE = 75 if SYSTEM == "Linux" else 60 if SYSTEM == "Darwin" else 144
 DIAL_SIZE = 660
@@ -61,8 +63,6 @@ class MainWindow(QMainWindow):
 
     def __init__(self, scale: float = 1) -> None:
         super().__init__()
-        font_group = "Montserrat Bold"
-
         major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
         minor_dial_angle_range = 2 * pi - major_dial_angle_range - pi / 4 * 2
 
@@ -74,11 +74,10 @@ class MainWindow(QMainWindow):
         symbol_yellow_color = QColor(255, 179, 0)
         symbol_red_color = QColor(255, 0, 0)
 
-        turn_signal_offset_x = int(80 * scale)
+        turn_signal_offset_x = int(70 * scale)
         turn_signal_offset_y = int(40 * scale)
-        turn_signal_size = int(55 * scale)
         dial_size_int = int(DIAL_SIZE * scale)
-        symbol_size = int(60 * scale)
+        symbol_size = int(63 * scale)
         bottom_symbol_y_offset = int(10 * scale)
         dial_size = QSize(dial_size_int, dial_size_int)
 
@@ -136,7 +135,7 @@ class MainWindow(QMainWindow):
                                mid_sections=GAUGE_PARAMS["tachometer"]["mid_sections"],
                                denomination=GAUGE_PARAMS["tachometer"]["denomination"],
                                visual_num_gap=GAUGE_PARAMS["tachometer"]["denomination"],
-                               label_font=QFont(font_group, int(19 * scale)),
+                               label_font=QFont(FONT_GROUP, int(20 * scale)),
                                angle_offset=pi,
                                dial_opacity=major_dial_opacity,
                                dial_width=major_dial_width,
@@ -154,7 +153,7 @@ class MainWindow(QMainWindow):
                                 visual_num_gap=20,
                                 dial_opacity=major_dial_opacity,
                                 dial_width=major_dial_width,
-                                label_font=QFont(font_group, int(16 * scale)),
+                                label_font=QFont(FONT_GROUP, int(18 * scale)),
                                 angle_offset=pi,
                                 angle_range=major_dial_angle_range,
                                 **dial_int_params_major)
@@ -212,7 +211,7 @@ class MainWindow(QMainWindow):
         arc_right.pen.setCapStyle(Qt.RoundCap)
         arc_right.setArc(90 + angle_mid, 180 - angle_mid * 2)
 
-        label_font = QFont(font_group, int(18 * scale))
+        label_font = QFont(FONT_GROUP, int(22 * scale))
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, symbol_gray_color)
 
@@ -229,13 +228,12 @@ class MainWindow(QMainWindow):
                    self.cruise_control_speed_label.size().height() // 2) + QPoint(0, int(symbol_size * 1.05)))
 
         self.high_beam_image = Image(self, IMAGE_PATH + "/highbeam-indicator-light.png", symbol_blue_color)
-        self.high_beam_image.resize(int(symbol_size * 1.2), int(symbol_size * 1.2))
+        self.high_beam_image.resize(symbol_size, symbol_size)
         self.high_beam_image.move(self.tachometer.pos() + QPoint(symbol_size * 2, 0))
 
         self.low_beam_image = Image(self, IMAGE_PATH + "/headlight-indicator-light.png", symbol_green_color)
         self.low_beam_image.resize(int(symbol_size * 1.2), int(symbol_size * 1.2))
-        self.low_beam_image.move(
-            self.speedometer.pos() + QPoint(self.tachometer.size().width() - symbol_size * 3, 0))
+        self.low_beam_image.move(self.speedometer.pos() + QPoint(self.tachometer.size().width() - symbol_size * 3, 0))
 
         self.fog_light_image = Image(self, IMAGE_PATH + "/front-fog-indicator-light.png", symbol_green_color)
         self.fog_light_image.resize(symbol_size, symbol_size)
@@ -250,21 +248,20 @@ class MainWindow(QMainWindow):
                                       QPoint(0, int(symbol_size * 3)))
 
         self.right_turn_signal_image_active = Image(self, IMAGE_PATH + "/turn-signal-arrow.png", symbol_green_color)
-        self.right_turn_signal_image_active.resize(turn_signal_size, turn_signal_size)
+        self.right_turn_signal_image_active.resize(symbol_size, symbol_size)
         self.right_turn_signal_image_active.move(self.speedometer.pos() +
                                                  QPoint(turn_signal_offset_x, turn_signal_offset_y))
 
         self.left_turn_signal_image_active = Image(self, IMAGE_PATH + "/turn-signal-arrow.png", symbol_green_color,
                                                    vertical_mirror)
-        self.left_turn_signal_image_active.resize(turn_signal_size, turn_signal_size)
+        self.left_turn_signal_image_active.resize(symbol_size, symbol_size)
         self.left_turn_signal_image_active.move(self.tachometer.pos() +
-                                                QPoint(self.tachometer.size().width() - turn_signal_size, 0) +
+                                                QPoint(self.tachometer.size().width() - symbol_size, 0) +
                                                 QPoint(-turn_signal_offset_x, turn_signal_offset_y))
 
-        label_font = QFont(font_group, int(30 * scale))
-        color = QColor(255, 255, 255)
+        label_font = QFont(FONT_GROUP, int(34 * scale))
         palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, color)
+        palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))
 
         self.speed_label = QLabel(self)
         self.speed_label.setStyleSheet("background:transparent")
@@ -288,26 +285,6 @@ class MainWindow(QMainWindow):
         gl_size = self.speed_label.size()
         self.gear_indicator_label.move(int(dial_size_int / 4 + dial_size_int / 2 - gl_size.width() / 2),
                                        int(SCREEN_SIZE[1] / 2 - gl_size.height() / 2))
-
-        label_font = QFont(font_group, int(16 * scale))
-        color = QColor(255, 255, 255)
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, color)
-
-        # self.oil_temp_label = QLabel(self)
-        # self.oil_temp_label.setStyleSheet("background:transparent")
-        # self.oil_temp_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
-        # self.oil_temp_label.setFont(label_font)
-        # self.oil_temp_label.setText("Oil Temp: 0 F")
-        # self.oil_temp_label.setPalette(palette)
-        # self.oil_temp_label.resize(int(200 * scale), int(rpm_label_size * scale))
-        # self.oil_temp_label.move(int(SCREEN_SIZE[0] / 2 - self.oil_temp_label.size().width() / 2),
-        #                          int(SCREEN_SIZE[1] / 2 - self.oil_temp_label.size().height() / 2))
-
-        label_font = QFont(font_group, int(17 * scale))
-        color = QColor(255, 0, 0)
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, color)
 
 
 class Application(QApplication):
@@ -410,7 +387,7 @@ class Application(QApplication):
         # elif var == "fuel_level":
         #     pass
         # elif var == "oil_temp":
-        #     self.primary_container.oil_temp_label.setText(f"Oil Temp: {val * C_TO_F_SCALE + C_TO_F_OFFSET:.0f} F")
+        #     pass
         elif var == "coolant_temp":
             self.primary_container.coolant_temp_gauge.setUnit(val * C_TO_F_SCALE + C_TO_F_OFFSET)
         elif var == "handbrake":
