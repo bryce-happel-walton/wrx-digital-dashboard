@@ -2,7 +2,7 @@ from math import ceil
 from PyQt5.QtGui import QColor, QImage, QPixmap, QColor, QTransform
 from PyQt5.QtWidgets import QLabel, QWidget
 import PyQt5.QtGui as QtGui
-from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt
+from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty
 from PyQt5.QtGui import QColor, QPainter, QPen, QPaintEvent, QGradient
 from PyQt5.QtWidgets import QLabel, QWidget
 
@@ -77,14 +77,30 @@ class Arc(QWidget):
         self.pen.setCapStyle(Qt.FlatCap)
         self.arc_edge_offest = ceil(width / 2)
         self.size_x = size.width() - width
-        self.arc_start = self.arc_end = 0
+        self._arc_start = self._arc_end = 0
+
+    @pyqtProperty(float)
+    def arc_start(self):
+        return self._arc_start
+
+    @pyqtProperty(float)
+    def arc_end(self):
+        return self._arc_end
+
+    @arc_start.setter
+    def arc_start(self, val: float):
+        self._arc_start = int(val * Q_DEGREE_MULT)
+
+    @arc_end.setter
+    def arc_end(self, val: float):
+        self._arc_end = int(val * Q_DEGREE_MULT)
 
     def setColor(self, color: QColor | QGradient) -> None:
         self.pen.setColor(color)
 
     def setArc(self, start: float, end: float) -> None:
-        self.arc_start = int(start * Q_DEGREE_MULT)
-        self.arc_end = int(end * Q_DEGREE_MULT)
+        self._arc_start = int(start * Q_DEGREE_MULT)
+        self._arc_end = int(end * Q_DEGREE_MULT)
         self.update()
 
     def paintEvent(self, a0: QPaintEvent) -> None:
@@ -92,6 +108,6 @@ class Arc(QWidget):
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(self.pen)
-        painter.drawArc(QRectF(self.arc_edge_offest, self.arc_edge_offest, self.size_x, self.size_x), self.arc_start,
-                        self.arc_end)
+        painter.drawArc(QRectF(self.arc_edge_offest, self.arc_edge_offest, self.size_x, self.size_x), self._arc_start,
+                        self._arc_end)
         painter.end()
