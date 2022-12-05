@@ -519,12 +519,12 @@ class Application(QApplication):
                 self.primary_container.cruise_control_status_widget.setVisible(False)
                 self.primary_container.cruise_control_speed_label.setVisible(False)
         elif var == "cruise_control_set":
-            if val and self.cluster_vars.get("cruise_control_status", 0):
-                if val != self.cruise_control_set_last:
-                    self.cruise_control_set_last = val
+            if val != self.cruise_control_set_last:
+                self.cruise_control_set_last = val
+                if val and self.cluster_vars.get("cruise_control_status", 0):
                     self.animateCruiseControl()
-            else:
-                self.animateCruiseControl(False)
+                else:
+                    self.animateCruiseControl(False)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
