@@ -308,7 +308,7 @@ class Application(QApplication):
         start_time = 0.4
 
         angle_mid = 30
-        duration = 100
+        duration = 1000
 
         start_left_start = 180
         end_left_start = 180 - 90 + angle_mid
@@ -382,6 +382,8 @@ class Application(QApplication):
         timer2 = QTimer(self)
 
         self.init_wait.connect(self.awakenClusters)
+
+        self.animateCruiseControl()
 
         @pyqtSlot()
         def init_wait():
@@ -522,6 +524,7 @@ class Application(QApplication):
             if val != self.cruise_control_set_last:
                 self.cruise_control_set_last = val
                 if val and self.cluster_vars.get("cruise_control_status", 0):
+                    print(True)
                     self.animateCruiseControl()
                 else:
                     self.animateCruiseControl(False)
