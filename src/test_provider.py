@@ -19,8 +19,8 @@ def provide_random_message():
         data = [
             0, 0,
             randrange(0, int((0xfa - 32) / 1.8)),
-            randrange(0, int((0xfa - 32) / 1.8)), 0, 0,
-            int(f"00{randrange(0,2)}{randrange(0,2)}0000", 2),
+            randrange(0, int((0xfa - 32) / 1.8)), 0,
+            int(f"00{randrange(0,2)}{randrange(0,2)}0000", 2), 0,
             randrange(0, 256)
         ]
     elif key in ["headlights", "handbrake", "reverse_switch", "brake_switch"]:
