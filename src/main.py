@@ -518,7 +518,6 @@ class Application(QApplication):
                 self.primary_container.cruise_control_speed_label.setVisible(False)
         elif var == "cruise_control_set":
             if val and self.cluster_vars.get("cruise_control_status", 0):
-                print(True)
                 self.animateCruiseControl()
             else:
                 self.animateCruiseControl(False)
