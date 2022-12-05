@@ -383,8 +383,6 @@ class Application(QApplication):
 
         self.init_wait.connect(self.awakenClusters)
 
-        self.animateCruiseControl()
-
         @pyqtSlot()
         def init_wait():
             if time() - t > start_time:
