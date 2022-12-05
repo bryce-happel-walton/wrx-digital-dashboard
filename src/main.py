@@ -204,12 +204,12 @@ class MainWindow(QMainWindow):
         self.cruise_control_arc_left = Arc(self.cruise_control_status_widget, self.cruise_control_status_widget.size(),
                                            symbol_gray_color, arc_width)
         self.cruise_control_arc_left.pen.setCapStyle(Qt.RoundCap)
-        # self.cruise_control_arc_left.setArc(90 + angle_mid, 180 - angle_mid * 2)
+        self.cruise_control_arc_left.setArc(90 + angle_mid, 180 - angle_mid * 2)
 
         self.cruise_control_arc_right = Arc(self.cruise_control_status_widget, self.cruise_control_status_widget.size(),
                                             symbol_gray_color, arc_width)
         self.cruise_control_arc_right.pen.setCapStyle(Qt.RoundCap)
-        # self.cruise_control_arc_right.setArc(270 + angle_mid, 180 - angle_mid * 2)
+        self.cruise_control_arc_right.setArc(270 + angle_mid, 180 - angle_mid * 2)
 
         label_font = QFont(FONT_GROUP, int(22 * scale))
         palette = QPalette()
@@ -511,14 +511,14 @@ class Application(QApplication):
             self.primary_container.high_beam_image.setVisible(val[2])
         elif var == "cruise_control_speed":
             if val > 0 and self.cluster_vars.get("cruise_control_status", 0):
-
                 self.primary_container.cruise_control_speed_label.setVisible(True)
                 self.primary_container.cruise_control_speed_label.setText(f"{val}")
             else:
                 self.primary_container.cruise_control_status_widget.setVisible(False)
                 self.primary_container.cruise_control_speed_label.setVisible(False)
         elif var == "cruise_control_set":
-            if self.cluster_vars.get("cruise_control_status", 0):
+            if val and self.cluster_vars.get("cruise_control_status", 0):
+                print(True)
                 self.animateCruiseControl()
             else:
                 self.animateCruiseControl(False)
