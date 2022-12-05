@@ -305,10 +305,10 @@ class Application(QApplication):
         self.primary_container = primary_container
         self.update_funcs = {}
 
-        start_time = 0.4
+        start_time = 1
 
         angle_mid = 30
-        duration = 1000
+        duration = 500
 
         start_left_start = 180
         end_left_start = 180 - 90 + angle_mid
@@ -518,13 +518,11 @@ class Application(QApplication):
                 self.primary_container.cruise_control_speed_label.setVisible(True)
                 self.primary_container.cruise_control_speed_label.setText(f"{val}")
             else:
-                self.primary_container.cruise_control_status_widget.setVisible(False)
                 self.primary_container.cruise_control_speed_label.setVisible(False)
         elif var == "cruise_control_set":
             if val != self.cruise_control_set_last:
                 self.cruise_control_set_last = val
                 if val and self.cluster_vars.get("cruise_control_status", 0):
-                    print(True)
                     self.animateCruiseControl()
                 else:
                     self.animateCruiseControl(False)
