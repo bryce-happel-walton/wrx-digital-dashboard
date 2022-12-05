@@ -376,7 +376,7 @@ class Application(QApplication):
         self.cruise_dial_right_animation_end_close.setEndValue(start_right_end)
         self.cruise_dial_right_animation_end_close.setDuration(duration)
 
-        self.cruise_control_set_last = 0
+        self.cruise_control_set_last = 1
 
         t = time()
         timer2 = QTimer(self)
@@ -518,13 +518,12 @@ class Application(QApplication):
             else:
                 self.primary_container.cruise_control_speed_label.setVisible(False)
         elif var == "cruise_control_set":
-            if val and self.cluster_vars.get("cruise_control_status", 0):
-                if val != self.cruise_control_set_last:
-                    self.cruise_control_set_last = val
-                    self.animateCruiseControl()
-            else:
+            if val != self.cruise_control_set_last:
                 self.cruise_control_set_last = val
-                self.animateCruiseControl(False)
+                if val and self.cluster_vars.get("cruise_control_status", 0):
+                    self.animateCruiseControl()
+                else:
+                    self.animateCruiseControl(False)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
