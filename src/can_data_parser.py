@@ -1,4 +1,5 @@
-speed_mult = 0.05625
+SPEED_SCALE = 0.05625
+TEMP_SENSOR_OFFSET = -40
 
 
 def rpm(data: bytearray) -> int:
@@ -10,7 +11,7 @@ def rpm(data: bytearray) -> int:
 def vehicle_speed(data: bytearray) -> float:
     b0 = f"{data[0]:08b}"
     b1 = f"{data[1]:08b}"
-    return int(b1 + b0, base=2) * speed_mult
+    return int(b1 + b0, base=2) * SPEED_SCALE
 
 
 def cruise_control_speed(data: bytearray) -> int:
@@ -26,17 +27,14 @@ def turn_signals(data: bytearray) -> list[int]:
     return new_data
 
 
-temp_sensor_offset = -40
-
-
 def oil_temp(data: bytearray) -> int:
     b2 = f"{data[2]:08b}"
-    return (int(b2, 2) + temp_sensor_offset)
+    return (int(b2, 2) + TEMP_SENSOR_OFFSET)
 
 
 def coolant_temp(data: bytearray) -> int:
     b3 = f"{data[3]:08b}"
-    return (int(b3, 2) + temp_sensor_offset)
+    return (int(b3, 2) + TEMP_SENSOR_OFFSET)
 
 
 def neutral_switch(data: bytearray) -> bool:
@@ -61,6 +59,7 @@ def clutch_switch(data: bytearray) -> int:
 def cruise_control_set(data: bytearray) -> int:
     b5 = f"{data[5]:08b}"
     return int(b5[2], 2)
+
 
 def cruise_control_status(data: bytearray) -> int:
     b5 = f"{data[5]:08b}"
@@ -119,39 +118,3 @@ def door_states(data: bytearray) -> dict[str]:
     new_data = [b1[7], b1[6], b1[4], b1[5], b1[2]]
 
     return new_data
-
-
-if __name__ == "__main__":
-    from time import time
-    # rpm
-    start = time()
-    array = [0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00]
-    data = bytearray(array)
-    rpm(data)
-    print(time() - start)
-
-    # vehicle speed
-    start = time()
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-    data = bytearray(array)
-    vehicle_speed(data)
-    print(time() - start)
-
-    # steering wheel left stock
-    start = time()
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]  # everything off
-    data = bytearray(array)
-    turn_signals(data)
-    print(time() - start)
-
-    start = time()
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00]  # left turn signal
-    data = bytearray(array)
-    turn_signals(data)
-    print(time() - start)
-
-    start = time()
-    array = [0x0F, 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]  # right turn signal
-    data = bytearray(array)
-    turn_signals(data)
-    print(time() - start)

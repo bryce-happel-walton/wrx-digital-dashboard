@@ -4,11 +4,13 @@ max = 8000
 redline = 6700
 mid_sections = 20
 denomination = 1000
+major_step = 1000
 
 [speedometer]
 min = 0
 max = 180
 mid_sections = 20
+major_step = 20
 
 [coolant_temp]
 min = 0
