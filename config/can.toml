@@ -13,6 +13,8 @@ door_states = "0x375"
 coolant_temp = "0x360"
 oil_temp = "0x360"
 cruise_control_speed = "0x360"
+cruise_control_status = "0x360"
+cruise_control_set = "0x360"
 
 throttle_pedal_position = "0x140"
 throttle_plate_position = "0x140"
@@ -29,7 +31,6 @@ clutch_switch = "0x140"
 rpm = "0x141"
 neutral_switch = "0x141"
 
-cruise_control_status = "0x144"
 #ac_status = "0x360" #* byte 7 (literal)
 
 # on 0x144
