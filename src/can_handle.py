@@ -32,10 +32,6 @@ class CanApplication(QWidget):
         id = msg.arbitration_id
         data = msg.data
 
-        # if id == 0x144: #*testing cruise control - observe row 3 for set speed I believe
-        #     test_data = [f"{x:08b}" for x in data]
-        #     print(test_data)
-
         for i, v in can_ids.items():
             if v == id and i in parsers:
                 self.updated.emit((i, parsers[i](data)))
