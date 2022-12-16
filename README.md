@@ -1,4 +1,4 @@
-**Requires Python3.11+**
+**Requires Python3.11+ (init script will auto install on RPi)**
 
 install required libraries:
 
@@ -17,4 +17,7 @@ dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25
 
 clone this repo to `$HOME`
 
-`cd $HOME && ./wrx-digital-dashboard/scripts/init_pi.sh`
+```
+cd $HOME && chmod +x wrx-digital-dashboard/scripts/init_pi.sh && ./wrx-digital-dashboard/scripts/init_pi.sh
+
+```
