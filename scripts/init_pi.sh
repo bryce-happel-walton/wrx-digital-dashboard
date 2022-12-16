@@ -9,4 +9,5 @@ sudo apt install -y build-essential libncurses5-dev libncursesw5-dev libreadline
 sudo make altinstall
 git clone https://github.com/MrTaco9001/wrx-digital-dashboard.git
 cd $HOME/wrx-digital-dashboard
+git config pull.rebase true
 python3.11 -m pip install -r requirements.txt
