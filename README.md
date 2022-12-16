@@ -15,9 +15,8 @@ dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25
 
 `sudo reboot`
 
-clone this repo to `$HOME`
-
 ```
-cd $HOME && chmod +x wrx-digital-dashboard/scripts/init_pi.sh && ./wrx-digital-dashboard/scripts/init_pi.sh
-
+cd $HOME
+git clone https://github.com/MrTaco9001/wrx-digital-dashboard.git
+cd wrx-digital-dashboard && chmod +x scripts/init_pi.sh && ./scripts/init_pi.sh
 ```
