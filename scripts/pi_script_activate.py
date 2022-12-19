@@ -1,6 +1,6 @@
 import os, shutil, stat
 
-PATH = "$HOME/wrx_scripts"
+PATH = "/home/wrx/wrx_scripts"
 
 if __name__ == "__main__":
     os.rmdir(PATH)
