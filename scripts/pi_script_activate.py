@@ -4,7 +4,7 @@ PATH = "/home/wrx/wrx_scripts"
 
 if __name__ == "__main__":
     if os.path.exists(PATH):
-        os.rmdir(PATH)
+        shutil.rmtree(PATH, True)
     os.mkdir(PATH)
     for file_name in os.listdir("scripts"):
         if ".sh" in file_name:
