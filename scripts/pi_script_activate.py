@@ -3,7 +3,8 @@ import os, shutil, stat
 PATH = "/home/wrx/wrx_scripts"
 
 if __name__ == "__main__":
-    os.rmdir(PATH)
+    if os.path.exists(PATH):
+        os.rmdir(PATH)
     os.mkdir(PATH)
     for file_name in os.listdir("scripts"):
         if ".sh" in file_name:
