@@ -26,18 +26,13 @@ class CanApplication(QWidget):
         self.bus.send(message)
 
     @pyqtSlot(can.Message)
-    def parse_response(self, msg: can.Message) -> None:
-        id = msg.arbitration_id
-        data = msg.data
-
-        if id == conversation_ids["receive_id"]:
-            print(data)
-
-    @pyqtSlot(can.Message)
     def parse_data(self, msg: can.Message) -> None:
         id = msg.arbitration_id
         data = msg.data
 
-        for i, v in can_ids.items():
-            if v == id and i in parsers:
-                self.updated.emit((i, parsers[i](data)))
+        if id in conversation_ids:
+            print(id, list(data), end='\r')
+        else:
+            for i, v in can_ids.items():
+                if v == id and i in parsers:
+                    self.updated.emit((i, parsers[i](data)))

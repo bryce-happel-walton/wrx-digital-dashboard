@@ -574,7 +574,7 @@ if __name__ == "__main__":
 
     @pyqtSlot()
     def run():
-        can.Notifier(bus, [can_app.parse_data, can_app.parse_response])
+        can.Notifier(bus, [can_app.parse_data])
 
     app.awakened.connect(run)
     app.primary_container.show()
