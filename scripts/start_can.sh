@@ -1,1 +1,1 @@
-python3.11 -m can.viewer -c can0 -b 500000
+python3.11 -m can.viewer -i socketcan -c can0 -b 500000
