@@ -473,8 +473,8 @@ class Application(QApplication):
         elif var == "turn_signals":
             self.primary_container.left_turn_signal_image_active.setVisible(val[0])
             self.primary_container.right_turn_signal_image_active.setVisible(val[1])
-        elif var == "fuel_level":
-            print(val)
+        # elif var == "fuel_level":
+        #     print(val)
         # elif var == "oil_temp":
         #     pass
         elif var == "coolant_temp":
