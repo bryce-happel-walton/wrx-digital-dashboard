@@ -1,3 +1,2 @@
-cd $HOME
-cd wrx-digital-dashboard
+cd $HOME/wrx-digital-dashboard
 python3.11 src/main.py
