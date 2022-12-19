@@ -49,12 +49,12 @@ FINAL_DRIVE_RATIO = 4.111
 
 
 #! potential problem with this function and threading
-def calcGear(rpm: int, speed: int):
+def calcGear(rpm: int, speed: int) -> str:
     ratio = (rpm * TIRE_DIAMETER) / (FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT)
 
-    for i, v in enumerate(GEAR_RATIOS):
+    for i, v in enumerate(GEAR_RATIOS, 1):
         if ratio >= v:
-            return f'{i+1}'
+            return str(i)
 
     return 'N'
 
@@ -473,8 +473,8 @@ class Application(QApplication):
         elif var == "turn_signals":
             self.primary_container.left_turn_signal_image_active.setVisible(val[0])
             self.primary_container.right_turn_signal_image_active.setVisible(val[1])
-        # elif var == "fuel_level":
-        #     pass
+        elif var == "fuel_level":
+            print(val)
         # elif var == "oil_temp":
         #     pass
         elif var == "coolant_temp":
@@ -574,7 +574,7 @@ if __name__ == "__main__":
 
     @pyqtSlot()
     def run():
-        can.Notifier(bus, [can_app.parse_data])
+        can.Notifier(bus, [can_app.parse_data, can_app.parse_response])
 
     app.awakened.connect(run)
     app.primary_container.show()

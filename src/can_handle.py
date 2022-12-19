@@ -10,6 +10,7 @@ parsers = {x[0]: x[1] for x in getmembers(can_data_parser, isfunction)}
 with open("config/can.toml", "rb") as f:
     config = tomllib.load(f)
     can_ids = config["can_ids"]
+    conversation_ids = config["conversation_ids"]
 
 
 class CanApplication(QWidget):
@@ -23,6 +24,14 @@ class CanApplication(QWidget):
 
     def send(self, message: can.Message) -> None:
         self.bus.send(message)
+
+    @pyqtSlot(can.Message)
+    def parse_response(self, msg: can.Message) -> None:
+        id = msg.arbitration_id
+        data = msg.data
+
+        if id == conversation_ids["receive_id"]:
+            print(data)
 
     @pyqtSlot(can.Message)
     def parse_data(self, msg: can.Message) -> None:
