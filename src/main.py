@@ -573,7 +573,15 @@ if __name__ == "__main__":
     can_app.updated.connect(app.updateVar)
 
     @pyqtSlot()
+    def run_conversation():
+        can_app.send(can.Message(arbitration_id=0x7E0, data=bytearray([0x02, 0x01, 0x0D])))
+
+    @pyqtSlot()
     def run():
+        timer = QTimer(app)
+        timer.timeout.connect(run_conversation)
+        timer.start(100)
+
         can.Notifier(bus, [can_app.parse_data])
 
     app.awakened.connect(run)

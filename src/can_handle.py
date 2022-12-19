@@ -30,7 +30,7 @@ class CanApplication(QWidget):
         id = msg.arbitration_id
         data = msg.data
 
-        if id in conversation_ids:
+        if id == conversation_ids["receive_id"]:
             print(id, list(data), end='\r')
         else:
             for i, v in can_ids.items():
