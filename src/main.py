@@ -22,7 +22,6 @@ CONFIG_PATH = "config"
 RESOURCE_PATH = "resources"
 IMAGE_PATH = RESOURCE_PATH + "/images"
 FONT_PATH = RESOURCE_PATH + "/fonts"
-
 FONT_GROUP = "Montserrat Bold"
 
 SCREEN_SIZE = [1920, 720]
@@ -49,6 +48,7 @@ TIRE_DIAMETER = 26
 FINAL_DRIVE_RATIO = 4.111
 
 
+#! potential problem with this function and threading
 def calcGear(rpm: int, speed: int):
     ratio = (rpm * TIRE_DIAMETER) / (FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT)
 
@@ -61,7 +61,7 @@ def calcGear(rpm: int, speed: int):
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, scale: float = 1) -> None:
+    def __init__(self) -> None:
         super().__init__()
         major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
         minor_dial_angle_range = 2 * pi - major_dial_angle_range - pi / 4 * 2
@@ -75,40 +75,40 @@ class MainWindow(QMainWindow):
         symbol_red_color = QColor(255, 0, 0)
         blueline_color = QColor(175, 150, 255)
 
-        turn_signal_offset_x = int(70 * scale)
-        turn_signal_offset_y = int(40 * scale)
-        dial_size_int = int(DIAL_SIZE * scale)
-        symbol_size = int(63 * scale)
-        turn_signal_sze = int(symbol_size * 0.8)
-        bottom_symbol_y_offset = int(10 * scale)
+        turn_signal_offset_x = 70
+        turn_signal_offset_y = 40
+        dial_size_int = DIAL_SIZE
+        symbol_size = 63
+        turn_signal_sze = symbol_size
+        bottom_symbol_y_offset = 10
         dial_size = QSize(dial_size_int, dial_size_int)
 
         major_dial_opacity = 0.3
-        major_dial_width = 120 * scale
+        major_dial_width = 120
 
         minor_dial_opacity = 0.15
-        minor_dial_width = 20 * scale
+        minor_dial_width = 20
 
         dial_int_params_minor = {
-            "buffer_radius": int(20 * scale),
-            "num_radius": int(50 * scale),
-            "section_radius": int(15 * scale),
-            "minor_section_rad_offset": int(3 * scale),
-            "middle_section_rad_offset": int(58 * scale),
-            "major_section_rad_offset": int(40 * scale),
-            "no_font":True,
+            "buffer_radius": 20,
+            "num_radius": 50,
+            "section_radius": 15,
+            "minor_section_rad_offset": 3,
+            "middle_section_rad_offset": 58,
+            "major_section_rad_offset": 40,
+            "no_font": True,
             "dial_opacity": minor_dial_opacity,
             "dial_width": minor_dial_width,
             "angle_range": minor_dial_angle_range
         }
 
         dial_int_params_major = {
-            "buffer_radius": int(20 * scale),
-            "num_radius": int(54 * scale),
-            "section_radius": int(20 * scale),
-            "minor_section_rad_offset": int(3 * scale),
-            "middle_section_rad_offset": int(43 * scale),
-            "major_section_rad_offset": int(40 * scale),
+            "buffer_radius": 20,
+            "num_radius": 54,
+            "section_radius": 20,
+            "minor_section_rad_offset": 3,
+            "middle_section_rad_offset": 43,
+            "major_section_rad_offset": 40,
             "angle_offset": pi,
             "dial_opacity": major_dial_opacity,
             "dial_width": major_dial_width,
@@ -126,7 +126,7 @@ class MainWindow(QMainWindow):
                                        visual_num_gap=GAUGE_PARAMS["coolant_temp"]["visual_num_gap"],
                                        angle_offset=major_dial_angle_range - pi + pi / 2.5,
                                        **dial_int_params_minor)
-        self.coolant_temp_gauge.move(int(dial_size_int / 4), int(SCREEN_SIZE[1] / 2 - dial_size_int / 2))
+        self.coolant_temp_gauge.move(int(dial_size_int / 4), int(SCREEN_SIZE[1] / 2 - dial_size_int / 2 + dial_size_int / 7))
 
         self.tachometer = Dial(self,
                                min_unit=GAUGE_PARAMS["tachometer"]["min"],
@@ -135,7 +135,7 @@ class MainWindow(QMainWindow):
                                mid_sections=GAUGE_PARAMS["tachometer"]["mid_sections"],
                                denomination=GAUGE_PARAMS["tachometer"]["denomination"],
                                visual_num_gap=GAUGE_PARAMS["tachometer"]["major_step"],
-                               label_font=QFont(FONT_GROUP, int(20 * scale)),
+                               label_font=QFont(FONT_GROUP, 20),
                                **dial_int_params_major)
         self.tachometer.frame.setStyleSheet("background:transparent")
         self.tachometer.move(int(dial_size_int / 4), int(SCREEN_SIZE[1] / 2 - dial_size_int / 2))
@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
                                 redline=GAUGE_PARAMS["speedometer"]["max"] + 1,
                                 mid_sections=GAUGE_PARAMS["speedometer"]["mid_sections"],
                                 visual_num_gap=GAUGE_PARAMS["speedometer"]["major_step"],
-                                label_font=QFont(FONT_GROUP, int(18 * scale)),
+                                label_font=QFont(FONT_GROUP, 18),
                                 **dial_int_params_major)
         self.speedometer.move(int(SCREEN_SIZE[0] - dial_size_int - dial_size_int / 4),
                               int(SCREEN_SIZE[1] / 2 - dial_size_int / 2))
@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
         self.cruise_control_arc_right.pen.setCapStyle(Qt.RoundCap)
         self.cruise_control_arc_right.setArc(270 + angle_mid, 180 - angle_mid * 2)
 
-        label_font = QFont(FONT_GROUP, int(22 * scale))
+        label_font = QFont(FONT_GROUP, 22)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, symbol_gray_color)
 
@@ -250,7 +250,7 @@ class MainWindow(QMainWindow):
                                                 QPoint(self.tachometer.size().width() - symbol_size, 0) +
                                                 QPoint(-turn_signal_offset_x, turn_signal_offset_y))
 
-        label_font = QFont(FONT_GROUP, int(34 * scale))
+        label_font = QFont(FONT_GROUP, 34)
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))
 
@@ -283,10 +283,10 @@ class Application(QApplication):
     awakened = pyqtSignal()
     init_wait = pyqtSignal()
 
-    def __init__(self, scale: float = 1) -> None:
+    def __init__(self) -> None:
         super().__init__([])
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
-        primary_container = MainWindow(scale)
+        primary_container = MainWindow()
         primary_container.setStyleSheet(
             f"background-color: rgb({BACKGROUND_COLOR[0]}, {BACKGROUND_COLOR[1]}, {BACKGROUND_COLOR[2]})")
 
@@ -519,15 +519,7 @@ class Application(QApplication):
 
 
 if __name__ == "__main__":
-    scale = 1
-    if SYSTEM == "Darwin":
-        scale = 1 / 1.3325
-    elif SYSTEM == "Windows":
-        scale = 1 / 1.25
-
-    SCREEN_SIZE = [int(1920 * scale), int(720 * scale)]
-
-    app = Application(scale=scale)
+    app = Application()
     screens = app.screens()
     using_canbus = False
 
@@ -540,8 +532,7 @@ if __name__ == "__main__":
         app.primary_container.showFullScreen()
         app.primary_container.setFixedSize(SCREEN_SIZE[0], SCREEN_SIZE[1])
 
-        if "nocan" not in sys.argv:
-            using_canbus = True
+        using_canbus = "nocan" not in sys.argv
 
         try:
             shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
