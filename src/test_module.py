@@ -50,4 +50,10 @@ def provide_random_message():
     elif key == "fog_lights":
         data = [0, int(f"0{randrange(0,2)}000000", 2), 0, 0, 0, 0, 0, 0]
 
-    return can.Message(arbitration_id=val, data=data)
+    return can.Message(is_extended_id=False, arbitration_id=val, data=data)
+
+
+def provide_response_message(recv_msg: can.Message) -> can.Message | list[can.Message]:
+    if recv_msg.arbitration_id == can_handle.conversation_ids["send_id"]:
+        data = [0, 0, 0, 0, 0, 0, 0, 0]
+        return can.Message(is_extended_id=False, arbitration_id=can_handle.conversation_ids["response_id"], data=data)

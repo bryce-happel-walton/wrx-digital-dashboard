@@ -1,38 +1,38 @@
 [can_ids]
-	turn_signals = 0x282
-	vehicle_speed = 0x0D1
-	wheel_speeds = 0x0D4
-	door_states = 0x375
-	coolant_temp = 0x360
-	oil_temp = 0x360
-	cruise_control_speed = 0x360
-	cruise_control_status = 0x360
-	cruise_control_set = 0x360
-	throttle_pedal_position = 0x140
-	throttle_plate_position = 0x140
-	headlights = 0x152
-	fog_lights = 0x374
-	handbrake = 0x152
-	reverse_switch = 0x152
-	brake_switch = 0x152
-	clutch_switch = 0x140
-	rpm = 0x141
-	neutral_switch = 0x141
-	seatbelt_driver = 0x282
-	dimmer_dial = 0x376
-	traction_control = 0x0D3
-	traction_control_mode = 0x0D3
+ turn_signals = 0x282
+ vehicle_speed = 0x0D1
+ wheel_speeds = 0x0D4
+ door_states = 0x375
+ coolant_temp = 0x360
+ oil_temp = 0x360
+ cruise_control_speed = 0x360
+ cruise_control_status = 0x360
+ cruise_control_set = 0x360
+ throttle_pedal_position = 0x140
+ throttle_plate_position = 0x140
+ headlights = 0x152
+ fog_lights = 0x374
+ handbrake = 0x152
+ reverse_switch = 0x152
+ brake_switch = 0x152
+ clutch_switch = 0x140
+ rpm = 0x141
+ neutral_switch = 0x141
+ seatbelt_driver = 0x282
+ dimmer_dial = 0x376
+ traction_control = 0x0D3
+ traction_control_mode = 0x0D3
 
-	#headlight_controls = 0x375
-	#brake_pedal_position = 0x0D1
-	#steering_wheel_position = 0x002
-	#climate_control = 0x281
-	#ac_status = 0x360 #* byte 7 (literal)
-	# on 0x144
-	# literal, not offset by 1
-	# steering controls on b1: 3 cancel, 4 res/+, 5 set/-, 6 toggle button
-	# status and brake on b8: 5 brake switch, 8 cruise on or off
+ #headlight_controls = 0x375
+ #brake_pedal_position = 0x0D1
+ #steering_wheel_position = 0x002
+ #climate_control = 0x281
+ #ac_status = 0x360 #* byte 7 (literal)
+ # on 0x144
+ # literal, not offset by 1
+ # steering controls on b1: 3 cancel, 4 res/+, 5 set/-, 6 toggle button
+ # status and brake on b8: 5 brake switch, 8 cruise on or off
 
 [conversation_ids]
-	write_id = 0x7E0
-	receive_id = 0x7E8
+ send_id = 0x7E0
+ response_id = 0x7E8

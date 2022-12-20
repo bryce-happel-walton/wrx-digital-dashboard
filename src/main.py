@@ -6,23 +6,29 @@ import subprocess
 import sys
 import tomllib
 import can
-from os import listdir
+from os import listdir, path
 from math import pi
 from time import time
 from qutil import Image, Arc
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot, QPoint, QPropertyAnimation
 from PyQt5.QtGui import QColor, QCursor, QFontDatabase, QFont, QPalette, QTransform
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
-from can_handle import CanApplication, can_ids
+from can_handle import CanApplication, can_ids, conversation_ids
 from dial import Dial
 
 SYSTEM = platform.system()
-
 CONFIG_PATH = "config"
+
+with open(CONFIG_PATH + "/settings.toml", "rb") as f:
+    SETTINGS = tomllib.load(f)
+
+with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
+    GAUGE_PARAMS = tomllib.load(f)
+
 RESOURCE_PATH = "resources"
 IMAGE_PATH = RESOURCE_PATH + "/images"
 FONT_PATH = RESOURCE_PATH + "/fonts"
-FONT_GROUP = "Montserrat Bold"
+FONT_GROUP = SETTINGS["fonts"]["main"]
 
 SCREEN_SIZE = [1920, 720]
 SCREEN_REFRESH_RATE = 75 if SYSTEM == "Linux" else 60 if SYSTEM == "Darwin" else 144
@@ -30,9 +36,6 @@ DIAL_SIZE = 660
 BACKGROUND_COLOR = [0, 0, 0]
 AWAKEN_SEQUENCE_DURATION = 1500
 VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75}
-
-with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
-    GAUGE_PARAMS = tomllib.load(f)
 
 for i in can_ids.keys():
     if not i in VISUAL_UPDATE_INTERVALS:
@@ -126,7 +129,8 @@ class MainWindow(QMainWindow):
                                        visual_num_gap=GAUGE_PARAMS["coolant_temp"]["visual_num_gap"],
                                        angle_offset=major_dial_angle_range - pi + pi / 2.5,
                                        **dial_int_params_minor)
-        self.coolant_temp_gauge.move(int(dial_size_int / 4), int(SCREEN_SIZE[1] / 2 - dial_size_int / 2 + dial_size_int / 7))
+        self.coolant_temp_gauge.move(int(dial_size_int / 4),
+                                     int(SCREEN_SIZE[1] / 2 - dial_size_int / 2 + dial_size_int / 7))
 
         self.tachometer = Dial(self,
                                min_unit=GAUGE_PARAMS["tachometer"]["min"],
@@ -490,6 +494,7 @@ class Application(QApplication):
         elif var == "traction_control_mode":
             self.primary_container.traction_control_mode_image.setVisible(val)
         elif var == "seatbelt_driver":
+            # todo: make indicator blink the same way the factory indicator blinks
             self.primary_container.seatbelt_driver_warning_image.setVisible(val)
         elif var == "cruise_control_status":
             self.primary_container.cruise_control_status_image.setVisible(val)
@@ -524,7 +529,8 @@ if __name__ == "__main__":
     using_canbus = False
 
     for font_file in listdir(FONT_PATH + "/Montserrat/static"):
-        QFontDatabase.addApplicationFont(f"{FONT_PATH}/Montserrat/static/{font_file}")
+        if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
+            QFontDatabase.addApplicationFont(f"{FONT_PATH}/Montserrat/static/{font_file}")
 
     if SYSTEM == "Linux":
         screen = screens[0]
@@ -552,17 +558,23 @@ if __name__ == "__main__":
             app.primary_container.setFixedSize(SCREEN_SIZE[0], SCREEN_SIZE[1])
 
     if not using_canbus:
-        import test_provider
+        import test_module
 
-        bus_virtual_car = can.interface.Bus(channel='test', bustype='virtual')
+        bus_virtual_car = can.interface.Bus(channel="test", bustype="virtual")
         bus = can.interface.Bus(channel='test', bustype='virtual')
 
         @pyqtSlot()
         def emulate_car():
-            bus_virtual_car.send(test_provider.provide_random_message())
+            bus_virtual_car.send(test_module.provide_random_message())
+
+        def emulate_conversation(msg: can.Message):
+            response = test_module.provide_response_message(msg)
+            bus_virtual_car.send(response)
 
         @pyqtSlot()
         def run():
+            can.Notifier(bus_virtual_car, [emulate_conversation])
+
             timer = QTimer(app)
             timer.timeout.connect(emulate_car)
             timer.start(1000 // 500000)
@@ -572,17 +584,36 @@ if __name__ == "__main__":
     can_app = CanApplication(app, bus)
     can_app.updated.connect(app.updateVar)
 
+    response_debounce = True
+    last_response = time()
+
     @pyqtSlot()
     def run_conversation():
-        can_app.send(can.Message(arbitration_id=0x7E0, data=bytearray([0x02, 0x01, 0x0D])))
+        global response_debounce, last_response
+        if response_debounce:
+            response_debounce = False
+            message = can.Message(is_extended_id=False,
+                                  arbitration_id=conversation_ids["send_id"],
+                                  data=[0x02, 0x01, 0x0D, 0, 0, 0, 0, 0])
+            can_app.send(message)
+        elif time() - last_response >= 0.1:
+            print("[WARNING]: No response from ECU during conversation")
+            response_debounce = True
+            last_response = time()
+
+    @pyqtSlot()
+    def response_listener(msg: can.Message):
+        global response_debounce
+        if msg.arbitration_id == conversation_ids["response_id"]:
+            response_debounce = True
 
     @pyqtSlot()
     def run():
+        can.Notifier(bus, [can_app.parse_data, response_listener])
+
         timer = QTimer(app)
         timer.timeout.connect(run_conversation)
-        timer.start(100)
-
-        can.Notifier(bus, [can_app.parse_data])
+        timer.start(50)
 
     app.awakened.connect(run)
     app.primary_container.show()
