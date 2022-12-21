@@ -1,5 +1,8 @@
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
+FUEL_LEVEL_SCALE = 0.004587
+FUEL_LEVEL_OFFSET = -37
+FUEL_APPEND = f"{0x02:08b}"
 
 
 def rpm(data: bytearray) -> int:
@@ -25,6 +28,12 @@ def turn_signals(data: bytearray) -> list[int]:
     new_data = [int(b5[3]), int(b5[2])]
 
     return new_data
+
+
+def fuel_level(data: bytearray) -> float:
+    b0 = f"{data[0]:08b}"
+
+    return int(FUEL_APPEND + b0, 2) / 2 * FUEL_LEVEL_SCALE + FUEL_LEVEL_OFFSET
 
 
 def oil_temp(data: bytearray) -> int:

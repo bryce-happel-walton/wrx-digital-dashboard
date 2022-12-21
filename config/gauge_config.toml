@@ -20,6 +20,13 @@
  redline = 225
  blueline = 75
 
+[fuel_level]
+ min = 0
+ max = 100
+ visual_num_gap = 50
+ redline=101
+ mid_sections = 2
+
 [oil_temp]
  min = 0
  max = 250

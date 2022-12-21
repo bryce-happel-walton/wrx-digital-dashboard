@@ -1,5 +1,6 @@
 [can_ids]
  turn_signals = 0x282
+ fuel_level = 0x282
  vehicle_speed = 0x0D1
  wheel_speeds = 0x0D4
  door_states = 0x375
