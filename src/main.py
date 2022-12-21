@@ -39,7 +39,7 @@ SYMBOL_SIZE_SMALL = 50
 SYMBOL_SIZE_EXTRA_SMALL = 30
 BACKGROUND_COLOR = [0, 0, 0]
 AWAKEN_SEQUENCE_DURATION = 1500
-VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75}
+VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75, "fuel_level": 0.75}
 
 for i in can_ids.keys():
     if not i in VISUAL_UPDATE_INTERVALS:
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         major_dial_opacity = 0.3
         major_dial_width = 120
 
-        minor_dial_opacity = 0.15
+        minor_dial_opacity = 0.25
         minor_dial_width = 20
 
         dial_int_params_major = {
@@ -508,12 +508,13 @@ class Application(QApplication):
         elif var == "coolant_temp":
             converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
             self.primary_container.coolant_temp_gauge.setUnit(converted_val)
-            if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
-                self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_BLUE_COLOR)
-            elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
-                self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_RED_COLOR)
-            else:
-                self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_WHITE_COLOR)
+            #! too slow
+            # if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
+            #     self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_BLUE_COLOR)
+            # elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
+            #     self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_RED_COLOR)
+            # else:
+            #     self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_WHITE_COLOR)
         elif var == "handbrake":
             self.primary_container.brake_warning_image.setVisible(val)
         elif var == "neutral_switch":
