@@ -18,23 +18,31 @@ def change_image_color(image: QImage, color: QColor) -> None:
                 n_color.setAlpha(pcolor.alpha())
                 image.setPixelColor(x, y, n_color)
 
-
 class Image(QLabel):
 
     def __init__(self, parent: QWidget, image_path: str, color: QColor = None, transform: QTransform = None):
         super().__init__(parent)
 
-        image = QImage(image_path)
+        self.transform = transform
+
+        self.image = QImage(image_path)
         if color:
-            change_image_color(image, color)
+            change_image_color(self.image, color)
 
-        pixmap = QPixmap.fromImage(image)
-        if transform:
-            pixmap = pixmap.transformed(transform)
-
-        self.setPixmap(pixmap)
         self.setStyleSheet("background:transparent")
         self.setScaledContents(True)
+        self.update()
+
+    def setColor(self, color: QColor) -> None:
+        change_image_color(self.image, color)
+        self.update()
+
+    def update(self) -> None:
+        self.pixmap = QPixmap.fromImage(self.image)
+        if self.transform:
+            self.pixmap = self.pixmap.transformed(self.transform)
+        self.setPixmap(self.pixmap)
+
 
 
 class Line(QWidget):
