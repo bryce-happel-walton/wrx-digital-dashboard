@@ -31,13 +31,14 @@ class CanApplication(QWidget):
         data = msg.data
 
         if id == conversation_ids["response_id"]:
-            print("Received: ", hex(id), [hex(x) for x in list(data)])
+            pass
+            # print("Received: ", hex(id), [hex(x) for x in list(data)])
 
-            if data[1] == 0x08:
-                length = data[0]
-            elif data[2] == 0x08:
-                page = data[0]
-                length = data[1]
+            # if data[1] == 0x08:
+            #     length = data[0]
+            # elif data[2] == 0x08:
+            #     page = data[0]
+            #     length = data[1]
         else:
             for i, v in can_ids.items():
                 if v == id and i in parsers:
