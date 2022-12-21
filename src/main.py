@@ -640,7 +640,8 @@ if __name__ == "__main__":
 
     @pyqtSlot()
     def run():
-        can.Notifier(bus, [can_app.parse_data, response_listener])
+        #can.Notifier(bus, [can_app.parse_data, response_listener])
+        can.Notifier(bus, [can_app.parse_data])
 
         timer = QTimer(app)
         timer.timeout.connect(run_conversation)
