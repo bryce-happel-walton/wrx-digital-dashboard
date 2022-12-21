@@ -4,9 +4,6 @@ FUEL_LEVEL_SCALE = 0.004587
 FUEL_LEVEL_VALUE_OFFSET = 0x200 #512
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
-FUEL_LEVEL_RANGE = FUEL_LEVEL_MAX - FUEL_LEVEL_MIN
-FUEL_APPEND = f"{0x02:08b}"
-
 
 def rpm(data: bytearray) -> int:
     b4 = f"{data[4]:08b}"
@@ -34,7 +31,7 @@ def turn_signals(data: bytearray) -> list[int]:
 
 
 def fuel_level(data: bytearray) -> float:
-    return (data[0] - FUEL_LEVEL_MIN) / FUEL_LEVEL_RANGE * 100
+    return (1 - ((data[0] + FUEL_LEVEL_VALUE_OFFSET - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX - 1)) * 100
 
 
 def oil_temp(data: bytearray) -> int:
