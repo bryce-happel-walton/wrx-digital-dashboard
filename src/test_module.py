@@ -14,7 +14,7 @@ def provide_random_message():
     key, val = choice(list(can_handle.can_ids.items()))
     data = [0, 0, 0, 0, 0, 0, 0, 0]
     if key in ["turn_signals", "fuel_level"]:
-        data = [randrange(25, 256), 0, 0, 0, 0, choice(turn_signal_data), 0, 0]
+        data = [randrange(0x25, 0xFF), 0, 0, 0, 0, choice(turn_signal_data), 0, 0]
     elif key in ["oil_temp", "coolant_temp", "cruise_control_speed", "cruise_control_status", "cruise_control_set"]:
         data = [
             0, 0,
