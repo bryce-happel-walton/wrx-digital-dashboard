@@ -599,6 +599,7 @@ if __name__ == "__main__":
         def emulate_car():
             bus_virtual_car.send(test_module.provide_random_message())
 
+        @pyqtSlot()
         def emulate_conversation(msg: can.Message):
             response = test_module.provide_response_message(msg)
             bus_virtual_car.send(response)
@@ -644,8 +645,8 @@ if __name__ == "__main__":
         #can.Notifier(bus, [can_app.parse_data, response_listener])
         can.Notifier(bus, [can_app.parse_data])
 
-        timer = QTimer(app)
-        timer.timeout.connect(run_conversation)
+        #timer = QTimer(app)
+        #timer.timeout.connect(run_conversation)
         #timer.start(50)
 
     app.awakened.connect(run)
