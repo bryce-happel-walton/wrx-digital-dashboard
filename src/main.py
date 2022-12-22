@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         major_dial_opacity = 0.3
         major_dial_width = 120
 
-        minor_dial_opacity = 0.25
+        minor_dial_opacity = 0.3
         minor_dial_width = 20
 
         dial_int_params_major = {
@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
 
         self.coolant_temp_indicator_image_normal = Image(self,
                                                          IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                         SYMBOL_DARK_GRAY_COLOR)
+                                                         SYMBOL_GRAY_COLOR)
         self.coolant_temp_indicator_image_normal.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
         self.coolant_temp_indicator_image_normal.move(self.coolant_temp_gauge.pos() + QPoint(
             int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
@@ -221,7 +221,7 @@ class MainWindow(QMainWindow):
         self.coolant_temp_indicator_image_hot.resize(self.coolant_temp_indicator_image_normal.size())
         self.coolant_temp_indicator_image_hot.move(self.coolant_temp_indicator_image_normal.pos())
 
-        self.fuel_image = Image(self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_DARK_GRAY_COLOR)
+        self.fuel_image = Image(self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_GRAY_COLOR)
         self.fuel_image.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
         self.fuel_image.move(self.fuel_level_gauge.pos() + QPoint(
             int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
@@ -606,10 +606,10 @@ if __name__ == "__main__":
         global response_debounce, last_response_time
         if response_debounce:
             response_debounce = False
-            message = can.Message(is_extended_id=False,
-                                  arbitration_id=conversation_ids["send_id"],
-                                  data=[0x02, 0x01, 0x0D, 0, 0, 0, 0, 0])
-            can_app.send(message)
+            # message = can.Message(is_extended_id=False,
+            #                       arbitration_id=conversation_ids["send_id"],
+            #                       data=[0x02, 0x01, 0x0D, 0, 0, 0, 0, 0])
+            # can_app.send(message)
         elif time() - last_response_time >= CONVERSATION_PERIOD_MS / 3:
             print("[WARNING]: No response from ECU during conversation")
             response_debounce = True
