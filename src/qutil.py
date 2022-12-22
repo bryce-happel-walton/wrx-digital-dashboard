@@ -1,10 +1,12 @@
 from math import ceil
+from time import time
+from typing import Callable
 from PyQt5.QtGui import QColor, QImage, QPixmap, QColor, QTransform
 from PyQt5.QtWidgets import QLabel, QWidget
 import PyQt5.QtGui as QtGui
-from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty
+from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty, QTimer
 from PyQt5.QtGui import QColor, QPainter, QPen, QPaintEvent, QGradient
-from PyQt5.QtWidgets import QLabel, QWidget
+from PyQt5.QtWidgets import QLabel, QWidget, QApplication
 
 Q_DEGREE_MULT = 16
 
@@ -119,3 +121,16 @@ class Arc(QWidget):
         painter.drawArc(QRectF(self.arc_edge_offest, self.arc_edge_offest, self.size_x, self.size_x), self._arc_start,
                         self._arc_end)
         painter.end()
+
+
+def delay(app: QApplication, f: Callable, delay_s: int) -> None:
+    start_time = time()
+    t = QTimer(app)
+    def timed_func():
+        if time() - start_time >= delay_s:
+            t.stop()
+            t.deleteLater()
+            f()
+
+    t.timeout.connect(timed_func)
+    t.start(1)
