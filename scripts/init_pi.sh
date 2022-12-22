@@ -10,12 +10,13 @@ sudo make -j
 sudo make altinstall
 sudo rm -r ~/Python-3.11.1
 sudo rm -r ~/Python-3.11.1.tgz
+cd ~
 git clone https://github.com/MrTaco9001/wrx-digital-dashboard.git
 cd ~/wrx-digital-dashboard
 git config pull.rebase true
 python3.11 -m pip install PyQt5==5.15.7 --config-settings --confirm-license= --verbose
 python3.11 -m pip install -r requirements.txt
-cd scripts
+cd ~/wrx-digital-dashboard/scripts
 sudo chmod +x update.sh
 ./update.sh
 sudo systemctl disable raspi-config.service rng-tools-debian.service
