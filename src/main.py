@@ -36,7 +36,7 @@ DIAL_SIZE_MAJOR = 660
 DIAL_SIZE_MINOR = 525
 SYMBOL_SIZE = 63
 SYMBOL_SIZE_SMALL = 50
-SYMBOL_SIZE_EXTRA_SMALL = 30
+SYMBOL_SIZE_EXTRA_SMALL = 28
 BACKGROUND_COLOR = [0, 0, 0]
 AWAKEN_SEQUENCE_DURATION = 1500
 VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75, "fuel_level": 0.75}
@@ -200,12 +200,23 @@ class MainWindow(QMainWindow):
             QPoint(DIAL_SIZE_MAJOR // 2 - SYMBOL_SIZE // 2 - 3, DIAL_SIZE_MAJOR // 2 -
                    self.cruise_control_status_image.size().height() // 2) - QPoint(0, int(SYMBOL_SIZE * 1.2)))
 
-        self.coolant_temp_indicator_image = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                  SYMBOL_WHITE_COLOR)
-        self.coolant_temp_indicator_image.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
-        self.coolant_temp_indicator_image.move(
+        self.coolant_temp_indicator_image_normal = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+                                                  SYMBOL_GRAY_COLOR)
+        self.coolant_temp_indicator_image_normal.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
+        self.coolant_temp_indicator_image_normal.move(
             self.coolant_temp_gauge.pos() +
-            QPoint(int(DIAL_SIZE_MINOR / 3.1) - SYMBOL_SIZE_EXTRA_SMALL, DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4))
+            QPoint(int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4))
+
+        self.coolant_temp_indicator_image_cold = Image(self,
+                                                         IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+                                                         SYMBOL_BLUE_COLOR)
+        self.coolant_temp_indicator_image_cold.resize(self.coolant_temp_indicator_image_normal.size())
+        self.coolant_temp_indicator_image_cold.move(self.coolant_temp_indicator_image_normal.pos())
+
+        self.coolant_temp_indicator_image_hot = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+                                                       SYMBOL_RED_COLOR)
+        self.coolant_temp_indicator_image_hot.resize(self.coolant_temp_indicator_image_normal.size())
+        self.coolant_temp_indicator_image_hot.move(self.coolant_temp_indicator_image_normal.pos())
 
         angle_mid = 30
         arc_width = 1.5
@@ -508,13 +519,18 @@ class Application(QApplication):
         elif var == "coolant_temp":
             converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
             self.primary_container.coolant_temp_gauge.setUnit(converted_val)
-            #! too slow
-            # if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
-            #     self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_BLUE_COLOR)
-            # elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
-            #     self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_RED_COLOR)
-            # else:
-            #     self.primary_container.coolant_temp_indicator_image.setColor(SYMBOL_WHITE_COLOR)
+            if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
+                self.primary_container.coolant_temp_indicator_image_normal.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_cold.setVisible(True)
+                self.primary_container.coolant_temp_indicator_image_hot.setVisible(False)
+            elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
+                self.primary_container.coolant_temp_indicator_image_normal.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_cold.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_hot.setVisible(True)
+            else:
+                self.primary_container.coolant_temp_indicator_image_normal.setVisible(True)
+                self.primary_container.coolant_temp_indicator_image_cold.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_hot.setVisible(False)
         elif var == "handbrake":
             self.primary_container.brake_warning_image.setVisible(val)
         elif var == "neutral_switch":

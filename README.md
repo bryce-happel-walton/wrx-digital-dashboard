@@ -25,6 +25,7 @@ cd wrx-digital-dashboard && chmod +x scripts/init_pi.sh && ./scripts/init_pi.sh
 ```
 
 Recommendations:
+
 - Overclock RPi to 2Ghz CPU 750Mhz GPU
 - USB boot device
 - Raspberry Pi OS 64-Bit

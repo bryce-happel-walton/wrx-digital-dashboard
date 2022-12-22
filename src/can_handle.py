@@ -12,6 +12,8 @@ with open("config/can.toml", "rb") as f:
     can_ids = config["can_ids"]
     conversation_ids = config["conversation_ids"]
 
+can_id_items = can_ids.items()
+can_id_values = can_ids.values()
 
 class CanApplication(QWidget):
 
@@ -30,6 +32,9 @@ class CanApplication(QWidget):
         id = msg.arbitration_id
         data = msg.data
 
+        if id not in can_id_values:
+            return
+
         if id == conversation_ids["response_id"]:
             pass
             # print("Received: ", hex(id), [hex(x) for x in list(data)])
@@ -40,6 +45,6 @@ class CanApplication(QWidget):
             #     page = data[0]
             #     length = data[1]
         else:
-            for i, v in can_ids.items():
+            for i, v in can_id_items:
                 if v == id and i in parsers:
                     self.updated.emit((i, parsers[i](data)))
