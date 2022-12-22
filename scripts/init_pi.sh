@@ -19,4 +19,5 @@ python3.11 -m pip install -r requirements.txt
 cd ~/wrx-digital-dashboard/scripts
 sudo chmod +x update.sh
 ./update.sh
-sudo systemctl disable raspi-config.service rng-tools-debian.service
+sudo systemctl disable raspi-config rng-tools-debian dphys-swapfile
+sudo systemctl mask cups
