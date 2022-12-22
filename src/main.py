@@ -200,9 +200,9 @@ class MainWindow(QMainWindow):
                                                  SYMBOL_GRAY_COLOR)
         self.cruise_control_status_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.cruise_control_status_image.move(
-            self.speedometer.pos() +
-            QPoint(DIAL_SIZE_MAJOR // 2 - SYMBOL_SIZE // 2 - 3, DIAL_SIZE_MAJOR // 2 -
-                   self.cruise_control_status_image.height() // 2) - QPoint(0, int(SYMBOL_SIZE * 1.2)))
+            self.speedometer.pos() + QPoint(DIAL_SIZE_MAJOR // 2 - SYMBOL_SIZE // 2 - 3, DIAL_SIZE_MAJOR // 2 -
+                                            self.cruise_control_status_image.height() // 2) -
+            QPoint(0, int(SYMBOL_SIZE * 1.2)))
 
         self.coolant_temp_indicator_image_normal = Image(self,
                                                          IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
@@ -223,9 +223,8 @@ class MainWindow(QMainWindow):
 
         self.fuel_image = Image(self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_DARK_GRAY_COLOR)
         self.fuel_image.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
-        self.fuel_image.move(
-            self.fuel_level_gauge.pos() +
-            QPoint(int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
+        self.fuel_image.move(self.fuel_level_gauge.pos() + QPoint(
+            int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
 
         self.low_fuel_warning_image = Image(self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_YELLOW_COLOR)
         self.low_fuel_warning_image.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
@@ -266,9 +265,9 @@ class MainWindow(QMainWindow):
         self.fuel_cap_indicator_arrow.setText(">")
         self.fuel_cap_indicator_arrow.setPalette(palette)
         self.fuel_cap_indicator_arrow.adjustSize()
-        self.fuel_cap_indicator_arrow.move(
-            self.fuel_image.pos() + QPoint(self.fuel_image.width() + self.fuel_cap_indicator_arrow.width() -
-                                           10, self.fuel_cap_indicator_arrow.height() // 2))
+        self.fuel_cap_indicator_arrow.move(self.fuel_image.pos() +
+                                           QPoint(self.fuel_image.width() + self.fuel_cap_indicator_arrow.width() - 10,
+                                                  self.fuel_cap_indicator_arrow.height() // 2))
 
         self.cruise_control_speed_label = QLabel(self)
         self.cruise_control_speed_label.setStyleSheet("background:transparent")
@@ -537,10 +536,7 @@ class Application(QApplication):
         elif var == "cruise_control_set":
             if val != self.cruise_control_set_last:
                 self.cruise_control_set_last = val
-                if val and self.cluster_vars.get("cruise_control_status", 0):
-                    self.animate_cruise_control()
-                else:
-                    self.animate_cruise_control(False)
+                self.animate_cruise_control(val and self.cluster_vars.get("cruise_control_status", 0))
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
