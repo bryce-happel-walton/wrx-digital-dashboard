@@ -1,5 +1,4 @@
 from math import ceil, cos, degrees, floor, pi, sin
-from util import clamp
 from qutil import Line, Arc
 import platform
 from PyQt5.QtCore import QSize, QLineF
@@ -156,7 +155,6 @@ class Dial(QWidget):
                     break
 
     def setDial(self, alpha: float) -> None:
-        alpha = clamp(0, alpha, 1)
         self.setUnit(ceil(alpha * self.unit_range))
 
     def setUnit(self, value: int | float) -> None:
