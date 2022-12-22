@@ -14,11 +14,11 @@
 
 [coolant_temp]
  min = 0
- max = 300
+ max = 500
  visual_num_gap = 75
  mid_sections = 4
- redline = 225
- blueline = 75
+ redline = 350
+ blueline = 150
 
 [fuel_level]
  min = 0
