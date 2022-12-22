@@ -1,5 +1,4 @@
-import can_handle
-import can
+import can_handle, can
 from random import choice, randrange
 
 turn_signal_data = [

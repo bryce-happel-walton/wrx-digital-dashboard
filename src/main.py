@@ -1,11 +1,7 @@
 # formatted with Google yapf
 # Bryce Happel Walton
 
-import platform
-import subprocess
-import sys
-import tomllib
-import can
+import platform, subprocess, sys, tomllib, can
 from os import listdir, path
 from math import pi
 from time import time

@@ -1,12 +1,10 @@
+import PyQt5.QtGui as QtGui
 from math import ceil
 from time import time
 from typing import Any, Callable
-from PyQt5.QtGui import QColor, QImage, QPixmap, QColor, QTransform
-from PyQt5.QtWidgets import QLabel, QWidget
-import PyQt5.QtGui as QtGui
-from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty, QTimer, QPropertyAnimation, QObject
-from PyQt5.QtGui import QColor, QPainter, QPen, QPaintEvent, QGradient
+from PyQt5.QtGui import QImage, QPixmap, QTransform, QColor, QPainter, QPen, QPaintEvent, QGradient
 from PyQt5.QtWidgets import QLabel, QWidget, QApplication
+from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty, QTimer, QPropertyAnimation, QObject
 
 Q_DEGREE_MULT = 16
 
@@ -123,7 +121,6 @@ class Arc(QWidget):
         painter.end()
 
 
-
 def delay(app: QApplication, f: Callable, delay_s: int) -> QTimer:
     start_time = time()
     t = QTimer(app)
@@ -144,7 +141,8 @@ def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
     t.start(delay_ms)
 
 
-def property_animation(app: QApplication, target_object: QObject, property_name: str, start_val: Any, end_val: Any, duration: int) -> QPropertyAnimation:
+def property_animation(app: QApplication, target_object: QObject, property_name: str, start_val: Any, end_val: Any,
+                       duration: int) -> QPropertyAnimation:
     property_animation_obj = QPropertyAnimation(app)
     property_animation_obj.setTargetObject(target_object)
     property_animation_obj.setPropertyName(property_name.encode("utf-8"))

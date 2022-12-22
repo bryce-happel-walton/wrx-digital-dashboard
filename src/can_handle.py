@@ -1,6 +1,4 @@
-import can_data_parser
-import tomllib
-import can
+import can_data_parser, tomllib, can
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction

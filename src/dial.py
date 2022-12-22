@@ -1,6 +1,6 @@
+import platform
 from math import ceil, cos, degrees, floor, pi, sin
 from qutil import Line, Arc
-import platform
 from PyQt5.QtCore import QSize, QLineF
 from PyQt5.QtGui import QColor, QFont, QPalette
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
