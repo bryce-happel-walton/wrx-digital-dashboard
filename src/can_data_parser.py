@@ -73,8 +73,8 @@ def reverse_switch(data: bytearray) -> int:
 
 @pyqtSlot(bytearray)
 def clutch_switch(data: bytearray) -> int:
-    b2 = f"{data[2]:08b}"
-    return int(b2[7], 2)
+    b2 = f"{data[1]:08b}"
+    return int(b2[0], 2)
 
 
 @pyqtSlot(bytearray)
