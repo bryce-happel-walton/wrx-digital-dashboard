@@ -13,7 +13,6 @@ sudo rm -r ~/Python-3.11.1.tgz
 git clone https://github.com/MrTaco9001/wrx-digital-dashboard.git
 cd ~/wrx-digital-dashboard
 git config pull.rebase true
-python3.11 -m pip install pyqt5-tools
 python3.11 -m pip install PyQt5==5.15.7 --config-settings --confirm-license= --verbose
 python3.11 -m pip install -r requirements.txt
 cd scripts
