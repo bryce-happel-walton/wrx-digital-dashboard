@@ -1,10 +1,10 @@
 from math import ceil
 from time import time
-from typing import Callable
+from typing import Any, Callable
 from PyQt5.QtGui import QColor, QImage, QPixmap, QColor, QTransform
 from PyQt5.QtWidgets import QLabel, QWidget
 import PyQt5.QtGui as QtGui
-from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty, QTimer
+from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty, QTimer, QPropertyAnimation, QObject
 from PyQt5.QtGui import QColor, QPainter, QPen, QPaintEvent, QGradient
 from PyQt5.QtWidgets import QLabel, QWidget, QApplication
 
@@ -123,6 +123,7 @@ class Arc(QWidget):
         painter.end()
 
 
+
 def delay(app: QApplication, f: Callable, delay_s: int) -> QTimer:
     start_time = time()
     t = QTimer(app)
@@ -141,3 +142,13 @@ def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
     t = QTimer(app)
     t.timeout.connect(f)
     t.start(delay_ms)
+
+
+def property_animation(app: QApplication, target_object: QObject, property_name: str, start_val: Any, end_val: Any, duration: int) -> QPropertyAnimation:
+    property_animation_obj = QPropertyAnimation(app)
+    property_animation_obj.setTargetObject(target_object)
+    property_animation_obj.setPropertyName(property_name.encode("utf-8"))
+    property_animation_obj.setStartValue(start_val)
+    property_animation_obj.setEndValue(end_val)
+    property_animation_obj.setDuration(duration)
+    return property_animation_obj

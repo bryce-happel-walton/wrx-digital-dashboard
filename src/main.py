@@ -9,7 +9,8 @@ import can
 from os import listdir, path
 from math import pi
 from time import time
-from qutil import Image, Arc, delay, timed_func
+from functools import reduce
+from qutil import Image, Arc, delay, timed_func, property_animation
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot, QPoint, QPropertyAnimation
 from PyQt5.QtGui import QColor, QCursor, QFontDatabase, QFont, QPalette, QTransform
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
@@ -43,10 +44,10 @@ SYMBOL_SIZE_SMALL = 50
 SYMBOL_SIZE_EXTRA_SMALL = 28
 BACKGROUND_COLOR = [0, 0, 0]
 AWAKEN_SEQUENCE_DURATION = 1500
-VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75, "fuel_level": 0.75}
+VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75}
 
 for i in can_ids.keys():
-    if not i in VISUAL_UPDATE_INTERVALS:
+    if i not in VISUAL_UPDATE_INTERVALS:
         VISUAL_UPDATE_INTERVALS[i] = 1 / (SCREEN_REFRESH_RATE * 2)
 
 C_TO_F_SCALE = 1.8
@@ -57,6 +58,8 @@ GEAR_CALC_CONSTANT = (5280 * 12) / (pi * 60)
 GEAR_RATIOS = [3.454, 1.947, 1.296, 0.972, 0.78, 0.666]
 TIRE_DIAMETER = 26
 FINAL_DRIVE_RATIO = 4.111
+
+AVG_FUEL_SAMPLES = 10
 
 SYMBOL_BLUE_COLOR = QColor(0, 0, 255)
 SYMBOL_GREEN_COLOR = QColor(0, 230, 0)
@@ -340,6 +343,7 @@ class Application(QApplication):
         self.update_funcs = {}
         self.cluster_vars = {}
         self.cluster_vars_update_ts = {i: time() for i in VISUAL_UPDATE_INTERVALS.keys()}
+        self.average_fuel_table = [0 for _ in range(AVG_FUEL_SAMPLES)]
 
         angle_mid = 30
         duration = 500
@@ -354,61 +358,32 @@ class Application(QApplication):
         start_right_end = 0
         end_right_end = -180 + angle_mid * 2
 
-        self.cruise_dial_left_animation_start = QPropertyAnimation(self)
-        self.cruise_dial_left_animation_start.setTargetObject(self.primary_container.cruise_control_arc_left)
-        self.cruise_dial_left_animation_start.setPropertyName(b"arc_start")
-        self.cruise_dial_left_animation_start.setStartValue(start_left_start)
-        self.cruise_dial_left_animation_start.setEndValue(end_left_start)
-        self.cruise_dial_left_animation_start.setDuration(duration)
-
-        self.cruise_dial_left_animation_end = QPropertyAnimation(self)
-        self.cruise_dial_left_animation_end.setTargetObject(self.primary_container.cruise_control_arc_left)
-        self.cruise_dial_left_animation_end.setPropertyName(b"arc_end")
-        self.cruise_dial_left_animation_end.setStartValue(start_left_end)
-        self.cruise_dial_left_animation_end.setEndValue(end_left_end)
-        self.cruise_dial_left_animation_end.setDuration(duration)
-
-        self.cruise_dial_right_animation_start = QPropertyAnimation(self)
-        self.cruise_dial_right_animation_start.setTargetObject(self.primary_container.cruise_control_arc_right)
-        self.cruise_dial_right_animation_start.setPropertyName(b"arc_start")
-        self.cruise_dial_right_animation_start.setStartValue(start_right_start)
-        self.cruise_dial_right_animation_start.setEndValue(end_right_start)
-        self.cruise_dial_right_animation_start.setDuration(duration)
-
-        self.cruise_dial_right_animation_end = QPropertyAnimation(self)
-        self.cruise_dial_right_animation_end.setTargetObject(self.primary_container.cruise_control_arc_right)
-        self.cruise_dial_right_animation_end.setPropertyName(b"arc_end")
-        self.cruise_dial_right_animation_end.setStartValue(start_right_end)
-        self.cruise_dial_right_animation_end.setEndValue(end_right_end)
-        self.cruise_dial_right_animation_end.setDuration(duration)
-
-        self.cruise_dial_left_animation_start_close = QPropertyAnimation(self)
-        self.cruise_dial_left_animation_start_close.setTargetObject(self.primary_container.cruise_control_arc_left)
-        self.cruise_dial_left_animation_start_close.setPropertyName(b"arc_start")
-        self.cruise_dial_left_animation_start_close.setStartValue(end_left_start)
-        self.cruise_dial_left_animation_start_close.setEndValue(start_left_start)
-        self.cruise_dial_left_animation_start_close.setDuration(duration)
-
-        self.cruise_dial_left_animation_end_close = QPropertyAnimation(self)
-        self.cruise_dial_left_animation_end_close.setTargetObject(self.primary_container.cruise_control_arc_left)
-        self.cruise_dial_left_animation_end_close.setPropertyName(b"arc_end")
-        self.cruise_dial_left_animation_end_close.setStartValue(end_left_end)
-        self.cruise_dial_left_animation_end_close.setEndValue(start_left_end)
-        self.cruise_dial_left_animation_end_close.setDuration(duration)
-
-        self.cruise_dial_right_animation_start_close = QPropertyAnimation(self)
-        self.cruise_dial_right_animation_start_close.setTargetObject(self.primary_container.cruise_control_arc_right)
-        self.cruise_dial_right_animation_start_close.setPropertyName(b"arc_start")
-        self.cruise_dial_right_animation_start_close.setStartValue(end_right_start)
-        self.cruise_dial_right_animation_start_close.setEndValue(start_right_start)
-        self.cruise_dial_right_animation_start_close.setDuration(duration)
-
-        self.cruise_dial_right_animation_end_close = QPropertyAnimation(self)
-        self.cruise_dial_right_animation_end_close.setTargetObject(self.primary_container.cruise_control_arc_right)
-        self.cruise_dial_right_animation_end_close.setPropertyName(b"arc_end")
-        self.cruise_dial_right_animation_end_close.setStartValue(end_right_end)
-        self.cruise_dial_right_animation_end_close.setEndValue(start_right_end)
-        self.cruise_dial_right_animation_end_close.setDuration(duration)
+        self.cruise_dial_left_animation_start = property_animation(self, self.primary_container.cruise_control_arc_left,
+                                                                   "arc_start", start_left_start, end_left_start,
+                                                                   duration)
+        self.cruise_dial_left_animation_end = property_animation(self, self.primary_container.cruise_control_arc_left,
+                                                                 "arc_end", start_left_end, end_left_end, duration)
+        self.cruise_dial_right_animation_start = property_animation(self,
+                                                                    self.primary_container.cruise_control_arc_right,
+                                                                    "arc_start", start_right_start, end_right_start,
+                                                                    duration)
+        self.cruise_dial_right_animation_end = property_animation(self, self.primary_container.cruise_control_arc_right,
+                                                                  "arc_end", start_right_end, end_right_end, duration)
+        self.cruise_dial_left_animation_start_close = property_animation(self,
+                                                                         primary_container.cruise_control_arc_left,
+                                                                         "arc_start", end_left_start, start_left_start,
+                                                                         duration)
+        self.cruise_dial_left_animation_end_close = property_animation(self,
+                                                                       self.primary_container.cruise_control_arc_left,
+                                                                       "arc_end", end_left_end, start_left_end,
+                                                                       duration)
+        self.cruise_dial_right_animation_start_close = property_animation(
+            self, self.primary_container.cruise_control_arc_right, "arc_start", end_right_start, start_right_start,
+            duration)
+        self.cruise_dial_right_animation_end_close = property_animation(self,
+                                                                        self.primary_container.cruise_control_arc_right,
+                                                                        "arc_end", end_right_end, start_right_end,
+                                                                        duration)
 
         self.cruise_control_set_last = 1
         self.init_wait.connect(self.awakenClusters)
@@ -499,7 +474,7 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= VISUAL_UPDATE_INTERVALS[var]:
             return
 
-        #? change to table lookup instead of long if statement. Unsure how speed will be affected on the RPi
+        #? change to table lookup instead of long if statement. Unsure how speed will be affected on the RPi or readability
         if var == "vehicle_speed":
             val *= KPH_TO_MPH_SCALE
             self.primary_container.speed_label.setText(f"{val:.0f}")
@@ -511,9 +486,11 @@ class Application(QApplication):
             self.primary_container.left_turn_signal_image_active.setVisible(val[0])
             self.primary_container.right_turn_signal_image_active.setVisible(val[1])
         elif var == "fuel_level":
-            self.primary_container.fuel_level_gauge.setUnit(val)
-        # elif var == "oil_temp":
-        #     pass
+            self.average_fuel_table.append(val)
+            self.average_fuel_table.pop(0)
+
+            avg = reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
+            self.primary_container.fuel_level_gauge.setUnit(avg)
         elif var == "coolant_temp":
             converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
             self.primary_container.coolant_temp_gauge.setUnit(converted_val)
