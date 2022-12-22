@@ -34,7 +34,7 @@ class Image(QLabel):
         self.setScaledContents(True)
         self.update()
 
-    def setColor(self, color: QColor) -> None:
+    def set_color(self, color: QColor) -> None:
         change_image_color(self.image, color)
         self.update()
 
@@ -51,17 +51,17 @@ class Line(QWidget):
 
     def __init__(self, parent: QWidget, line: QLineF | QLine, color: QColor | QGradient, width: float = 1) -> None:
         super().__init__(parent)
-        self.resize(parent.size().width(), parent.size().height())
+        self.resize(parent.width(), parent.height())
         self.line = line
         self.color = color
         self.pen = QPen(color, width)
         self.pen.setCapStyle(Qt.RoundCap)
 
-    def setLine(self, line: QLineF | QLine) -> None:
+    def set_line(self, line: QLineF | QLine) -> None:
         self.line = line
         self.update()
 
-    def setColor(self, color: QColor | QGradient) -> None:
+    def set_color(self, color: QColor | QGradient) -> None:
         self.pen.setColor(color)
         self.update()
 
@@ -85,28 +85,27 @@ class Arc(QWidget):
         self.pen.setCapStyle(Qt.FlatCap)
         self.arc_edge_offest = ceil(width / 2)
         self.size_x = size.width() - width
-        self._arc_start = self._arc_end = 0
 
     @pyqtProperty(float)
-    def arc_start(self):
+    def arc_start(self) -> float:
         return self._arc_start
 
     @pyqtProperty(float)
-    def arc_end(self):
+    def arc_end(self) -> float:
         return self._arc_end
 
     @arc_start.setter
-    def arc_start(self, val: float):
+    def arc_start(self, val: float) -> None:
         self._arc_start = int(val * Q_DEGREE_MULT)
 
     @arc_end.setter
-    def arc_end(self, val: float):
+    def arc_end(self, val: float) -> None:
         self._arc_end = int(val * Q_DEGREE_MULT)
 
-    def setColor(self, color: QColor | QGradient) -> None:
+    def set_color(self, color: QColor | QGradient) -> None:
         self.pen.setColor(color)
 
-    def setArc(self, start: float, end: float) -> None:
+    def set_arc(self, start: float, end: float) -> None:
         self._arc_start = int(start * Q_DEGREE_MULT)
         self._arc_end = int(end * Q_DEGREE_MULT)
         self.update()
@@ -121,7 +120,7 @@ class Arc(QWidget):
         painter.end()
 
 
-def delay(app: QApplication, f: Callable, delay_s: int) -> QTimer:
+def delay(app: QApplication, f: Callable, delay_s: float) -> QTimer:
     start_time = time()
     t = QTimer(app)
 
@@ -142,11 +141,11 @@ def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
 
 
 def property_animation(app: QApplication, target_object: QObject, property_name: str, start_val: Any, end_val: Any,
-                       duration: int) -> QPropertyAnimation:
+                       duration_ms: int) -> QPropertyAnimation:
     property_animation_obj = QPropertyAnimation(app)
     property_animation_obj.setTargetObject(target_object)
     property_animation_obj.setPropertyName(property_name.encode("utf-8"))
     property_animation_obj.setStartValue(start_val)
     property_animation_obj.setEndValue(end_val)
-    property_animation_obj.setDuration(duration)
+    property_animation_obj.setDuration(duration_ms)
     return property_animation_obj

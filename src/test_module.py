@@ -9,7 +9,7 @@ turn_signal_data = [
 ]
 
 
-def provide_random_message():
+def provide_random_message() -> can.Message:
     key, val = choice(list(can_handle.can_ids.items()))
     data = [0, 0, 0, 0, 0, 0, 0, 0]
     if key in ["turn_signals", "fuel_level"]:

@@ -1,8 +1,8 @@
 import platform
 from math import ceil, cos, degrees, floor, pi, sin
 from qutil import Line, Arc
-from PyQt5.QtCore import QSize, QLineF
-from PyQt5.QtGui import QColor, QFont, QPalette
+from PyQt5.QtCore import QSize, QLineF, pyqtProperty
+from PyQt5.QtGui import QColor, QFont, QPalette, QPaintEvent
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 #todo: make resize event redraw everything
@@ -45,7 +45,7 @@ class Dial(QWidget):
         visual_min_unit = floor(min_unit / visual_num_gap)
         visual_max_unit = ceil(max_unit / visual_num_gap)
 
-        self.unit = 0
+        self._unit = 0
         self.min_unit = min_unit
         self.max_unit = max_unit
         self.redline = redline
@@ -86,8 +86,8 @@ class Dial(QWidget):
 
         arc_size_offset = buffer_radius + num_radius
         arc = Arc(self, size - QSize(arc_size_offset, arc_size_offset), self.default_color_dial, dial_width)
-        arc.move(int(x_rad_offset) - arc.size().width() // 2, int(y_rad_offset) - arc.size().height() // 2)
-        arc.setArc(int(self.dial_offset_angle_deg), 0)
+        arc.move(int(x_rad_offset) - arc.width() // 2, int(y_rad_offset) - arc.height() // 2)
+        arc.set_arc(int(self.dial_offset_angle_deg), 0)
         self.arc = arc
 
         palette = QPalette()
@@ -115,8 +115,8 @@ class Dial(QWidget):
                 label.setText(f"{int(i * visual_num_gap / denomination)}")
                 label.show()
                 label.move(
-                    int(cos(i * rad_step + rad_offset) * num_x_radius + x_rad_offset - label.size().width() / 2),
-                    int(sin(i * rad_step + rad_offset) * num_y_radius + y_rad_offset - label.size().height() / 2))
+                    int(cos(i * rad_step + rad_offset) * num_x_radius + x_rad_offset - label.width() / 2),
+                    int(sin(i * rad_step + rad_offset) * num_y_radius + y_rad_offset - label.height() / 2))
 
             for z in range(mid_sections):
                 if i + z / mid_sections >= redline / visual_num_gap:
@@ -154,19 +154,26 @@ class Dial(QWidget):
                 if i == visual_max_unit:
                     break
 
-    def setDial(self, alpha: float) -> None:
-        self.setUnit(ceil(alpha * self.unit_range))
+    def set_dial(self, alpha: float) -> None:
+        self.set_unit(ceil(alpha * self.unit_range))
 
-    def setUnit(self, value: int | float) -> None:
-        self.unit = value
-        self.updateUnit()
-
-    def updateUnit(self) -> None:
-        angle = -(self.unit * self.dial_angle_step)
-        if self.unit >= self.redline:
-            self.arc.setColor(self.redline_color_dial)
-        elif self.unit <= self.blueline:
-            self.arc.setColor(self.blueline_color_dial)
+    def update_unit(self) -> None:
+        angle = -(self._unit * self.dial_angle_step)
+        if self._unit >= self.redline:
+            self.arc.set_color(self.redline_color_dial)
+        elif self._unit <= self.blueline:
+            self.arc.set_color(self.blueline_color_dial)
         else:
-            self.arc.setColor(self.default_color_dial)
-        self.arc.setArc(self.dial_offset_angle_deg, angle)
+            self.arc.set_color(self.default_color_dial)
+        self.arc.set_arc(self.dial_offset_angle_deg, angle)
+
+    @pyqtProperty(float)
+    def dial_unit(self) -> float:
+        return self._unit
+
+    @dial_unit.setter
+    def dial_unit(self, value: float) -> None:
+        self._unit = value
+
+    def paintEvent(self, a0: QPaintEvent) -> None:
+        self.update_unit()
