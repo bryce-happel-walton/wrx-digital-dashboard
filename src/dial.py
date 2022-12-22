@@ -174,6 +174,4 @@ class Dial(QWidget):
     @dial_unit.setter
     def dial_unit(self, value: float) -> None:
         self._unit = value
-
-    def paintEvent(self, a0: QPaintEvent) -> None:
         self.update_unit()
