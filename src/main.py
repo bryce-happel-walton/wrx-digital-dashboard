@@ -9,7 +9,7 @@ import can
 from os import listdir, path
 from math import pi
 from time import time
-from qutil import Image, Arc, change_image_color
+from qutil import Image, Arc, delay, timed_func
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, pyqtSlot, QPoint, QPropertyAnimation
 from PyQt5.QtGui import QColor, QCursor, QFontDatabase, QFont, QPalette, QTransform
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
@@ -18,6 +18,10 @@ from dial import Dial
 
 SYSTEM = platform.system()
 CONFIG_PATH = "config"
+
+START_WAIT = 1
+CONVERSATION_WAIT = 2
+CONVERSATION_PERIOD_MS = 50
 
 with open(CONFIG_PATH + "/settings.toml", "rb") as f:
     SETTINGS = tomllib.load(f)
@@ -58,6 +62,7 @@ SYMBOL_BLUE_COLOR = QColor(0, 0, 255)
 SYMBOL_GREEN_COLOR = QColor(0, 230, 0)
 SYMBOL_WHITE_COLOR = QColor(255, 255, 255)
 SYMBOL_GRAY_COLOR = QColor(125, 125, 125)
+SYMBOL_DARK_GRAY_COLOR = QColor(75, 75, 75)
 SYMBOL_YELLOW_COLOR = QColor(255, 179, 0)
 SYMBOL_RED_COLOR = QColor(255, 0, 0)
 BLUELINE_COLOR = QColor(175, 150, 255)
@@ -200,21 +205,21 @@ class MainWindow(QMainWindow):
             QPoint(DIAL_SIZE_MAJOR // 2 - SYMBOL_SIZE // 2 - 3, DIAL_SIZE_MAJOR // 2 -
                    self.cruise_control_status_image.size().height() // 2) - QPoint(0, int(SYMBOL_SIZE * 1.2)))
 
-        self.coolant_temp_indicator_image_normal = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                  SYMBOL_GRAY_COLOR)
+        self.coolant_temp_indicator_image_normal = Image(self,
+                                                         IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+                                                         SYMBOL_DARK_GRAY_COLOR)
         self.coolant_temp_indicator_image_normal.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
         self.coolant_temp_indicator_image_normal.move(
             self.coolant_temp_gauge.pos() +
             QPoint(int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4))
 
-        self.coolant_temp_indicator_image_cold = Image(self,
-                                                         IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                         SYMBOL_BLUE_COLOR)
+        self.coolant_temp_indicator_image_cold = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+                                                       SYMBOL_BLUE_COLOR)
         self.coolant_temp_indicator_image_cold.resize(self.coolant_temp_indicator_image_normal.size())
         self.coolant_temp_indicator_image_cold.move(self.coolant_temp_indicator_image_normal.pos())
 
         self.coolant_temp_indicator_image_hot = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                       SYMBOL_RED_COLOR)
+                                                      SYMBOL_RED_COLOR)
         self.coolant_temp_indicator_image_hot.resize(self.coolant_temp_indicator_image_normal.size())
         self.coolant_temp_indicator_image_hot.move(self.coolant_temp_indicator_image_normal.pos())
 
@@ -266,11 +271,11 @@ class MainWindow(QMainWindow):
 
         self.fog_light_image = Image(self, IMAGE_PATH + "/front-fog-indicator-light.png", SYMBOL_GREEN_COLOR)
         self.fog_light_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.fog_light_image.move(self.tachometer.pos() + QPoint(SYMBOL_SIZE, SYMBOL_SIZE))
+        self.fog_light_image.move(self.tachometer.pos() + QPoint(int(SYMBOL_SIZE / 1.3), SYMBOL_SIZE))
 
         self.brake_warning_image = Image(self, IMAGE_PATH + "/brake-warning-indicator-light-letters-only.png",
                                          SYMBOL_RED_COLOR)
-        self.brake_warning_image.resize(int(SYMBOL_SIZE * 1.3), int(SYMBOL_SIZE * 1.3))
+        self.brake_warning_image.resize(int(SYMBOL_SIZE * 1.4), int(SYMBOL_SIZE * 1.2))
         self.brake_warning_image.move(self.speedometer.pos() +
                                       QPoint(DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.size().width() //
                                              2, DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.size().height() // 2) +
@@ -323,8 +328,10 @@ class Application(QApplication):
 
     def __init__(self) -> None:
         super().__init__([])
+
         self.setOverrideCursor(QCursor(Qt.BlankCursor))
         primary_container = MainWindow()
+        primary_container.setFixedSize(*SCREEN_SIZE)
         primary_container.setStyleSheet(
             f"background-color: rgb({BACKGROUND_COLOR[0]}, {BACKGROUND_COLOR[1]}, {BACKGROUND_COLOR[2]})")
 
@@ -333,8 +340,6 @@ class Application(QApplication):
         self.update_funcs = {}
         self.cluster_vars = {}
         self.cluster_vars_update_ts = {i: time() for i in VISUAL_UPDATE_INTERVALS.keys()}
-
-        start_time = 1
 
         angle_mid = 30
         duration = 500
@@ -407,21 +412,11 @@ class Application(QApplication):
 
         self.cruise_control_set_last = 1
         self.init_wait.connect(self.awakenClusters)
+        delay(self, self.init_wait.emit, START_WAIT)
 
-        t = time()
-        timer = QTimer(self)
-
-        @pyqtSlot()
-        def init_wait():
-            if time() - t > start_time:
-                timer.stop()
-                timer.deleteLater()
-                self.init_wait.emit()
-
-        timer.timeout.connect(init_wait)
-        timer.start(1)
-
+    @pyqtSlot()
     def awakenClusters(self) -> None:
+        #todo: change to use QPropertyAnimation
         timer = QTimer(self)
 
         self._awaken_a = 0
@@ -462,6 +457,7 @@ class Application(QApplication):
         timer.timeout.connect(dialMove)
         timer.start(t_step)
 
+    @pyqtSlot(bool)
     def animateCruiseControl(self, opening: bool = True) -> None:
         if opening:
             self.cruise_dial_left_animation_start.start()
@@ -474,18 +470,20 @@ class Application(QApplication):
             self.cruise_dial_right_animation_start_close.start()
             self.cruise_dial_right_animation_end_close.start()
 
+    @pyqtSlot()
     def updateGearIndicator(self) -> None:
         speed = self.cluster_vars.get('vehicle_speed', 1)
         rpm = self.cluster_vars.get('rpm', 0)
         neutral = self.cluster_vars.get('neutral_switch', 0)
         reverse = self.cluster_vars.get('reverse_switch', 0)
+        clutch_switch = self.cluster_vars.get("clutch_switch", 0)
 
         if reverse:
             gear = 'R'
         elif neutral:
             gear = 'N'
         else:
-            if speed == 0:
+            if clutch_switch or speed == 0:
                 gear = ''
             else:
                 gear = calcGear(rpm, speed * KPH_TO_MPH_SCALE)
@@ -584,7 +582,6 @@ if __name__ == "__main__":
         screen = screens[0]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
-        app.primary_container.setFixedSize(SCREEN_SIZE[0], SCREEN_SIZE[1])
 
         using_canbus = "nocan" not in sys.argv
 
@@ -602,8 +599,6 @@ if __name__ == "__main__":
             screen = screens[1]
             app.primary_container.move(screen.geometry().topLeft())
             app.primary_container.showFullScreen()
-        else:
-            app.primary_container.setFixedSize(SCREEN_SIZE[0], SCREEN_SIZE[1])
 
     if not using_canbus:
         import test_module
@@ -623,47 +618,49 @@ if __name__ == "__main__":
         @pyqtSlot()
         def run():
             can.Notifier(bus_virtual_car, [emulate_conversation])
-
-            timer = QTimer(app)
-            timer.timeout.connect(emulate_car)
-            timer.start(1000 // 500000)
+            timed_func(app, emulate_car, 1)
 
         app.awakened.connect(run)
 
     can_app = CanApplication(app, bus)
     can_app.updated.connect(app.updateVar)
 
-    response_debounce = True
-    last_response = time()
+    response_debounce = False
+    last_response_time = time()
 
     @pyqtSlot()
     def run_conversation():
-        global response_debounce, last_response
+        global response_debounce, last_response_time
         if response_debounce:
             response_debounce = False
             message = can.Message(is_extended_id=False,
                                   arbitration_id=conversation_ids["send_id"],
                                   data=[0x02, 0x01, 0x0D, 0, 0, 0, 0, 0])
             can_app.send(message)
-        elif time() - last_response >= 0.1:
+        elif time() - last_response_time >= CONVERSATION_PERIOD_MS / 3:
             print("[WARNING]: No response from ECU during conversation")
             response_debounce = True
-            last_response = time()
-
-    @pyqtSlot()
-    def response_listener(msg: can.Message):
-        global response_debounce
-        if msg.arbitration_id == conversation_ids["response_id"]:
-            response_debounce = True
+            last_response_time = time()
 
     @pyqtSlot()
     def run():
-        #can.Notifier(bus, [can_app.parse_data, response_listener])
         can.Notifier(bus, [can_app.parse_data])
 
-        #timer = QTimer(app)
-        #timer.timeout.connect(run_conversation)
-        #timer.start(50)
+        @pyqtSlot()
+        def response_received():
+            global response_debounce
+            response_debounce = True
+
+        can_app.response_recieved.connect(response_received)
+
+        @pyqtSlot()
+        def attemp_init_conversation():
+            if not response_debounce:
+                timed_func(app, run_conversation, CONVERSATION_PERIOD_MS)
+            else:
+                print("ECU Conversation busy; eavesdropping only.")
+
+        delay(app, attemp_init_conversation, CONVERSATION_WAIT)
 
     app.awakened.connect(run)
     app.primary_container.show()

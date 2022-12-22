@@ -123,9 +123,10 @@ class Arc(QWidget):
         painter.end()
 
 
-def delay(app: QApplication, f: Callable, delay_s: int) -> None:
+def delay(app: QApplication, f: Callable, delay_s: int) -> QTimer:
     start_time = time()
     t = QTimer(app)
+
     def timed_func():
         if time() - start_time >= delay_s:
             t.stop()
@@ -134,3 +135,9 @@ def delay(app: QApplication, f: Callable, delay_s: int) -> None:
 
     t.timeout.connect(timed_func)
     t.start(1)
+
+
+def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
+    t = QTimer(app)
+    t.timeout.connect(f)
+    t.start(delay_ms)

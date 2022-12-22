@@ -15,9 +15,11 @@ with open("config/can.toml", "rb") as f:
 can_id_items = can_ids.items()
 can_id_values = can_ids.values()
 
+
 class CanApplication(QWidget):
 
     updated = pyqtSignal(tuple)
+    response_recieved = pyqtSignal()
 
     def __init__(self, qApp: QApplication, bus: can.interface.Bus) -> None:
         super().__init__()
@@ -36,7 +38,7 @@ class CanApplication(QWidget):
             return
 
         if id == conversation_ids["response_id"]:
-            pass
+            self.response_recieved.emit()
             # print("Received: ", hex(id), [hex(x) for x in list(data)])
 
             # if data[1] == 0x08:
