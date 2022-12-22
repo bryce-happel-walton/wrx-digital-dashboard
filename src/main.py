@@ -605,6 +605,7 @@ if __name__ == "__main__":
     def run_conversation() -> None:
         global response_debounce, last_response_time
         if response_debounce:
+            last_response_time = time()
             response_debounce = False
             # message = can.Message(is_extended_id=False,
             #                       arbitration_id=conversation_ids["send_id"],

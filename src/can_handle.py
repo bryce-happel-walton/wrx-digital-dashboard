@@ -32,18 +32,15 @@ class CanApplication(QWidget):
         id = msg.arbitration_id
         data = msg.data
 
-        if id not in can_id_values:
-            return
-
         if id == conversation_ids["response_id"]:
             self.response_recieved.emit()
             # print("Received: ", hex(id), [hex(x) for x in list(data)])
 
-            # if data[1] == 0x08:
-            #     length = data[0]
-            # elif data[2] == 0x08:
+            # if data[2] == 0x08:
             #     page = data[0]
             #     length = data[1]
+            # elif data[1] == 0x08:
+            #     length = data[0]
         else:
             for i, v in can_id_items:
                 if v == id and i in parsers:
