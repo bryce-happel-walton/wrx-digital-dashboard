@@ -10,7 +10,7 @@ from qutil import Image, Arc, delay, timed_func, property_animation
 from PyQt5.QtCore import Qt, pyqtSignal, QSize, pyqtSlot, QPoint, QAbstractAnimation
 from PyQt5.QtGui import QColor, QCursor, QFontDatabase, QFont, QPalette, QTransform
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
-from can_handle import CanApplication, can_ids, conversation_ids
+from can_handle import CanApplication, can_ids
 from dial import Dial
 
 SYSTEM = platform.system()
@@ -38,7 +38,7 @@ DIAL_SIZE_MINOR = 525
 SYMBOL_SIZE = 63
 SYMBOL_SIZE_SMALL = 50
 SYMBOL_SIZE_EXTRA_SMALL = 28
-BACKGROUND_COLOR = [0, 0, 0]
+BACKGROUND_COLOR = QColor(0, 0, 0)
 AWAKEN_SEQUENCE_DURATION = 1750
 AWAKEN_SEQUENCE_DURATION_STALL = 250
 VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75}
@@ -83,6 +83,10 @@ class MainWindow(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
+        background_palette = QPalette()
+        background_palette.setColor(QPalette.ColorRole.Background, BACKGROUND_COLOR)
+        self.setPalette(background_palette)
+
         major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
         minor_dial_angle_range = 2 * pi - major_dial_angle_range - pi / 4 * 2
 
@@ -95,31 +99,33 @@ class MainWindow(QMainWindow):
         dial_size_major = QSize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
         dial_size_minor = QSize(DIAL_SIZE_MINOR, DIAL_SIZE_MINOR)
 
-        major_dial_opacity = 0.3
+        major_dial_opacity = 0.4
         major_dial_width = 120
 
         minor_dial_opacity = 0.3
         minor_dial_width = 20
 
-        dial_int_params_major = {
-            "buffer_radius": 20,
+        all_dial_params = {"blueline_color": BLUELINE_COLOR, "gradient": True, "border_width": 0}
+
+        dial_params_major = {
+            "buffer_radius": 22,
             "num_radius": 54,
             "section_radius": 20,
-            "minor_section_rad_offset": 3,
+            "minor_section_rad_offset": 5,
             "middle_section_rad_offset": 43,
             "major_section_rad_offset": 40,
             "angle_offset": pi,
             "dial_opacity": major_dial_opacity,
             "dial_width": major_dial_width,
             "angle_range": major_dial_angle_range,
-            "size": dial_size_major
+            "size": dial_size_major,
         }
 
-        dial_int_params_minor = {
-            "buffer_radius": 20,
+        dial_params_minor = {
+            "buffer_radius": 22,
             "num_radius": 50,
             "section_radius": 15,
-            "minor_section_rad_offset": 3,
+            "minor_section_rad_offset": 5,
             "middle_section_rad_offset": 58,
             "major_section_rad_offset": 40,
             "no_font": True,
@@ -131,46 +137,25 @@ class MainWindow(QMainWindow):
         }
 
         self.tachometer = Dial(self,
-                               min_unit=GAUGE_PARAMS["tachometer"]["min"],
-                               max_unit=GAUGE_PARAMS["tachometer"]["max"],
-                               redline=GAUGE_PARAMS["tachometer"]["redline"],
-                               mid_sections=GAUGE_PARAMS["tachometer"]["mid_sections"],
-                               denomination=GAUGE_PARAMS["tachometer"]["denomination"],
-                               visual_num_gap=GAUGE_PARAMS["tachometer"]["major_step"],
                                label_font=QFont(FONT_GROUP, 20),
-                               **dial_int_params_major)
+                               **GAUGE_PARAMS["tachometer"],
+                               **dial_params_major,
+                               **all_dial_params)
         self.tachometer.move(int(DIAL_SIZE_MAJOR / 4), int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2))
 
         self.speedometer = Dial(self,
-                                min_unit=GAUGE_PARAMS["speedometer"]["min"],
-                                max_unit=GAUGE_PARAMS["speedometer"]["max"],
-                                redline=GAUGE_PARAMS["speedometer"]["max"] + 1,
-                                mid_sections=GAUGE_PARAMS["speedometer"]["mid_sections"],
-                                visual_num_gap=GAUGE_PARAMS["speedometer"]["major_step"],
                                 label_font=QFont(FONT_GROUP, 18),
-                                **dial_int_params_major)
+                                redline=GAUGE_PARAMS["speedometer"]["max_unit"] + 1, **GAUGE_PARAMS["speedometer"],
+                                **dial_params_major,
+                                **all_dial_params)
         self.speedometer.move(int(SCREEN_SIZE[0] - DIAL_SIZE_MAJOR - DIAL_SIZE_MAJOR / 4),
                               int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2))
 
-        self.coolant_temp_gauge = Dial(self,
-                                       min_unit=GAUGE_PARAMS["coolant_temp"]["min"],
-                                       max_unit=GAUGE_PARAMS["coolant_temp"]["max"],
-                                       redline=GAUGE_PARAMS["coolant_temp"]["redline"],
-                                       blueline=GAUGE_PARAMS["coolant_temp"]["blueline"],
-                                       blueline_color=BLUELINE_COLOR,
-                                       mid_sections=GAUGE_PARAMS["coolant_temp"]["mid_sections"],
-                                       visual_num_gap=GAUGE_PARAMS["coolant_temp"]["visual_num_gap"],
-                                       **dial_int_params_minor)
+        self.coolant_temp_gauge = Dial(self, **GAUGE_PARAMS["coolant_temp"], **dial_params_minor, **all_dial_params)
         self.coolant_temp_gauge.move(self.tachometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7))
         self.coolant_temp_gauge.frame.setStyleSheet("background:transparent")
 
-        self.fuel_level_gauge = Dial(self,
-                                     min_unit=GAUGE_PARAMS["fuel_level"]["min"],
-                                     max_unit=GAUGE_PARAMS["fuel_level"]["max"],
-                                     redline=GAUGE_PARAMS["fuel_level"]["redline"],
-                                     mid_sections=GAUGE_PARAMS["fuel_level"]["mid_sections"],
-                                     visual_num_gap=GAUGE_PARAMS["fuel_level"]["visual_num_gap"],
-                                     **dial_int_params_minor)
+        self.fuel_level_gauge = Dial(self, **GAUGE_PARAMS["fuel_level"], **dial_params_minor, **all_dial_params)
         self.fuel_level_gauge.move(self.speedometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7))
         self.fuel_level_gauge.frame.setStyleSheet("background:transparent")
 
@@ -245,12 +230,12 @@ class MainWindow(QMainWindow):
                                                       self.cruise_control_status_widget.height() // 2))
         self.cruise_control_arc_left = Arc(self.cruise_control_status_widget, self.cruise_control_status_widget.size(),
                                            SYMBOL_GRAY_COLOR, arc_width)
-        self.cruise_control_arc_left.pen.setCapStyle(Qt.RoundCap)
+        self.cruise_control_arc_left.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         self.cruise_control_arc_left.set_arc(90 + angle_mid, 180 - angle_mid * 2)
 
         self.cruise_control_arc_right = Arc(self.cruise_control_status_widget, self.cruise_control_status_widget.size(),
                                             SYMBOL_GRAY_COLOR, arc_width)
-        self.cruise_control_arc_right.pen.setCapStyle(Qt.RoundCap)
+        self.cruise_control_arc_right.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         self.cruise_control_arc_right.set_arc(270 + angle_mid, 180 - angle_mid * 2)
 
         label_font = QFont(FONT_GROUP, 22)
@@ -260,7 +245,7 @@ class MainWindow(QMainWindow):
         # todo: add arrow to image instead
         self.fuel_cap_indicator_arrow = QLabel(self)
         self.fuel_cap_indicator_arrow.setStyleSheet("background:transparent")
-        self.fuel_cap_indicator_arrow.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.fuel_cap_indicator_arrow.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.fuel_cap_indicator_arrow.setFont(QFont(FONT_GROUP, 10))
         self.fuel_cap_indicator_arrow.setText(">")
         self.fuel_cap_indicator_arrow.setPalette(palette)
@@ -271,7 +256,7 @@ class MainWindow(QMainWindow):
 
         self.cruise_control_speed_label = QLabel(self)
         self.cruise_control_speed_label.setStyleSheet("background:transparent")
-        self.cruise_control_speed_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.cruise_control_speed_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.cruise_control_speed_label.setFont(label_font)
         self.cruise_control_speed_label.setText("0")
         self.cruise_control_speed_label.setPalette(palette)
@@ -319,7 +304,7 @@ class MainWindow(QMainWindow):
 
         self.speed_label = QLabel(self)
         self.speed_label.setStyleSheet("background:transparent")
-        self.speed_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.speed_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.speed_label.setFont(label_font)
         self.speed_label.setPalette(palette)
         self.speed_label.setText("0")
@@ -331,7 +316,7 @@ class MainWindow(QMainWindow):
 
         self.gear_indicator_label = QLabel(self)
         self.gear_indicator_label.setStyleSheet("background:transparent")
-        self.gear_indicator_label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        self.gear_indicator_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.gear_indicator_label.setFont(label_font)
         self.gear_indicator_label.setPalette(palette)
         self.gear_indicator_label.setText("N")
@@ -349,11 +334,9 @@ class Application(QApplication):
     def __init__(self) -> None:
         super().__init__([])
 
-        self.setOverrideCursor(QCursor(Qt.BlankCursor))
+        self.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))
         primary_container = MainWindow()
         primary_container.setFixedSize(*SCREEN_SIZE)
-        primary_container.setStyleSheet(
-            f"background-color: rgb({BACKGROUND_COLOR[0]}, {BACKGROUND_COLOR[1]}, {BACKGROUND_COLOR[2]})")
 
         self.start_time = time()
         self.primary_container = primary_container
@@ -411,19 +394,19 @@ class Application(QApplication):
         duration = int((AWAKEN_SEQUENCE_DURATION - AWAKEN_SEQUENCE_DURATION_STALL) / 2)
 
         def start() -> None:
-            property_animation(self, self.primary_container.tachometer, "dial_unit", GAUGE_PARAMS["tachometer"]["min"],
-                               GAUGE_PARAMS["tachometer"]["max"],
+            property_animation(self, self.primary_container.tachometer, "dial_unit",
+                               GAUGE_PARAMS["tachometer"]["min_unit"], GAUGE_PARAMS["tachometer"]["max_unit"],
                                duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
             property_animation(self, self.primary_container.speedometer, "dial_unit",
-                               GAUGE_PARAMS["speedometer"]["min"], GAUGE_PARAMS["speedometer"]["max"],
+                               GAUGE_PARAMS["speedometer"]["min_unit"], GAUGE_PARAMS["speedometer"]["max_unit"],
                                duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
         def end() -> None:
-            property_animation(self, self.primary_container.tachometer, "dial_unit", GAUGE_PARAMS["tachometer"]["max"],
-                               GAUGE_PARAMS["tachometer"]["min"],
+            property_animation(self, self.primary_container.tachometer, "dial_unit",
+                               GAUGE_PARAMS["tachometer"]["max_unit"], GAUGE_PARAMS["tachometer"]["min_unit"],
                                duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
             property_animation(self, self.primary_container.speedometer, "dial_unit",
-                               GAUGE_PARAMS["speedometer"]["max"], GAUGE_PARAMS["speedometer"]["min"],
+                               GAUGE_PARAMS["speedometer"]["max_unit"], GAUGE_PARAMS["speedometer"]["min_unit"],
                                duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
         start()
@@ -525,7 +508,7 @@ class Application(QApplication):
         elif var == "door_states":
             self.primary_container.door_open_warning_image.setVisible('1' in val)
         elif var == "headlights":
-            self.primary_container.low_beam_image.setVisible(val[0] or val[1])
+            self.primary_container.low_beam_image.setVisible(val[0] or (val[1] == 1))
             self.primary_container.high_beam_image.setVisible(val[2])
         elif var == "cruise_control_speed":
             if val > 0 and self.cluster_vars.get("cruise_control_status", 0):
@@ -611,7 +594,7 @@ if __name__ == "__main__":
             #                       arbitration_id=conversation_ids["send_id"],
             #                       data=[0x02, 0x01, 0x0D, 0, 0, 0, 0, 0])
             # can_app.send(message)
-        elif time() - last_response_time >= CONVERSATION_PERIOD_MS / 3:
+        elif time() - last_response_time >= CONVERSATION_PERIOD_MS:
             print("[WARNING]: No response from ECU during conversation")
             response_debounce = True
             last_response_time = time()

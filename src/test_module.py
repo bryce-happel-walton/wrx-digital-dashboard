@@ -1,6 +1,8 @@
 import can_handle, can
 from random import choice, randrange
 
+# todo: make testing UI with controls for everything
+
 turn_signal_data = [
     0x30,  # hazards
     0x20,  # right turn
@@ -39,7 +41,7 @@ def provide_random_message() -> can.Message:
     elif key in ["vehicle_speed", "brake_pedal_position"]:
         data = [0, randrange(0, 180 // 14 + 1), 0, 0, 0, 0, 0, 0]
     elif key == "clutch_switch":
-        data = [0, int(f"{randrange(0,2)}0000000"), 0, 0, 0, 0, 0, 0]
+        data = [0, int(f"{randrange(0,2)}0000000", 2), 0, 0, 0, 0, 0, 0]
     elif key == "traction_control":
         data = [0, int(f"0000{randrange(0,2)}000", 2), 0, 0, 0, 0, 0, 0]
     elif key == "traction_control_mode":

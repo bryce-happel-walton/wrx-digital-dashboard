@@ -54,8 +54,7 @@ class Line(QWidget):
         self.resize(parent.width(), parent.height())
         self.line = line
         self.color = color
-        self.pen = QPen(color, width)
-        self.pen.setCapStyle(Qt.RoundCap)
+        self.pen = QPen(color, width, cap=Qt.PenCapStyle.FlatCap)
 
     def set_line(self, line: QLineF | QLine) -> None:
         self.line = line
@@ -78,11 +77,14 @@ class Arc(QWidget):
 
     painter = QPainter()
 
-    def __init__(self, parent: QWidget, size: QSize, color: QColor = QColor(0, 255, 0), width: float = 15) -> None:
+    def __init__(self,
+                 parent: QWidget,
+                 size: QSize,
+                 color: QColor | QGradient = QColor(0, 255, 0),
+                 width: float = 15) -> None:
         super().__init__(parent)
         self.resize(size)
-        self.pen = QPen(color, width)
-        self.pen.setCapStyle(Qt.FlatCap)
+        self.pen = QPen(color, width, cap=Qt.PenCapStyle.FlatCap)
         self.arc_edge_offest = ceil(width / 2)
         self.size_x = size.width() - width
 
@@ -103,7 +105,7 @@ class Arc(QWidget):
         self._arc_end = int(val * Q_DEGREE_MULT)
 
     def set_color(self, color: QColor | QGradient) -> None:
-        self.pen.setColor(color)
+        self.pen.setBrush(color)
 
     def set_arc(self, start: float, end: float) -> None:
         self._arc_start = int(start * Q_DEGREE_MULT)

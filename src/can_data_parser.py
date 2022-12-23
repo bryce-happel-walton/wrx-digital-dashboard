@@ -7,6 +7,8 @@ FUEL_LEVEL_VALUE_OFFSET = 0x200  #512
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
 
+# todo: rewrite to allow reading byte, bits, conversions, etc from can.toml
+
 
 @pyqtSlot(bytearray)
 def rpm(data: bytearray) -> int:
@@ -125,6 +127,8 @@ drl_and_dim = 0x84
 drl_day = 0x82
 
 
+# todo: change to evaluate individual bits instead of comparing hex values
+#* comparing hex values causes issues when other things are activated such as windshield wipers
 @pyqtSlot(bytearray)
 def headlights(data: bytearray) -> list[int]:
     b7 = data[7]

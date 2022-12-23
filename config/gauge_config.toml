@@ -1,35 +1,35 @@
 [tachometer]
- min = 0
- max = 8000
+ min_unit = 0
+ max_unit = 8000
  redline = 6700
  mid_sections = 20
  denomination = 1000
- major_step = 1000
+ visual_num_gap = 1000
 
 [speedometer]
- min = 0
- max = 180
+ min_unit = 0
+ max_unit = 180
  mid_sections = 20
- major_step = 20
+ visual_num_gap = 20
 
 [coolant_temp]
- min = 0
- max = 500
- visual_num_gap = 75
- mid_sections = 4
- redline = 350
- blueline = 150
+ min_unit = 0
+ max_unit = 300
+ visual_num_gap = 50
+ mid_sections = 2
+ redline = 250
+ blueline = 80
 
 [fuel_level]
- min = 0
- max = 100
+ min_unit = 0
+ max_unit = 100
  visual_num_gap = 20
  redline=101
  mid_sections = 3
 
 [oil_temp]
- min = 0
- max = 250
+ min_unit = 0
+ max_unit = 250
  mid_sections = 3
  redline = 220
  blueline = 80
