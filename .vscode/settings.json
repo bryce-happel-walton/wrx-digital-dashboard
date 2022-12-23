@@ -1,6 +1,4 @@
 {
-	"python.analysis.typeCheckingMode": "off",
-	"python.formatting.provider": "yapf",
-	"code-runner.clearPreviousOutput": true,
-	"python.linting.enabled": true
+	"python.formatting.provider": "black",
+	"python.analysis.typeCheckingMode": "off"
 }

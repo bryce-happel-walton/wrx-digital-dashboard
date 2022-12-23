@@ -1,4 +1,6 @@
-import can_data_parser, tomllib, can
+import can_data_parser
+import tomllib
+import can
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction
@@ -34,6 +36,7 @@ class CanApplication(QWidget):
 
         if id == conversation_ids["response_id"]:
             self.response_recieved.emit()
+            # todo: implement conversation values
             # print("Received: ", hex(id), [hex(x) for x in list(data)])
 
             # if data[2] == 0x08:

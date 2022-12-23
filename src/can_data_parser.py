@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtSlot
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
 FUEL_LEVEL_SCALE = 0.004587
-FUEL_LEVEL_VALUE_OFFSET = 0x200  #512
+FUEL_LEVEL_VALUE_OFFSET = 0x200  # 512
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
 
@@ -33,7 +33,7 @@ def cruise_control_speed(data: bytearray) -> int:
 def turn_signals(data: bytearray) -> list[int]:
     b5 = f"{data[5]:08b}"
 
-    #data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
+    # data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
     new_data = [int(b5[3]), int(b5[2])]
 
     return new_data
@@ -41,19 +41,25 @@ def turn_signals(data: bytearray) -> list[int]:
 
 @pyqtSlot(bytearray)
 def fuel_level(data: bytearray) -> float:
-    return (1 - ((data[0] + FUEL_LEVEL_VALUE_OFFSET - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX - 1)) * 100
+    return (
+        1
+        - (
+            (data[0] + FUEL_LEVEL_VALUE_OFFSET - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX
+            - 1
+        )
+    ) * 100
 
 
 @pyqtSlot(bytearray)
 def oil_temp(data: bytearray) -> int:
     b2 = f"{data[2]:08b}"
-    return (int(b2, 2) + TEMP_SENSOR_OFFSET)
+    return int(b2, 2) + TEMP_SENSOR_OFFSET
 
 
 @pyqtSlot(bytearray)
 def coolant_temp(data: bytearray) -> int:
     b3 = f"{data[3]:08b}"
-    return (int(b3, 2) + TEMP_SENSOR_OFFSET)
+    return int(b3, 2) + TEMP_SENSOR_OFFSET
 
 
 @pyqtSlot(bytearray)
@@ -128,7 +134,7 @@ drl_day = 0x82
 
 
 # todo: change to evaluate individual bits instead of comparing hex values
-#* comparing hex values causes issues when other things are activated such as windshield wipers
+# * comparing hex values causes issues when other things are activated such as windshield wipers
 @pyqtSlot(bytearray)
 def headlights(data: bytearray) -> list[int]:
     b7 = data[7]
@@ -139,7 +145,11 @@ def headlights(data: bytearray) -> list[int]:
     #     "highbeams": b7 in [pull_high, high]
     # }
 
-    new_data = [b7 == low, 1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0, b7 in [pull_high, high]]
+    new_data = [
+        b7 == low,
+        1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0,
+        b7 in [pull_high, high],
+    ]
 
     return new_data
 
@@ -148,7 +158,7 @@ def headlights(data: bytearray) -> list[int]:
 def door_states(data: bytearray) -> dict[str]:
     b1 = f"{data[1]:08b}"
 
-    #data = {"lf": b1[7], "rf": b1[6], "lr": b1[4], "rr": b1[5], "trunk": b1[2]}
+    # data = {"lf": b1[7], "rf": b1[6], "lr": b1[4], "rr": b1[5], "trunk": b1[2]}
     new_data = [b1[7], b1[6], b1[4], b1[5], b1[2]]
 
     return new_data

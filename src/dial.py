@@ -1,41 +1,42 @@
 from math import ceil, cos, degrees, floor, pi, sin
 from qutil import Line, Arc
-from PyQt5.QtCore import QSize, QLineF, pyqtProperty
+from PyQt5.QtCore import QSize, QLineF, pyqtProperty, Qt
 from PyQt5.QtGui import QColor, QFont, QPalette, QGradient, QRadialGradient
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 
 class Dial(QWidget):
-
-    def __init__(self,
-                 parent: QWidget,
-                 min_unit: float = 0,
-                 max_unit: float = 1,
-                 redline: float = 0.5,
-                 blueline: float = -1,
-                 mid_sections: int = 2,
-                 denomination: int = 1,
-                 size: QSize = QSize(500, 500),
-                 dial_width: float = 30,
-                 line_width: float = 1,
-                 no_font: bool = False,
-                 label_font: QFont = QFont(),
-                 default_color: QColor = QColor(255, 255, 255),
-                 redline_color: QColor = QColor(255, 0, 0),
-                 blueline_color: QColor = QColor(0, 0, 255),
-                 background_color: QColor = QColor(0, 0, 0),
-                 dial_opacity: float = 0.3,
-                 visual_num_gap: float = 1,
-                 buffer_radius: int = 20,
-                 num_radius: int = 54,
-                 section_radius: int = 20,
-                 minor_section_rad_offset: int = 3,
-                 middle_section_rad_offset: int = 43,
-                 major_section_rad_offset: int = 40,
-                 angle_range: float = 2 * pi - pi / 2,
-                 angle_offset: float = pi - pi / 4,
-                 gradient: bool = True,
-                 border_width: int = 1) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        min_unit: float = 0,
+        max_unit: float = 1,
+        redline: float = 0.5,
+        blueline: float = -1,
+        mid_sections: int = 2,
+        denomination: int = 1,
+        size: QSize = QSize(500, 500),
+        dial_width: float = 30,
+        line_width: float = 1,
+        no_font: bool = False,
+        label_font: QFont = QFont(),
+        default_color: QColor = QColor(255, 255, 255),
+        redline_color: QColor = QColor(255, 0, 0),
+        blueline_color: QColor = QColor(0, 0, 255),
+        background_color: QColor = QColor(0, 0, 0),
+        dial_opacity: float = 0.3,
+        visual_num_gap: float = 1,
+        buffer_radius: int = 20,
+        num_radius: int = 54,
+        section_radius: int = 20,
+        minor_section_rad_offset: int = 3,
+        middle_section_rad_offset: int = 43,
+        major_section_rad_offset: int = 40,
+        angle_range: float = 2 * pi - pi / 2,
+        angle_offset: float = pi - pi / 4,
+        gradient: bool = True,
+        border_width: int = 1,
+    ) -> None:
         super().__init__(parent)
         self.resize(size)
 
@@ -67,24 +68,25 @@ class Dial(QWidget):
 
         rad_step = angle_range / visual_max_unit
         rad_section_step = rad_step / mid_sections
-        arc_size_offset = buffer_radius + section_radius * 3  # todo: fix this
-        arc_size = size - QSize(arc_size_offset, arc_size_offset)
         half_width = size.width() / 2
-        half_height = size.height() / 2
+        num_x_radius = half_width - buffer_radius - num_radius
+        section_x_radius = half_width - buffer_radius - section_radius
+        arc_size_offset = (buffer_radius + section_radius) * 2
+        arc_size = size - QSize(arc_size_offset, arc_size_offset)
 
         self.dial_offset_angle_deg = 360 - degrees(angle_offset)
         self.dial_angle_step = degrees(angle_range) / (max_unit - min_unit)
 
         if gradient:
-            self.default_color_gradient = QRadialGradient(arc_size.width() / 2,
-                                                          arc_size.height() / 2,
-                                                          arc_size.width() / 2)
-            self.redline_color_gradient = QRadialGradient(arc_size.width() / 2,
-                                                          arc_size.height() / 2,
-                                                          arc_size.width() / 2)
-            self.blueline_color_gradient = QRadialGradient(arc_size.width() / 2,
-                                                           arc_size.height() / 2,
-                                                           arc_size.width() / 2)
+            self.default_color_gradient = QRadialGradient(
+                arc_size.width() / 2, arc_size.height() / 2, arc_size.width() / 2
+            )
+            self.redline_color_gradient = QRadialGradient(
+                arc_size.width() / 2, arc_size.height() / 2, arc_size.width() / 2
+            )
+            self.blueline_color_gradient = QRadialGradient(
+                arc_size.width() / 2, arc_size.height() / 2, arc_size.width() / 2
+            )
 
             self.default_color_gradient.setSpread(QGradient.Spread.PadSpread)
             self.redline_color_gradient.setSpread(QGradient.Spread.PadSpread)
@@ -94,7 +96,10 @@ class Dial(QWidget):
             self.redline_color_gradient.setColorAt(1, self.redline_color_dial)
             self.blueline_color_gradient.setColorAt(1, self.blueline_color_dial)
 
-            gradient_colors = [(0, QColor(0, 0, 0, 0)), (1 - dial_width / arc_size.width() * 1.8, QColor(0, 0, 0, 0))]
+            gradient_colors = [
+                (0, QColor(0, 0, 0, 0)),
+                (1 - dial_width / arc_size.width() * 2, QColor(0, 0, 0, 0)),
+            ]
             for i in gradient_colors:
                 self.default_color_gradient.setColorAt(*i)
                 self.redline_color_gradient.setColorAt(*i)
@@ -105,25 +110,47 @@ class Dial(QWidget):
             self.blueline_color_dial = self.blueline_color_gradient
 
         self.arc = Arc(self, arc_size, self.default_color_dial, dial_width)
-        self.arc.move(int(half_width) - self.arc.width() // 2, int(half_height) - self.arc.height() // 2)
+        self.arc.move(
+            int(half_width - self.arc.width() / 2),
+            int(half_width - self.arc.height() / 2),
+        )
         self.arc.set_arc(self.dial_offset_angle_deg, 0)
 
         if border_width > 0:
-            self.outline_arc = Arc(self, arc_size + QSize(border_width * 2, border_width * 2), default_color,
-                                   border_width)
+            self.outline_arc = Arc(
+                self,
+                arc_size + QSize(border_width * 2, border_width * 2),
+                default_color,
+                border_width,
+            )
             self.outline_arc.move(
-                int(half_width) - self.outline_arc.width() // 2,
-                int(half_height) - self.outline_arc.height() // 2)
-            self.outline_arc.set_arc(self.dial_offset_angle_deg, -self.max_unit * self.dial_angle_step)
+                int(half_width - self.outline_arc.width() // 2),
+                int(half_width - self.outline_arc.height() // 2),
+            )
+            self.outline_arc.set_arc(
+                self.dial_offset_angle_deg,
+                -min(max_unit, redline) * self.dial_angle_step,
+            )
+
+            if redline < max_unit:
+                self.outline_arc_redline = Arc(
+                    self,
+                    arc_size + QSize(border_width * 2, border_width * 2),
+                    redline_color,
+                    border_width,
+                )
+                self.outline_arc_redline.move(
+                    int(half_width) - self.outline_arc_redline.width() // 2,
+                    int(half_width) - self.outline_arc_redline.height() // 2,
+                )
+                self.outline_arc_redline.set_arc(
+                    self.dial_offset_angle_deg + -redline * self.dial_angle_step,
+                    -(max_unit - redline) * self.dial_angle_step,
+                )
 
         palette = QPalette()
-        num_x_radius = half_width - buffer_radius - num_radius
-        num_y_radius = half_height - buffer_radius - num_radius
-        section_x_radius = half_width - buffer_radius - section_radius
-        section_y_radius = half_height - buffer_radius - section_radius
 
         for i in range(visual_min_unit, visual_max_unit + 1):
-            redline / visual_num_gap
             if i >= redline / visual_num_gap:
                 color = redline_color
             elif i <= blueline / visual_num_gap:
@@ -138,10 +165,25 @@ class Dial(QWidget):
                 label.setStyleSheet("background:transparent")
                 label.setPalette(palette)
                 label.setFont(label_font)
+                label.setAlignment(
+                    Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+                )
                 label.setText(f"{int(i * visual_num_gap / denomination)}")
-                label.show()
-                label.move(int(cos(i * rad_step + angle_offset) * num_x_radius + half_width - label.width() / 2),
-                           int(sin(i * rad_step + angle_offset) * num_y_radius + half_height - label.height() / 2))
+                label.adjustSize()
+                label.move(
+                    int(
+                        cos(i * rad_step + angle_offset)
+                        * (num_x_radius - label.width() / 4)
+                        + half_width
+                        - label.width() / 2
+                    ),
+                    int(
+                        sin(i * rad_step + angle_offset)
+                        * (num_x_radius - label.height() / 3)
+                        + half_width
+                        - label.height() / 2
+                    ),
+                )
 
             for z in range(mid_sections):
                 if i + z / mid_sections >= redline / visual_num_gap:
@@ -151,30 +193,40 @@ class Dial(QWidget):
                 else:
                     color = default_color
 
-                x_radius = x_inner_radius = section_x_radius
-                y_radius = y_inner_radius = section_y_radius
-
                 if z == 0:
-                    x_inner_radius -= num_radius - major_section_rad_offset
-                    y_inner_radius -= num_radius - major_section_rad_offset
+                    x_inner_radius = (
+                        section_x_radius - num_radius + major_section_rad_offset
+                    )
                 elif (mid_sections % 2 == 0) and (z == mid_sections / 2):
-                    x_inner_radius -= num_radius - middle_section_rad_offset
-                    y_inner_radius -= num_radius - middle_section_rad_offset
+                    x_inner_radius = (
+                        section_x_radius - num_radius + middle_section_rad_offset
+                    )
                 else:
-                    x_inner_radius -= minor_section_rad_offset
-                    y_inner_radius -= minor_section_rad_offset
+                    x_inner_radius = section_x_radius - minor_section_rad_offset
 
-                x_inner_radius = min(x_inner_radius, x_radius - minor_section_rad_offset)
-                y_inner_radius = min(y_inner_radius, y_radius - minor_section_rad_offset)
+                x_inner_radius = min(
+                    x_inner_radius, section_x_radius - minor_section_rad_offset
+                )
 
                 Line(
                     self.frame,
                     QLineF(
-                        cos(i * rad_step + angle_offset + z * rad_section_step) * x_radius + half_width,
-                        sin(i * rad_step + angle_offset + z * rad_section_step) * y_radius + half_height,
-                        cos(i * rad_step + angle_offset + z * rad_section_step) * x_inner_radius + half_width,
-                        sin(i * rad_step + angle_offset + z * rad_section_step) * y_inner_radius + half_height), color,
-                    line_width)
+                        cos(i * rad_step + angle_offset + z * rad_section_step)
+                        * section_x_radius
+                        + half_width,
+                        sin(i * rad_step + angle_offset + z * rad_section_step)
+                        * section_x_radius
+                        + half_width,
+                        cos(i * rad_step + angle_offset + z * rad_section_step)
+                        * x_inner_radius
+                        + half_width,
+                        sin(i * rad_step + angle_offset + z * rad_section_step)
+                        * x_inner_radius
+                        + half_width,
+                    ),
+                    color,
+                    line_width,
+                )
 
                 if i == visual_max_unit:
                     break

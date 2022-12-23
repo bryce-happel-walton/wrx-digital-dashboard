@@ -2,9 +2,28 @@ import PyQt5.QtGui as QtGui
 from math import ceil
 from time import time
 from typing import Any, Callable
-from PyQt5.QtGui import QImage, QPixmap, QTransform, QColor, QPainter, QPen, QPaintEvent, QGradient
+from PyQt5.QtGui import (
+    QImage,
+    QPixmap,
+    QTransform,
+    QColor,
+    QPainter,
+    QPen,
+    QPaintEvent,
+    QGradient,
+)
 from PyQt5.QtWidgets import QLabel, QWidget, QApplication
-from PyQt5.QtCore import QRectF, QSize, QLineF, QLine, Qt, pyqtProperty, QTimer, QPropertyAnimation, QObject
+from PyQt5.QtCore import (
+    QRectF,
+    QSize,
+    QLineF,
+    QLine,
+    Qt,
+    pyqtProperty,
+    QTimer,
+    QPropertyAnimation,
+    QObject,
+)
 
 Q_DEGREE_MULT = 16
 
@@ -20,8 +39,13 @@ def change_image_color(image: QImage, color: QColor) -> None:
 
 
 class Image(QLabel):
-
-    def __init__(self, parent: QWidget, image_path: str, color: QColor = None, transform: QTransform = None):
+    def __init__(
+        self,
+        parent: QWidget,
+        image_path: str,
+        color: QColor = None,
+        transform: QTransform = None,
+    ):
         super().__init__(parent)
 
         self.transform = transform
@@ -49,7 +73,13 @@ class Line(QWidget):
 
     painter = QPainter()
 
-    def __init__(self, parent: QWidget, line: QLineF | QLine, color: QColor | QGradient, width: float = 1) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        line: QLineF | QLine,
+        color: QColor | QGradient,
+        width: float = 1,
+    ) -> None:
         super().__init__(parent)
         self.resize(parent.width(), parent.height())
         self.line = line
@@ -61,7 +91,7 @@ class Line(QWidget):
         self.update()
 
     def set_color(self, color: QColor | QGradient) -> None:
-        self.pen.setColor(color)
+        self.pen.setBrush(color)
         self.update()
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
@@ -77,11 +107,13 @@ class Arc(QWidget):
 
     painter = QPainter()
 
-    def __init__(self,
-                 parent: QWidget,
-                 size: QSize,
-                 color: QColor | QGradient = QColor(0, 255, 0),
-                 width: float = 15) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        size: QSize,
+        color: QColor | QGradient = QColor(0, 255, 0),
+        width: float = 15,
+    ) -> None:
         super().__init__(parent)
         self.resize(size)
         self.pen = QPen(color, width, cap=Qt.PenCapStyle.FlatCap)
@@ -117,8 +149,13 @@ class Arc(QWidget):
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(self.pen)
-        painter.drawArc(QRectF(self.arc_edge_offest, self.arc_edge_offest, self.size_x, self.size_x), self._arc_start,
-                        self._arc_end)
+        painter.drawArc(
+            QRectF(
+                self.arc_edge_offest, self.arc_edge_offest, self.size_x, self.size_x
+            ),
+            self._arc_start,
+            self._arc_end,
+        )
         painter.end()
 
 
@@ -142,8 +179,14 @@ def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
     t.start(delay_ms)
 
 
-def property_animation(app: QApplication, target_object: QObject, property_name: str, start_val: Any, end_val: Any,
-                       duration_ms: int) -> QPropertyAnimation:
+def property_animation(
+    app: QApplication,
+    target_object: QObject,
+    property_name: str,
+    start_val: Any,
+    end_val: Any,
+    duration_ms: int,
+) -> QPropertyAnimation:
     property_animation_obj = QPropertyAnimation(app)
     property_animation_obj.setTargetObject(target_object)
     property_animation_obj.setPropertyName(property_name.encode("utf-8"))

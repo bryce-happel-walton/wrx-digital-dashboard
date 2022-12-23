@@ -1,4 +1,5 @@
-import can_handle, can
+import can_handle
+import can
 from random import choice, randrange
 
 # todo: make testing UI with controls for everything
@@ -16,25 +17,47 @@ def provide_random_message() -> can.Message:
     data = [0, 0, 0, 0, 0, 0, 0, 0]
     if key in ["turn_signals", "fuel_level"]:
         data = [randrange(0x25, 0xFF), 0, 0, 0, 0, choice(turn_signal_data), 0, 0]
-    elif key in ["oil_temp", "coolant_temp", "cruise_control_speed", "cruise_control_status", "cruise_control_set"]:
+    elif key in [
+        "oil_temp",
+        "coolant_temp",
+        "cruise_control_speed",
+        "cruise_control_status",
+        "cruise_control_set",
+    ]:
         data = [
-            0, 0,
-            randrange(0, int((0xfa - 32) / 1.8)),
-            randrange(0, int((0xfa - 32) / 1.8)), 0,
-            int(f"00{randrange(0,2)}{randrange(0,2)}0000", 2), 0,
-            randrange(0, 256)
+            0,
+            0,
+            randrange(0, int((0xFA - 32) / 1.8)),
+            randrange(0, int((0xFA - 32) / 1.8)),
+            0,
+            int(f"00{randrange(0,2)}{randrange(0,2)}0000", 2),
+            0,
+            randrange(0, 256),
         ]
     elif key in ["headlights", "handbrake", "reverse_switch", "brake_switch"]:
         data = [
-            0, 0, 0, 0, 0, 0,
-            int(f'00{randrange(0,2)}0{randrange(0,2)}000', 2),
-            choice([0x8C, 0x80, 0x98, 0x9C, 0x84, 0x82])
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            int(f"00{randrange(0,2)}0{randrange(0,2)}000", 2),
+            choice([0x8C, 0x80, 0x98, 0x9C, 0x84, 0x82]),
         ]
     elif key == "door_states":
         data = [
             0,
-            int(f"00{randrange(0,2)}0{randrange(0,2)}{randrange(0,2)}{randrange(0,2)}{randrange(0,2)}", 2), 0, 0, 0, 0,
-            0, 0
+            int(
+                f"00{randrange(0,2)}0{randrange(0,2)}{randrange(0,2)}{randrange(0,2)}{randrange(0,2)}",
+                2,
+            ),
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
         ]
     elif key in ["rpm", "neutral_switch"]:
         data = [0, 0, 0, 0, randrange(0, 256), randrange(0, 256), choice([27, 20]), 0]
@@ -57,4 +80,8 @@ def provide_random_message() -> can.Message:
 def provide_response_message(recv_msg: can.Message) -> can.Message | list[can.Message]:
     if recv_msg.arbitration_id == can_handle.conversation_ids["send_id"]:
         data = [0, 0, 0, 0, 0, 0, 0, 0]
-        return can.Message(is_extended_id=False, arbitration_id=can_handle.conversation_ids["response_id"], data=data)
+        return can.Message(
+            is_extended_id=False,
+            arbitration_id=can_handle.conversation_ids["response_id"],
+            data=data,
+        )

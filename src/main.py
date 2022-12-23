@@ -1,7 +1,8 @@
-# formatted with Google yapf
-# Bryce Happel Walton
-
-import platform, subprocess, sys, tomllib, can
+import platform
+import subprocess
+import sys
+import tomllib
+import can
 from os import listdir, path
 from math import pi
 from time import time
@@ -68,19 +69,20 @@ SYMBOL_RED_COLOR = QColor(255, 0, 0)
 BLUELINE_COLOR = QColor(175, 150, 255)
 
 
-#! potential problem with this function and threading
+# ! potential problem with this function and threading
 def calcGear(rpm: int, speed: int) -> str:
-    ratio = (rpm * TIRE_DIAMETER) / (FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT)
+    ratio = (rpm * TIRE_DIAMETER) / (
+        FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT
+    )
 
     for i, v in enumerate(GEAR_RATIOS, 1):
         if ratio >= v:
             return str(i)
 
-    return 'N'
+    return "N"
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self) -> None:
         super().__init__()
         background_palette = QPalette()
@@ -88,7 +90,6 @@ class MainWindow(QMainWindow):
         self.setPalette(background_palette)
 
         major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
-        minor_dial_angle_range = 2 * pi - major_dial_angle_range - pi / 4 * 2
 
         vertical_mirror = QTransform().rotate(180)
 
@@ -99,13 +100,11 @@ class MainWindow(QMainWindow):
         dial_size_major = QSize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
         dial_size_minor = QSize(DIAL_SIZE_MINOR, DIAL_SIZE_MINOR)
 
-        major_dial_opacity = 0.4
-        major_dial_width = 120
-
-        minor_dial_opacity = 0.3
-        minor_dial_width = 20
-
-        all_dial_params = {"blueline_color": BLUELINE_COLOR, "gradient": True, "border_width": 0}
+        all_dial_params = {
+            "blueline_color": BLUELINE_COLOR,
+            "gradient": True,
+            "border_width": 1,
+        }
 
         dial_params_major = {
             "buffer_radius": 22,
@@ -115,8 +114,8 @@ class MainWindow(QMainWindow):
             "middle_section_rad_offset": 43,
             "major_section_rad_offset": 40,
             "angle_offset": pi,
-            "dial_opacity": major_dial_opacity,
-            "dial_width": major_dial_width,
+            "dial_opacity": 0.3,
+            "dial_width": 120,
             "angle_range": major_dial_angle_range,
             "size": dial_size_major,
         }
@@ -129,92 +128,169 @@ class MainWindow(QMainWindow):
             "middle_section_rad_offset": 58,
             "major_section_rad_offset": 40,
             "no_font": True,
-            "dial_opacity": minor_dial_opacity,
-            "dial_width": minor_dial_width,
-            "angle_range": minor_dial_angle_range,
+            "dial_opacity": 0.3,
+            "dial_width": 20,
+            "angle_range": 2 * pi - major_dial_angle_range - pi / 4 * 2,
             "size": dial_size_minor,
-            "angle_offset": major_dial_angle_range - pi + pi / 2.5
+            "angle_offset": major_dial_angle_range - pi + pi / 2.5,
         }
 
-        self.tachometer = Dial(self,
-                               label_font=QFont(FONT_GROUP, 20),
-                               **GAUGE_PARAMS["tachometer"],
-                               **dial_params_major,
-                               **all_dial_params)
-        self.tachometer.move(int(DIAL_SIZE_MAJOR / 4), int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2))
+        self.tachometer = Dial(
+            self,
+            label_font=QFont(FONT_GROUP, 20),
+            **GAUGE_PARAMS["tachometer"],
+            **dial_params_major,
+            **all_dial_params,
+        )
+        self.tachometer.move(
+            int(DIAL_SIZE_MAJOR / 4), int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2)
+        )
 
-        self.speedometer = Dial(self,
-                                label_font=QFont(FONT_GROUP, 18),
-                                redline=GAUGE_PARAMS["speedometer"]["max_unit"] + 1, **GAUGE_PARAMS["speedometer"],
-                                **dial_params_major,
-                                **all_dial_params)
-        self.speedometer.move(int(SCREEN_SIZE[0] - DIAL_SIZE_MAJOR - DIAL_SIZE_MAJOR / 4),
-                              int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2))
+        self.speedometer = Dial(
+            self,
+            label_font=QFont(FONT_GROUP, 18),
+            redline=GAUGE_PARAMS["speedometer"]["max_unit"] + 1,
+            **GAUGE_PARAMS["speedometer"],
+            **dial_params_major,
+            **all_dial_params,
+        )
+        self.speedometer.move(
+            int(SCREEN_SIZE[0] - DIAL_SIZE_MAJOR - DIAL_SIZE_MAJOR / 4),
+            int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2),
+        )
 
-        self.coolant_temp_gauge = Dial(self, **GAUGE_PARAMS["coolant_temp"], **dial_params_minor, **all_dial_params)
-        self.coolant_temp_gauge.move(self.tachometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7))
+        self.coolant_temp_gauge = Dial(
+            self, **GAUGE_PARAMS["coolant_temp"], **dial_params_minor, **all_dial_params
+        )
+        self.coolant_temp_gauge.move(
+            self.tachometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7)
+        )
         self.coolant_temp_gauge.frame.setStyleSheet("background:transparent")
 
-        self.fuel_level_gauge = Dial(self, **GAUGE_PARAMS["fuel_level"], **dial_params_minor, **all_dial_params)
-        self.fuel_level_gauge.move(self.speedometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7))
+        self.fuel_level_gauge = Dial(
+            self, **GAUGE_PARAMS["fuel_level"], **dial_params_minor, **all_dial_params
+        )
+        self.fuel_level_gauge.move(
+            self.speedometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7)
+        )
         self.fuel_level_gauge.frame.setStyleSheet("background:transparent")
 
-        self.traction_control_mode_image = Image(self, IMAGE_PATH + "/traction-mode-indicator-light.png",
-                                                 SYMBOL_GREEN_COLOR)
+        self.traction_control_mode_image = Image(
+            self, IMAGE_PATH + "/traction-mode-indicator-light.png", SYMBOL_GREEN_COLOR
+        )
         self.traction_control_mode_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.traction_control_mode_image.move(int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2),
-                                              int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset))
+        self.traction_control_mode_image.move(
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
 
-        self.traction_control_off_image = Image(self, IMAGE_PATH + "/vehicle-dynamics-control-off-indicator-light.png",
-                                                SYMBOL_YELLOW_COLOR)
+        self.traction_control_off_image = Image(
+            self,
+            IMAGE_PATH + "/vehicle-dynamics-control-off-indicator-light.png",
+            SYMBOL_YELLOW_COLOR,
+        )
         self.traction_control_off_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.traction_control_off_image.move(int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + SYMBOL_SIZE + 5),
-                                             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset))
+        self.traction_control_off_image.move(
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + SYMBOL_SIZE + 5),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
 
-        self.door_open_warning_image = Image(self, IMAGE_PATH + "/dooropen-warning-light.png", SYMBOL_RED_COLOR)
+        self.door_open_warning_image = Image(
+            self, IMAGE_PATH + "/dooropen-warning-light.png", SYMBOL_RED_COLOR
+        )
         self.door_open_warning_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.door_open_warning_image.move(int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + 5)),
-                                          int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset))
+        self.door_open_warning_image.move(
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + 5)),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
 
-        self.seatbelt_driver_warning_image = Image(self, IMAGE_PATH + "/seatbelt-warning-light.png", SYMBOL_RED_COLOR)
+        self.seatbelt_driver_warning_image = Image(
+            self, IMAGE_PATH + "/seatbelt-warning-light.png", SYMBOL_RED_COLOR
+        )
         self.seatbelt_driver_warning_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.seatbelt_driver_warning_image.move(int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + 5)),
-                                                int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset))
+        self.seatbelt_driver_warning_image.move(
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + 5)),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
 
-        self.cruise_control_status_image = Image(self, IMAGE_PATH + "/cruise-control-indicator-light.png",
-                                                 SYMBOL_GRAY_COLOR)
+        self.cruise_control_status_image = Image(
+            self, IMAGE_PATH + "/cruise-control-indicator-light.png", SYMBOL_GRAY_COLOR
+        )
         self.cruise_control_status_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.cruise_control_status_image.move(
-            self.speedometer.pos() + QPoint(DIAL_SIZE_MAJOR // 2 - SYMBOL_SIZE // 2 - 3, DIAL_SIZE_MAJOR // 2 -
-                                            self.cruise_control_status_image.height() // 2) -
-            QPoint(0, int(SYMBOL_SIZE * 1.2)))
+            self.speedometer.pos()
+            + QPoint(
+                DIAL_SIZE_MAJOR // 2 - SYMBOL_SIZE // 2 - 3,
+                DIAL_SIZE_MAJOR // 2 - self.cruise_control_status_image.height() // 2,
+            )
+            - QPoint(0, int(SYMBOL_SIZE * 1.2))
+        )
 
-        self.coolant_temp_indicator_image_normal = Image(self,
-                                                         IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                         SYMBOL_GRAY_COLOR)
-        self.coolant_temp_indicator_image_normal.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
-        self.coolant_temp_indicator_image_normal.move(self.coolant_temp_gauge.pos() + QPoint(
-            int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
+        self.coolant_temp_indicator_image_normal = Image(
+            self,
+            IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+            SYMBOL_GRAY_COLOR,
+        )
+        self.coolant_temp_indicator_image_normal.resize(
+            SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL
+        )
+        self.coolant_temp_indicator_image_normal.move(
+            self.coolant_temp_gauge.pos()
+            + QPoint(
+                int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL,
+                int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2),
+            )
+        )
 
-        self.coolant_temp_indicator_image_cold = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                       SYMBOL_BLUE_COLOR)
-        self.coolant_temp_indicator_image_cold.resize(self.coolant_temp_indicator_image_normal.size())
-        self.coolant_temp_indicator_image_cold.move(self.coolant_temp_indicator_image_normal.pos())
+        self.coolant_temp_indicator_image_cold = Image(
+            self,
+            IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+            SYMBOL_BLUE_COLOR,
+        )
+        self.coolant_temp_indicator_image_cold.resize(
+            self.coolant_temp_indicator_image_normal.size()
+        )
+        self.coolant_temp_indicator_image_cold.move(
+            self.coolant_temp_indicator_image_normal.pos()
+        )
 
-        self.coolant_temp_indicator_image_hot = Image(self, IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
-                                                      SYMBOL_RED_COLOR)
-        self.coolant_temp_indicator_image_hot.resize(self.coolant_temp_indicator_image_normal.size())
-        self.coolant_temp_indicator_image_hot.move(self.coolant_temp_indicator_image_normal.pos())
+        self.coolant_temp_indicator_image_hot = Image(
+            self,
+            IMAGE_PATH + "/coolant-temp-low-high-indicator-light.png",
+            SYMBOL_RED_COLOR,
+        )
+        self.coolant_temp_indicator_image_hot.resize(
+            self.coolant_temp_indicator_image_normal.size()
+        )
+        self.coolant_temp_indicator_image_hot.move(
+            self.coolant_temp_indicator_image_normal.pos()
+        )
 
-        self.fuel_image = Image(self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_GRAY_COLOR)
+        self.fuel_image = Image(
+            self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_GRAY_COLOR
+        )
         self.fuel_image.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
-        self.fuel_image.move(self.fuel_level_gauge.pos() + QPoint(
-            int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
+        self.fuel_image.move(
+            self.fuel_level_gauge.pos()
+            + QPoint(
+                int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL,
+                int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2),
+            )
+        )
 
-        self.low_fuel_warning_image = Image(self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_YELLOW_COLOR)
-        self.low_fuel_warning_image.resize(SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL)
-        self.low_fuel_warning_image.move(self.fuel_level_gauge.pos() + QPoint(
-            int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL, int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2)))
+        self.low_fuel_warning_image = Image(
+            self, IMAGE_PATH + "/lowfuel-warning-light.png", SYMBOL_YELLOW_COLOR
+        )
+        self.low_fuel_warning_image.resize(
+            SYMBOL_SIZE_EXTRA_SMALL, SYMBOL_SIZE_EXTRA_SMALL
+        )
+        self.low_fuel_warning_image.move(
+            self.fuel_level_gauge.pos()
+            + QPoint(
+                int(DIAL_SIZE_MINOR / 3) - SYMBOL_SIZE_EXTRA_SMALL,
+                int(DIAL_SIZE_MINOR - SYMBOL_SIZE_EXTRA_SMALL * 4.2),
+            )
+        )
 
         angle_mid = 30
         arc_width = 1.5
@@ -223,18 +299,31 @@ class MainWindow(QMainWindow):
         self.cruise_control_status_widget = QWidget(self)
         self.cruise_control_status_widget.setStyleSheet("background:transparent")
         self.cruise_control_status_widget.resize(
-            QSize(int(DIAL_SIZE_MAJOR / size_scale), int(DIAL_SIZE_MAJOR / size_scale)))
-        self.cruise_control_status_widget.move(self.speedometer.pos() +
-                                               QPoint(DIAL_SIZE_MAJOR // 2, DIAL_SIZE_MAJOR // 2) -
-                                               QPoint(self.cruise_control_status_widget.width() // 2,
-                                                      self.cruise_control_status_widget.height() // 2))
-        self.cruise_control_arc_left = Arc(self.cruise_control_status_widget, self.cruise_control_status_widget.size(),
-                                           SYMBOL_GRAY_COLOR, arc_width)
+            QSize(int(DIAL_SIZE_MAJOR / size_scale), int(DIAL_SIZE_MAJOR / size_scale))
+        )
+        self.cruise_control_status_widget.move(
+            self.speedometer.pos()
+            + QPoint(DIAL_SIZE_MAJOR // 2, DIAL_SIZE_MAJOR // 2)
+            - QPoint(
+                self.cruise_control_status_widget.width() // 2,
+                self.cruise_control_status_widget.height() // 2,
+            )
+        )
+        self.cruise_control_arc_left = Arc(
+            self.cruise_control_status_widget,
+            self.cruise_control_status_widget.size(),
+            SYMBOL_GRAY_COLOR,
+            arc_width,
+        )
         self.cruise_control_arc_left.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         self.cruise_control_arc_left.set_arc(90 + angle_mid, 180 - angle_mid * 2)
 
-        self.cruise_control_arc_right = Arc(self.cruise_control_status_widget, self.cruise_control_status_widget.size(),
-                                            SYMBOL_GRAY_COLOR, arc_width)
+        self.cruise_control_arc_right = Arc(
+            self.cruise_control_status_widget,
+            self.cruise_control_status_widget.size(),
+            SYMBOL_GRAY_COLOR,
+            arc_width,
+        )
         self.cruise_control_arc_right.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         self.cruise_control_arc_right.set_arc(270 + angle_mid, 180 - angle_mid * 2)
 
@@ -245,58 +334,97 @@ class MainWindow(QMainWindow):
         # todo: add arrow to image instead
         self.fuel_cap_indicator_arrow = QLabel(self)
         self.fuel_cap_indicator_arrow.setStyleSheet("background:transparent")
-        self.fuel_cap_indicator_arrow.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.fuel_cap_indicator_arrow.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
         self.fuel_cap_indicator_arrow.setFont(QFont(FONT_GROUP, 10))
         self.fuel_cap_indicator_arrow.setText(">")
         self.fuel_cap_indicator_arrow.setPalette(palette)
         self.fuel_cap_indicator_arrow.adjustSize()
-        self.fuel_cap_indicator_arrow.move(self.fuel_image.pos() +
-                                           QPoint(self.fuel_image.width() + self.fuel_cap_indicator_arrow.width() - 10,
-                                                  self.fuel_cap_indicator_arrow.height() // 2))
+        self.fuel_cap_indicator_arrow.move(
+            self.fuel_image.pos()
+            + QPoint(
+                self.fuel_image.width() + self.fuel_cap_indicator_arrow.width() - 10,
+                self.fuel_cap_indicator_arrow.height() // 2,
+            )
+        )
 
         self.cruise_control_speed_label = QLabel(self)
         self.cruise_control_speed_label.setStyleSheet("background:transparent")
-        self.cruise_control_speed_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.cruise_control_speed_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
         self.cruise_control_speed_label.setFont(label_font)
         self.cruise_control_speed_label.setText("0")
         self.cruise_control_speed_label.setPalette(palette)
         self.cruise_control_speed_label.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.cruise_control_speed_label.move(
-            self.speedometer.pos() +
-            QPoint(DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.width() // 2, DIAL_SIZE_MAJOR // 2 -
-                   self.cruise_control_speed_label.height() // 2) + QPoint(0, int(SYMBOL_SIZE * 1.05)))
+            self.speedometer.pos()
+            + QPoint(
+                DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.width() // 2,
+                DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.height() // 2,
+            )
+            + QPoint(0, int(SYMBOL_SIZE * 1.05))
+        )
 
-        self.high_beam_image = Image(self, IMAGE_PATH + "/highbeam-indicator-light.png", SYMBOL_BLUE_COLOR)
+        self.high_beam_image = Image(
+            self, IMAGE_PATH + "/highbeam-indicator-light.png", SYMBOL_BLUE_COLOR
+        )
         self.high_beam_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.high_beam_image.move(self.tachometer.pos() + QPoint(SYMBOL_SIZE * 2, 0))
 
-        self.low_beam_image = Image(self, IMAGE_PATH + "/headlight-indicator-light.png", SYMBOL_GREEN_COLOR)
+        self.low_beam_image = Image(
+            self, IMAGE_PATH + "/headlight-indicator-light.png", SYMBOL_GREEN_COLOR
+        )
         self.low_beam_image.resize(int(SYMBOL_SIZE * 1.2), int(SYMBOL_SIZE * 1.2))
-        self.low_beam_image.move(self.speedometer.pos() + QPoint(self.tachometer.width() - SYMBOL_SIZE * 3, 0))
+        self.low_beam_image.move(
+            self.speedometer.pos()
+            + QPoint(self.tachometer.width() - SYMBOL_SIZE * 3, 0)
+        )
 
-        self.fog_light_image = Image(self, IMAGE_PATH + "/front-fog-indicator-light.png", SYMBOL_GREEN_COLOR)
+        self.fog_light_image = Image(
+            self, IMAGE_PATH + "/front-fog-indicator-light.png", SYMBOL_GREEN_COLOR
+        )
         self.fog_light_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.fog_light_image.move(self.tachometer.pos() + QPoint(int(SYMBOL_SIZE / 1.3), SYMBOL_SIZE))
+        self.fog_light_image.move(
+            self.tachometer.pos() + QPoint(int(SYMBOL_SIZE / 1.3), SYMBOL_SIZE)
+        )
 
-        self.brake_warning_image = Image(self, IMAGE_PATH + "/brake-warning-indicator-light-letters-only.png",
-                                         SYMBOL_RED_COLOR)
+        self.brake_warning_image = Image(
+            self,
+            IMAGE_PATH + "/brake-warning-indicator-light-letters-only.png",
+            SYMBOL_RED_COLOR,
+        )
         self.brake_warning_image.resize(int(SYMBOL_SIZE * 1.4), int(SYMBOL_SIZE * 1.2))
-        self.brake_warning_image.move(self.speedometer.pos() +
-                                      QPoint(DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.width() //
-                                             2, DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.height() // 2) +
-                                      QPoint(0, int(SYMBOL_SIZE * 3)))
+        self.brake_warning_image.move(
+            self.speedometer.pos()
+            + QPoint(
+                DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.width() // 2,
+                DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.height() // 2,
+            )
+            + QPoint(0, int(SYMBOL_SIZE * 3))
+        )
 
-        self.right_turn_signal_image_active = Image(self, IMAGE_PATH + "/turn-signal-arrow.png", SYMBOL_GREEN_COLOR)
+        self.right_turn_signal_image_active = Image(
+            self, IMAGE_PATH + "/turn-signal-arrow.png", SYMBOL_GREEN_COLOR
+        )
         self.right_turn_signal_image_active.resize(turn_signal_sze, turn_signal_sze)
-        self.right_turn_signal_image_active.move(self.speedometer.pos() +
-                                                 QPoint(turn_signal_offset_x, turn_signal_offset_y))
+        self.right_turn_signal_image_active.move(
+            self.speedometer.pos() + QPoint(turn_signal_offset_x, turn_signal_offset_y)
+        )
 
-        self.left_turn_signal_image_active = Image(self, IMAGE_PATH + "/turn-signal-arrow.png", SYMBOL_GREEN_COLOR,
-                                                   vertical_mirror)
+        self.left_turn_signal_image_active = Image(
+            self,
+            IMAGE_PATH + "/turn-signal-arrow.png",
+            SYMBOL_GREEN_COLOR,
+            vertical_mirror,
+        )
         self.left_turn_signal_image_active.resize(turn_signal_sze, turn_signal_sze)
-        self.left_turn_signal_image_active.move(self.tachometer.pos() +
-                                                QPoint(self.tachometer.width() - SYMBOL_SIZE, 0) +
-                                                QPoint(-turn_signal_offset_x, turn_signal_offset_y))
+        self.left_turn_signal_image_active.move(
+            self.tachometer.pos()
+            + QPoint(self.tachometer.width() - SYMBOL_SIZE, 0)
+            + QPoint(-turn_signal_offset_x, turn_signal_offset_y)
+        )
 
         label_font = QFont(FONT_GROUP, 34)
         palette = QPalette()
@@ -304,26 +432,41 @@ class MainWindow(QMainWindow):
 
         self.speed_label = QLabel(self)
         self.speed_label.setStyleSheet("background:transparent")
-        self.speed_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.speed_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
         self.speed_label.setFont(label_font)
         self.speed_label.setPalette(palette)
         self.speed_label.setText("0")
         self.speed_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
-        sl_size = self.speed_label.size()
         self.speed_label.move(
-            int(SCREEN_SIZE[0] - DIAL_SIZE_MAJOR - DIAL_SIZE_MAJOR / 4 + DIAL_SIZE_MAJOR / 2 - sl_size.width() / 2),
-            int(SCREEN_SIZE[1] / 2 - sl_size.height() / 2))
+            int(
+                SCREEN_SIZE[0]
+                - DIAL_SIZE_MAJOR
+                - DIAL_SIZE_MAJOR / 4
+                + DIAL_SIZE_MAJOR / 2
+                - self.speed_label.width() / 2
+            ),
+            int(SCREEN_SIZE[1] / 2 - self.speed_label.height() / 2),
+        )
 
         self.gear_indicator_label = QLabel(self)
         self.gear_indicator_label.setStyleSheet("background:transparent")
-        self.gear_indicator_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.gear_indicator_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
         self.gear_indicator_label.setFont(label_font)
         self.gear_indicator_label.setPalette(palette)
         self.gear_indicator_label.setText("N")
         self.gear_indicator_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
-        gl_size = self.speed_label.size()
-        self.gear_indicator_label.move(int(DIAL_SIZE_MAJOR / 4 + DIAL_SIZE_MAJOR / 2 - gl_size.width() / 2),
-                                       int(SCREEN_SIZE[1] / 2 - gl_size.height() / 2))
+        self.gear_indicator_label.move(
+            int(
+                DIAL_SIZE_MAJOR / 4
+                + DIAL_SIZE_MAJOR / 2
+                - self.gear_indicator_label.width() / 2
+            ),
+            int(SCREEN_SIZE[1] / 2 - self.gear_indicator_label.height() / 2),
+        )
 
 
 class Application(QApplication):
@@ -342,7 +485,9 @@ class Application(QApplication):
         self.primary_container = primary_container
         self.update_funcs = {}
         self.cluster_vars = {}
-        self.cluster_vars_update_ts = {i: time() for i in VISUAL_UPDATE_INTERVALS.keys()}
+        self.cluster_vars_update_ts = {
+            i: time() for i in VISUAL_UPDATE_INTERVALS.keys()
+        }
         self.average_fuel_table = [0 for _ in range(AVG_FUEL_SAMPLES)]
 
         angle_mid = 30
@@ -358,32 +503,70 @@ class Application(QApplication):
         start_right_end = 0
         end_right_end = -180 + angle_mid * 2
 
-        self.cruise_dial_left_animation_start = property_animation(self, self.primary_container.cruise_control_arc_left,
-                                                                   "arc_start", start_left_start, end_left_start,
-                                                                   duration)
-        self.cruise_dial_left_animation_end = property_animation(self, self.primary_container.cruise_control_arc_left,
-                                                                 "arc_end", start_left_end, end_left_end, duration)
-        self.cruise_dial_right_animation_start = property_animation(self,
-                                                                    self.primary_container.cruise_control_arc_right,
-                                                                    "arc_start", start_right_start, end_right_start,
-                                                                    duration)
-        self.cruise_dial_right_animation_end = property_animation(self, self.primary_container.cruise_control_arc_right,
-                                                                  "arc_end", start_right_end, end_right_end, duration)
-        self.cruise_dial_left_animation_start_close = property_animation(self,
-                                                                         primary_container.cruise_control_arc_left,
-                                                                         "arc_start", end_left_start, start_left_start,
-                                                                         duration)
-        self.cruise_dial_left_animation_end_close = property_animation(self,
-                                                                       self.primary_container.cruise_control_arc_left,
-                                                                       "arc_end", end_left_end, start_left_end,
-                                                                       duration)
+        self.cruise_dial_left_animation_start = property_animation(
+            self,
+            self.primary_container.cruise_control_arc_left,
+            "arc_start",
+            start_left_start,
+            end_left_start,
+            duration,
+        )
+        self.cruise_dial_left_animation_end = property_animation(
+            self,
+            self.primary_container.cruise_control_arc_left,
+            "arc_end",
+            start_left_end,
+            end_left_end,
+            duration,
+        )
+        self.cruise_dial_right_animation_start = property_animation(
+            self,
+            self.primary_container.cruise_control_arc_right,
+            "arc_start",
+            start_right_start,
+            end_right_start,
+            duration,
+        )
+        self.cruise_dial_right_animation_end = property_animation(
+            self,
+            self.primary_container.cruise_control_arc_right,
+            "arc_end",
+            start_right_end,
+            end_right_end,
+            duration,
+        )
+        self.cruise_dial_left_animation_start_close = property_animation(
+            self,
+            primary_container.cruise_control_arc_left,
+            "arc_start",
+            end_left_start,
+            start_left_start,
+            duration,
+        )
+        self.cruise_dial_left_animation_end_close = property_animation(
+            self,
+            self.primary_container.cruise_control_arc_left,
+            "arc_end",
+            end_left_end,
+            start_left_end,
+            duration,
+        )
         self.cruise_dial_right_animation_start_close = property_animation(
-            self, self.primary_container.cruise_control_arc_right, "arc_start", end_right_start, start_right_start,
-            duration)
-        self.cruise_dial_right_animation_end_close = property_animation(self,
-                                                                        self.primary_container.cruise_control_arc_right,
-                                                                        "arc_end", end_right_end, start_right_end,
-                                                                        duration)
+            self,
+            self.primary_container.cruise_control_arc_right,
+            "arc_start",
+            end_right_start,
+            start_right_start,
+            duration,
+        )
+        self.cruise_dial_right_animation_end_close = property_animation(
+            self,
+            self.primary_container.cruise_control_arc_right,
+            "arc_end",
+            end_right_end,
+            start_right_end,
+            duration,
+        )
 
         self.cruise_control_set_last = 1
         self.init_wait.connect(self.awaken_clusters)
@@ -394,20 +577,40 @@ class Application(QApplication):
         duration = int((AWAKEN_SEQUENCE_DURATION - AWAKEN_SEQUENCE_DURATION_STALL) / 2)
 
         def start() -> None:
-            property_animation(self, self.primary_container.tachometer, "dial_unit",
-                               GAUGE_PARAMS["tachometer"]["min_unit"], GAUGE_PARAMS["tachometer"]["max_unit"],
-                               duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
-            property_animation(self, self.primary_container.speedometer, "dial_unit",
-                               GAUGE_PARAMS["speedometer"]["min_unit"], GAUGE_PARAMS["speedometer"]["max_unit"],
-                               duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+            property_animation(
+                self,
+                self.primary_container.tachometer,
+                "dial_unit",
+                GAUGE_PARAMS["tachometer"]["min_unit"],
+                GAUGE_PARAMS["tachometer"]["max_unit"],
+                duration,
+            ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+            property_animation(
+                self,
+                self.primary_container.speedometer,
+                "dial_unit",
+                GAUGE_PARAMS["speedometer"]["min_unit"],
+                GAUGE_PARAMS["speedometer"]["max_unit"],
+                duration,
+            ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
         def end() -> None:
-            property_animation(self, self.primary_container.tachometer, "dial_unit",
-                               GAUGE_PARAMS["tachometer"]["max_unit"], GAUGE_PARAMS["tachometer"]["min_unit"],
-                               duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
-            property_animation(self, self.primary_container.speedometer, "dial_unit",
-                               GAUGE_PARAMS["speedometer"]["max_unit"], GAUGE_PARAMS["speedometer"]["min_unit"],
-                               duration).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+            property_animation(
+                self,
+                self.primary_container.tachometer,
+                "dial_unit",
+                GAUGE_PARAMS["tachometer"]["max_unit"],
+                GAUGE_PARAMS["tachometer"]["min_unit"],
+                duration,
+            ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+            property_animation(
+                self,
+                self.primary_container.speedometer,
+                "dial_unit",
+                GAUGE_PARAMS["speedometer"]["max_unit"],
+                GAUGE_PARAMS["speedometer"]["min_unit"],
+                duration,
+            ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
         start()
         delay(self, end, (duration + AWAKEN_SEQUENCE_DURATION_STALL / 2) / 1000)
@@ -428,19 +631,19 @@ class Application(QApplication):
 
     @pyqtSlot()
     def update_gear_indicator(self) -> None:
-        speed = self.cluster_vars.get('vehicle_speed', 1)
-        rpm = self.cluster_vars.get('rpm', 0)
-        neutral = self.cluster_vars.get('neutral_switch', 0)
-        reverse = self.cluster_vars.get('reverse_switch', 0)
+        speed = self.cluster_vars.get("vehicle_speed", 1)
+        rpm = self.cluster_vars.get("rpm", 0)
+        neutral = self.cluster_vars.get("neutral_switch", 0)
+        reverse = self.cluster_vars.get("reverse_switch", 0)
         clutch_switch = self.cluster_vars.get("clutch_switch", 0)
 
         if reverse:
-            gear = 'R'
+            gear = "R"
         elif neutral:
-            gear = 'N'
+            gear = "N"
         else:
             if clutch_switch or speed == 0:
-                gear = ''
+                gear = ""
             else:
                 gear = calcGear(rpm, speed * KPH_TO_MPH_SCALE)
 
@@ -455,7 +658,7 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= VISUAL_UPDATE_INTERVALS[var]:
             return
 
-        #? change to table lookup instead of long if statement. Unsure how speed will be affected on the RPi or readability
+        # ? change to table lookup instead of long if statement. Unsure how speed will be affected on the RPi or readability
         if var == "vehicle_speed":
             val *= KPH_TO_MPH_SCALE
             self.primary_container.speed_label.setText(f"{val:.0f}")
@@ -477,17 +680,33 @@ class Application(QApplication):
             converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
             self.primary_container.coolant_temp_gauge.dial_unit = converted_val
             if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
-                self.primary_container.coolant_temp_indicator_image_normal.setVisible(False)
-                self.primary_container.coolant_temp_indicator_image_cold.setVisible(True)
-                self.primary_container.coolant_temp_indicator_image_hot.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_normal.setVisible(
+                    False
+                )
+                self.primary_container.coolant_temp_indicator_image_cold.setVisible(
+                    True
+                )
+                self.primary_container.coolant_temp_indicator_image_hot.setVisible(
+                    False
+                )
             elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
-                self.primary_container.coolant_temp_indicator_image_normal.setVisible(False)
-                self.primary_container.coolant_temp_indicator_image_cold.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_normal.setVisible(
+                    False
+                )
+                self.primary_container.coolant_temp_indicator_image_cold.setVisible(
+                    False
+                )
                 self.primary_container.coolant_temp_indicator_image_hot.setVisible(True)
             else:
-                self.primary_container.coolant_temp_indicator_image_normal.setVisible(True)
-                self.primary_container.coolant_temp_indicator_image_cold.setVisible(False)
-                self.primary_container.coolant_temp_indicator_image_hot.setVisible(False)
+                self.primary_container.coolant_temp_indicator_image_normal.setVisible(
+                    True
+                )
+                self.primary_container.coolant_temp_indicator_image_cold.setVisible(
+                    False
+                )
+                self.primary_container.coolant_temp_indicator_image_hot.setVisible(
+                    False
+                )
         elif var == "handbrake":
             self.primary_container.brake_warning_image.setVisible(val)
         elif var == "neutral_switch":
@@ -506,7 +725,7 @@ class Application(QApplication):
         elif var == "fog_lights":
             self.primary_container.fog_light_image.setVisible(val)
         elif var == "door_states":
-            self.primary_container.door_open_warning_image.setVisible('1' in val)
+            self.primary_container.door_open_warning_image.setVisible("1" in val)
         elif var == "headlights":
             self.primary_container.low_beam_image.setVisible(val[0] or (val[1] == 1))
             self.primary_container.high_beam_image.setVisible(val[2])
@@ -519,7 +738,9 @@ class Application(QApplication):
         elif var == "cruise_control_set":
             if val != self.cruise_control_set_last:
                 self.cruise_control_set_last = val
-                self.animate_cruise_control(val and self.cluster_vars.get("cruise_control_status", 0))
+                self.animate_cruise_control(
+                    val and self.cluster_vars.get("cruise_control_status", 0)
+                )
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
@@ -528,39 +749,61 @@ class Application(QApplication):
 if __name__ == "__main__":
     app = Application()
     screens = app.screens()
-    using_canbus = False
+    USING_CANBUS = False
 
     for font_file in listdir(FONT_PATH + "/Montserrat/static"):
         if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
-            QFontDatabase.addApplicationFont(f"{FONT_PATH}/Montserrat/static/{font_file}")
+            QFontDatabase.addApplicationFont(
+                f"{FONT_PATH}/Montserrat/static/{font_file}"
+            )
 
     if SYSTEM == "Linux":
         screen = screens[0]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
+        app.primary_container.setFocus()
 
-        using_canbus = "nocan" not in sys.argv
+        USING_CANBUS = "nocan" not in sys.argv
 
         try:
-            shutdown_can = subprocess.run(["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True)
+            shutdown_can = subprocess.run(
+                ["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True
+            )
             setup_can = subprocess.run(
-                ["sudo", "/sbin/ip", "link", "set", "can0", "up", "type", "can", "bitrate", "500000"], check=True)
+                [
+                    "sudo",
+                    "/sbin/ip",
+                    "link",
+                    "set",
+                    "can0",
+                    "up",
+                    "type",
+                    "can",
+                    "bitrate",
+                    "500000",
+                ],
+                check=True,
+            )
 
-            bus = can.interface.Bus(channel='can0', bustype='socketcan', bitrate=500000)
-        except:
+            bus = can.interface.Bus(channel="can0", bustype="socketcan", bitrate=500000)
+        except (
+            can.exceptions.CanInitializationError,
+            can.exceptions.CanInterfaceNotImplementedError,
+        ):
             print("Could not find PiCan device. Switching to emulation.")
-            using_canbus = False
+            USING_CANBUS = False
     else:
+        app.primary_container.show()
         if len(screens) > 1:
             screen = screens[1]
             app.primary_container.move(screen.geometry().topLeft())
             app.primary_container.showFullScreen()
 
-    if not using_canbus:
+    if not USING_CANBUS:
         import test_module
 
         bus_virtual_car = can.interface.Bus(channel="test", bustype="virtual")
-        bus = can.interface.Bus(channel='test', bustype='virtual')
+        bus = can.interface.Bus(channel="test", bustype="virtual")
 
         @pyqtSlot()
         def emulate_car() -> None:
@@ -620,6 +863,4 @@ if __name__ == "__main__":
         delay(app, attemp_init_conversation, CONVERSATION_WAIT)
 
     app.awakened.connect(run)
-    app.primary_container.show()
-    app.primary_container.setFocus()
     sys.exit(app.exec())
