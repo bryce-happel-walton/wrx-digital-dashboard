@@ -69,7 +69,7 @@ SYMBOL_RED_COLOR = QColor(255, 0, 0)
 BLUELINE_COLOR = QColor(175, 150, 255)
 
 
-# ! potential problem with this function and threading
+# todo: fix this
 def calcGear(rpm: int, speed: int) -> str:
     ratio = (rpm * TIRE_DIAMETER) / (
         FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
             "major_section_rad_offset": 40,
             "angle_offset": pi,
             "dial_opacity": 0.5,
-            "dial_width": 120,
+            "dial_width": 140,
             "angle_range": major_dial_angle_range,
             "size": dial_size_major,
         }
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
             "major_section_rad_offset": 40,
             "no_font": True,
             "dial_opacity": 0.5,
-            "dial_width": 20,
+            "dial_width": 35,
             "angle_range": 2 * pi - major_dial_angle_range - pi / 4 * 2,
             "size": dial_size_minor,
             "angle_offset": major_dial_angle_range - pi + pi / 2.5,
