@@ -52,23 +52,21 @@ def fuel_level(data: bytearray) -> float:
 
 @pyqtSlot(bytearray)
 def oil_temp(data: bytearray) -> int:
-    b2 = f"{data[2]:08b}"
-    return int(b2, 2) + TEMP_SENSOR_OFFSET
+    return data[2] + TEMP_SENSOR_OFFSET
 
 
 @pyqtSlot(bytearray)
 def coolant_temp(data: bytearray) -> int:
-    b3 = f"{data[3]:08b}"
-    return int(b3, 2) + TEMP_SENSOR_OFFSET
+    return data[3] + TEMP_SENSOR_OFFSET
 
 
 @pyqtSlot(bytearray)
 def neutral_switch(data: bytearray) -> bool:
-    return data[6] == 39
+    return data[6] in [7, 39, 63]  # todo: find correct bit
 
 
 @pyqtSlot(bytearray)
-def handbrake(data: bytearray) -> int:
+def handbrake_switch(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"
     return int(b6[4], 2)
 

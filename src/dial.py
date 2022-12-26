@@ -116,6 +116,7 @@ class Dial(QWidget):
         )
         self.arc.set_arc(self.dial_offset_angle_deg, 0)
 
+        # todo: use line width to extend border and eliminate overhang
         if border_width > 0:
             self.outline_arc = Arc(
                 self,

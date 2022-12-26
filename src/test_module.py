@@ -34,7 +34,7 @@ def provide_random_message() -> can.Message:
             0,
             randrange(0, 256),
         ]
-    elif key in ["headlights", "handbrake", "reverse_switch", "brake_switch"]:
+    elif key in ["headlights", "handbrake_switch", "reverse_switch", "brake_switch"]:
         data = [
             0,
             0,

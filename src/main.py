@@ -103,7 +103,8 @@ class MainWindow(QMainWindow):
         all_dial_params = {
             "blueline_color": BLUELINE_COLOR,
             "gradient": True,
-            "border_width": 1,
+            "border_width": 2,
+            "line_width": 1.5,
         }
 
         dial_params_major = {
@@ -707,7 +708,7 @@ class Application(QApplication):
                 self.primary_container.coolant_temp_indicator_image_hot.setVisible(
                     False
                 )
-        elif var == "handbrake":
+        elif var == "handbrake_switch":
             self.primary_container.brake_warning_image.setVisible(val)
         elif var == "neutral_switch":
             self.update_gear_indicator()

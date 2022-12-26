@@ -13,7 +13,7 @@
  throttle_plate_position = 0x140
  headlights = 0x152
  fog_lights = 0x374
- handbrake = 0x152
+ handbrake_switch = 0x152
  reverse_switch = 0x152
  brake_switch = 0x152
  clutch_switch = 0x140
