@@ -9,7 +9,15 @@ from time import time
 from functools import reduce
 from qutil import Image, Arc, delay, timed_func, property_animation
 from PyQt5.QtCore import Qt, pyqtSignal, QSize, pyqtSlot, QPoint, QAbstractAnimation
-from PyQt5.QtGui import QColor, QCursor, QFontDatabase, QFont, QPalette, QTransform
+from PyQt5.QtGui import (
+    QColor,
+    QCursor,
+    QFontDatabase,
+    QFont,
+    QPalette,
+    QTransform,
+    QCloseEvent,
+)
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
 from can_handle import CanApplication, can_ids
 from dial import Dial
@@ -33,7 +41,7 @@ FONT_PATH = RESOURCE_PATH + "/fonts"
 FONT_GROUP = SETTINGS["fonts"]["main"]
 
 SCREEN_SIZE = [1920, 720]
-SCREEN_REFRESH_RATE = 75 if SYSTEM == "Linux" else 60 if SYSTEM == "Darwin" else 144
+SCREEN_REFRESH_RATE = 75
 DIAL_SIZE_MAJOR = 660
 DIAL_SIZE_MINOR = 525
 SYMBOL_SIZE = 63
@@ -42,7 +50,7 @@ SYMBOL_SIZE_EXTRA_SMALL = 28
 BACKGROUND_COLOR = QColor(0, 0, 0)
 AWAKEN_SEQUENCE_DURATION = 1750
 AWAKEN_SEQUENCE_DURATION_STALL = 250
-VISUAL_UPDATE_INTERVALS = {"coolant_temp": 0.75, "oil_temp": 0.75}
+VISUAL_UPDATE_INTERVALS = {}
 
 for i in can_ids.keys():
     if i not in VISUAL_UPDATE_INTERVALS:
@@ -83,6 +91,9 @@ def calcGear(rpm: int, speed: int) -> str:
 
 
 class MainWindow(QMainWindow):
+
+    closed = pyqtSignal()
+
     def __init__(self) -> None:
         super().__init__()
         background_palette = QPalette()
@@ -469,6 +480,10 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[1] / 2 - self.gear_indicator_label.height() / 2),
         )
 
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        self.closed.emit()
+        return super().closeEvent(a0)
+
 
 class Application(QApplication):
 
@@ -659,7 +674,6 @@ class Application(QApplication):
         if t - self.cluster_vars_update_ts[var] <= VISUAL_UPDATE_INTERVALS[var]:
             return
 
-        # ? change to table lookup instead of long if statement. Unsure how speed will be affected on the RPi or readability
         if var == "vehicle_speed":
             val *= KPH_TO_MPH_SCALE
             self.primary_container.speed_label.setText(f"{val:.0f}")
@@ -710,9 +724,7 @@ class Application(QApplication):
                 )
         elif var == "handbrake_switch":
             self.primary_container.brake_warning_image.setVisible(val)
-        elif var == "neutral_switch":
-            self.update_gear_indicator()
-        elif var == "reverse_switch":
+        elif var in ["neutral_switch", "reverse_switch", "clutch_switch"]:
             self.update_gear_indicator()
         elif var == "traction_control":
             self.primary_container.traction_control_off_image.setVisible(val)
@@ -806,6 +818,15 @@ if __name__ == "__main__":
         bus_virtual_car = can.interface.Bus(channel="test", bustype="virtual")
         bus = can.interface.Bus(channel="test", bustype="virtual")
 
+        TestController = test_module.TestController(bus_virtual_car)
+        TestController.move(
+            app.primary_container.pos() - QPoint(test_module.WINDOW_SIZE[0], 0)
+        )
+        app.setOverrideCursor(Qt.CursorShape.ArrowCursor)
+
+        TestController.closed.connect(app.closeAllWindows)
+        app.primary_container.closed.connect(app.closeAllWindows)
+
         @pyqtSlot()
         def emulate_car() -> None:
             bus_virtual_car.send(test_module.provide_random_message())
@@ -818,7 +839,7 @@ if __name__ == "__main__":
         @pyqtSlot()
         def run() -> None:
             can.Notifier(bus_virtual_car, [emulate_conversation])
-            timed_func(app, emulate_car, 1)
+            # timed_func(app, emulate_car, 1)
 
         app.awakened.connect(run)
 
