@@ -21,6 +21,7 @@
  cruise_control_status = 0x360
  cruise_control_set = 0x360
  boost_pressure = 0x360
+ oil_pressure_warning = 0x361
  check_engine_light = 0x361
  fog_lights = 0x374
  door_states = 0x375
