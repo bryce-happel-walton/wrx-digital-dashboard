@@ -35,6 +35,7 @@ def turn_signals(data: bytearray) -> list[int]:
 
     # data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
     new_data = [int(b5[3]), int(b5[2])]
+    # constant = [int(b5[4]), int(b5[5])]
 
     return new_data
 
@@ -58,11 +59,6 @@ def oil_temp(data: bytearray) -> int:
 @pyqtSlot(bytearray)
 def coolant_temp(data: bytearray) -> int:
     return data[3] + TEMP_SENSOR_OFFSET
-
-
-@pyqtSlot(bytearray)
-def neutral_switch(data: bytearray) -> bool:
-    return data[6] in [7, 39, 63]  # todo: find correct bit
 
 
 @pyqtSlot(bytearray)
@@ -127,15 +123,15 @@ def fog_lights(data: bytearray) -> int:
 low = 0x8C
 pull_high = 0x98
 high = 0x9C
-drl_and_dim = 0x84
-drl_day = 0x82
+rl_and_dim = 0x84
+rl_day = 0x82
 
 
 # todo: change to evaluate individual bits instead of comparing hex values
-# * comparing hex values causes issues when other things are activated such as windshield wipers
 @pyqtSlot(bytearray)
 def headlights(data: bytearray) -> list[int]:
-    b7 = data[7]
+    # d7 = data[7]
+    b7 = f"{data[7]:08b}"
 
     # data = {
     #     "lowbeams": b7 == low,
@@ -144,9 +140,9 @@ def headlights(data: bytearray) -> list[int]:
     # }
 
     new_data = [
-        b7 == low,
-        1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0,
-        b7 in [pull_high, high],
+        b7[3],
+        b7[2],  # 1 if d7 == rl_and_dim else 2 if d7 == rl_day else 0,
+        b7[4],
     ]
 
     return new_data
@@ -160,3 +156,24 @@ def door_states(data: bytearray) -> dict[str]:
     new_data = [b1[7], b1[6], b1[4], b1[5], b1[2]]
 
     return new_data
+
+
+@pyqtSlot(bytearray)
+def boost_pressure(data: bytearray) -> float:
+    return data[4] * 0.3 - 15.1
+
+
+@pyqtSlot(bytearray)
+def check_engine_light(data: bytearray) -> float:
+    b4 = f"{data[4]:08b}"
+
+    return b4[7]
+
+
+@pyqtSlot(bytearray)
+def gear(data: bytearray) -> int:
+    b6 = data[6]
+
+    if b6 in [7, 39, 63]:
+        return 0
+    return b6

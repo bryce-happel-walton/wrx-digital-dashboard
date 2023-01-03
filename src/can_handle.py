@@ -1,5 +1,5 @@
 import can_data_parser
-import tomllib
+import tomlkit
 import can
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QWidget
@@ -8,7 +8,7 @@ from inspect import getmembers, isfunction
 parsers = {x[0]: x[1] for x in getmembers(can_data_parser, isfunction)}
 
 with open("config/can.toml", "rb") as f:
-    config = tomllib.load(f)
+    config = tomlkit.load(f).unwrap()
     can_ids = config["can_ids"]
     conversation_ids = config["conversation_ids"]
 

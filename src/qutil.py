@@ -94,7 +94,7 @@ class Line(QWidget):
         self.pen.setBrush(color)
         self.update()
 
-    def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
+    def paintEvent(self, _: QtGui.QPaintEvent) -> None:
         painter = self.painter
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)
@@ -144,7 +144,7 @@ class Arc(QWidget):
         self._arc_end = int(end * Q_DEGREE_MULT)
         self.update()
 
-    def paintEvent(self, a0: QPaintEvent) -> None:
+    def paintEvent(self, _: QPaintEvent) -> None:
         painter = self.painter
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)

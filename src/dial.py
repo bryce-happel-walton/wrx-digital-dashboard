@@ -5,6 +5,9 @@ from PyQt5.QtGui import QColor, QFont, QPalette, QGradient, QRadialGradient
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 
+# todo: allow dynamic changing of dial variable. Ex: changing unit, max, min, etc
+
+
 class Dial(QWidget):
     def __init__(
         self,

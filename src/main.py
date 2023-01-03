@@ -1,7 +1,8 @@
 import platform
 import subprocess
 import sys
-import tomllib
+from typing import Any
+import tomlkit
 import can
 from os import listdir, path
 from math import pi
@@ -25,15 +26,29 @@ from dial import Dial
 SYSTEM = platform.system()
 CONFIG_PATH = "config"
 
+
+def reload_settings(init: bool = False) -> None:
+    global settings_toml, SETTINGS
+
+    # todo: implement external settings file so that settings don't get reset with every software update
+    # if not init:
+    #     with open(CONFIG_PATH + "/settings.toml", "wb") as f:
+    #         tomlkit.dump(settings_toml, f)
+
+    with open(CONFIG_PATH + "/settings.toml", "rb") as f:
+        settings_toml = tomlkit.load(f)
+        SETTINGS = settings_toml.unwrap()
+
+
+reload_settings(True)
+
+with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
+    gauge_params_toml = tomlkit.load(f)
+    GAUGE_PARAMS = gauge_params_toml.unwrap()
+
 START_WAIT = 1
 CONVERSATION_WAIT = 2
 CONVERSATION_PERIOD_MS = 50
-
-with open(CONFIG_PATH + "/settings.toml", "rb") as f:
-    SETTINGS = tomllib.load(f)
-
-with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
-    GAUGE_PARAMS = tomllib.load(f)
 
 RESOURCE_PATH = "resources"
 IMAGE_PATH = RESOURCE_PATH + "/images"
@@ -45,6 +60,7 @@ SCREEN_REFRESH_RATE = 75
 DIAL_SIZE_MAJOR = 660
 DIAL_SIZE_MINOR = 525
 SYMBOL_SIZE = 63
+SYMBOL_BUFFER = 5
 SYMBOL_SIZE_SMALL = 50
 SYMBOL_SIZE_EXTRA_SMALL = 28
 BACKGROUND_COLOR = QColor(0, 0, 0)
@@ -66,6 +82,7 @@ TIRE_DIAMETER = 26
 FINAL_DRIVE_RATIO = 4.111
 
 AVG_FUEL_SAMPLES = 20
+LOW_FUEL_THRESHHOLD = 15
 
 SYMBOL_BLUE_COLOR = QColor(0, 0, 255)
 SYMBOL_GREEN_COLOR = QColor(0, 230, 0)
@@ -78,7 +95,7 @@ BLUELINE_COLOR = QColor(175, 150, 255)
 
 
 # todo: fix this
-def calcGear(rpm: int, speed: int) -> str:
+def calc_gear(rpm: int, speed: int) -> str:
     ratio = (rpm * TIRE_DIAMETER) / (
         FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT
     )
@@ -196,6 +213,19 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
+        self.check_engine_light_image = Image(
+            self,
+            IMAGE_PATH + "/check-engine-warning-linght-icon.png",
+            SYMBOL_YELLOW_COLOR,
+        )
+        self.check_engine_light_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
+        self.check_engine_light_image.move(
+            int(
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 - 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
+
         self.traction_control_off_image = Image(
             self,
             IMAGE_PATH + "/vehicle-dynamics-control-off-indicator-light.png",
@@ -203,7 +233,7 @@ class MainWindow(QMainWindow):
         )
         self.traction_control_off_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.traction_control_off_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + SYMBOL_SIZE + 5),
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + SYMBOL_SIZE + SYMBOL_BUFFER),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -212,7 +242,9 @@ class MainWindow(QMainWindow):
         )
         self.door_open_warning_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.door_open_warning_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + 5)),
+            int(
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -221,7 +253,9 @@ class MainWindow(QMainWindow):
         )
         self.seatbelt_driver_warning_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.seatbelt_driver_warning_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + 5)),
+            int(
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -493,6 +527,12 @@ class Application(QApplication):
     def __init__(self) -> None:
         super().__init__([])
 
+        for font_file in listdir(FONT_PATH + "/Montserrat/static"):
+            if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
+                QFontDatabase.addApplicationFont(
+                    f"{FONT_PATH}/Montserrat/static/{font_file}"
+                )
+
         self.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))
         primary_container = MainWindow()
         primary_container.setFixedSize(*SCREEN_SIZE)
@@ -647,21 +687,30 @@ class Application(QApplication):
 
     @pyqtSlot()
     def update_gear_indicator(self) -> None:
-        speed = self.cluster_vars.get("vehicle_speed", 1)
-        rpm = self.cluster_vars.get("rpm", 0)
-        neutral = self.cluster_vars.get("neutral_switch", 0)
+        # speed = self.cluster_vars.get("vehicle_speed", 1)
+        # rpm = self.cluster_vars.get("rpm", 0)
+        gear = self.cluster_vars.get("gear", 0)
         reverse = self.cluster_vars.get("reverse_switch", 0)
         clutch_switch = self.cluster_vars.get("clutch_switch", 0)
 
-        if reverse:
+        # if reverse:
+        #     gear = "R"
+        # elif neutral:
+        #     gear = "N"
+        # else:
+        #     if clutch_switch or speed == 0:
+        #         gear = ""
+        #     else:
+        #         gear = calc_gear(rpm, speed * KPH_TO_MPH_SCALE)
+
+        if clutch_switch:
+            gear = ""
+        elif reverse:
             gear = "R"
-        elif neutral:
+        elif gear == 0:
             gear = "N"
         else:
-            if clutch_switch or speed == 0:
-                gear = ""
-            else:
-                gear = calcGear(rpm, speed * KPH_TO_MPH_SCALE)
+            gear = str(gear)
 
         self.primary_container.gear_indicator_label.setText(gear)
 
@@ -689,8 +738,11 @@ class Application(QApplication):
             self.average_fuel_table.pop(0)
 
             avg = reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
+
             self.primary_container.fuel_level_gauge.dial_unit = avg
-            self.primary_container.low_fuel_warning_image.setVisible(avg <= 15)
+            self.primary_container.low_fuel_warning_image.setVisible(
+                avg <= LOW_FUEL_THRESHHOLD
+            )
         elif var == "coolant_temp":
             converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
             self.primary_container.coolant_temp_gauge.dial_unit = converted_val
@@ -724,7 +776,7 @@ class Application(QApplication):
                 )
         elif var == "handbrake_switch":
             self.primary_container.brake_warning_image.setVisible(val)
-        elif var in ["neutral_switch", "reverse_switch", "clutch_switch"]:
+        elif var in ["reverse_switch", "clutch_switch"]:
             self.update_gear_indicator()
         elif var == "traction_control":
             self.primary_container.traction_control_off_image.setVisible(val)
@@ -754,6 +806,10 @@ class Application(QApplication):
                 self.animate_cruise_control(
                     val and self.cluster_vars.get("cruise_control_status", 0)
                 )
+        elif var == "check_engine_light":
+            self.primary_container.check_engine_light_image.setVisible(val)
+        elif var == "gear":
+            print(val)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
@@ -763,12 +819,6 @@ if __name__ == "__main__":
     app = Application()
     screens = app.screens()
     USING_CANBUS = False
-
-    for font_file in listdir(FONT_PATH + "/Montserrat/static"):
-        if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
-            QFontDatabase.addApplicationFont(
-                f"{FONT_PATH}/Montserrat/static/{font_file}"
-            )
 
     if SYSTEM == "Linux":
         screen = screens[0]
