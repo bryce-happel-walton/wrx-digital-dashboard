@@ -172,8 +172,11 @@ def check_engine_light(data: bytearray) -> float:
 
 @pyqtSlot(bytearray)
 def gear(data: bytearray) -> int:
-    b6 = data[6]
+    b6 = f"{data[6]:08b}"[4:]
 
-    if b6 in [7, 39, 63]:
+    b6int = int(b6, 2)
+
+    if b6int == 7 or b6int == 0:
         return 0
-    return b6
+
+    return b6int
