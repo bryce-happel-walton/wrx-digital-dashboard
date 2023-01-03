@@ -167,7 +167,7 @@ def boost_pressure(data: bytearray) -> float:
 def check_engine_light(data: bytearray) -> float:
     b4 = f"{data[4]:08b}"
 
-    return b4[7]
+    return int(b4[7], 2)
 
 
 @pyqtSlot(bytearray)
