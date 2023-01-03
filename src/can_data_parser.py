@@ -120,29 +120,15 @@ def fog_lights(data: bytearray) -> int:
     return int(b1[1], 2)
 
 
-low = 0x8C
-pull_high = 0x98
-high = 0x9C
-rl_and_dim = 0x84
-rl_day = 0x82
-
-
-# todo: change to evaluate individual bits instead of comparing hex values
 @pyqtSlot(bytearray)
 def headlights(data: bytearray) -> list[int]:
-    # d7 = data[7]
     b7 = f"{data[7]:08b}"
 
-    # data = {
-    #     "lowbeams": b7 == low,
-    #     "drls": 1 if b7 == drl_and_dim else 2 if b7 == drl_day else 0,
-    #     "highbeams": b7 in [pull_high, high]
-    # }
-
     new_data = [
-        int(b7[3], 2),
-        int(b7[2], 2),  # 1 if d7 == rl_and_dim else 2 if d7 == rl_day else 0,
-        int(b7[4], 2),
+        int(b7[4], 2), # lowbeams
+        int(b7[5], 2), # parking lights
+        int(b7[3], 2), # highbeams
+        int(b7[6], 2) # running lights
     ]
 
     return new_data
