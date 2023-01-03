@@ -685,7 +685,7 @@ class Application(QApplication):
     def update_gear_indicator(self) -> None:
         speed = self.cluster_vars.get("vehicle_speed", 1)
         rpm = self.cluster_vars.get("rpm", 0)
-        gear = str(self.cluster_vars.get("gear", 0))
+        gear = self.cluster_vars.get("gear", 0)
         reverse = self.cluster_vars.get("reverse_switch", 0)
         clutch_switch = self.cluster_vars.get("clutch_switch", 0)
 
