@@ -94,17 +94,6 @@ SYMBOL_RED_COLOR = QColor(255, 0, 0)
 BLUELINE_COLOR = QColor(175, 150, 255)
 
 
-# todo: fix this
-def calc_gear(rpm: int, speed: int) -> str:
-    ratio = (rpm * TIRE_DIAMETER) / (FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT)
-
-    for i, v in enumerate(GEAR_RATIOS, 1):
-        if ratio >= v:
-            return str(i)
-
-    return "N"
-
-
 class MainWindow(QMainWindow):
 
     closed = pyqtSignal()
@@ -691,12 +680,12 @@ class Application(QApplication):
 
         if reverse:
             gear = "R"
+        elif clutch_switch:
+            gear = ""
         elif gear == 0:
             gear = "N"
-        elif clutch_switch or speed == 0:
-            gear = ""
         else:
-            gear = calc_gear(rpm, speed)
+            gear = str(gear)
 
         self.primary_container.gear_indicator_label.setText(gear)
 
