@@ -703,10 +703,10 @@ class Application(QApplication):
         #     else:
         #         gear = calc_gear(rpm, speed * KPH_TO_MPH_SCALE)
 
-        if clutch_switch:
-            gear = ""
-        elif reverse:
+        if reverse:
             gear = "R"
+        elif clutch_switch:
+            gear = ""
         elif gear == 0:
             gear = "N"
         else:
