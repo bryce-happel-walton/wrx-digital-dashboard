@@ -1,2 +1,4 @@
+units = "USC" # 'USC' or 'SI' default: 'Imperial'
+
 [fonts]
- main = "Montserrat-Bold"
+ main = "Montserrat-Bold" # any system font. "Montserrat-Bold" is auto loaded. default: 'Montserrat-Bold'
