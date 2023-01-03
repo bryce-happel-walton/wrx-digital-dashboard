@@ -81,7 +81,7 @@ GEAR_RATIOS = [3.454, 1.947, 1.296, 0.972, 0.78, 0.666]
 TIRE_DIAMETER = 26
 FINAL_DRIVE_RATIO = 4.111
 
-AVG_FUEL_SAMPLES = 20
+AVG_FUEL_SAMPLES = 50
 LOW_FUEL_THRESHHOLD = 15
 
 SYMBOL_BLUE_COLOR = QColor(0, 0, 255)
@@ -96,9 +96,7 @@ BLUELINE_COLOR = QColor(175, 150, 255)
 
 # todo: fix this
 def calc_gear(rpm: int, speed: int) -> str:
-    ratio = (rpm * TIRE_DIAMETER) / (
-        FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT
-    )
+    ratio = (rpm * TIRE_DIAMETER) / (FINAL_DRIVE_RATIO * speed * KPH_TO_MPH_SCALE * GEAR_CALC_CONSTANT)
 
     for i, v in enumerate(GEAR_RATIOS, 1):
         if ratio >= v:
@@ -529,9 +527,7 @@ class Application(QApplication):
 
         for font_file in listdir(FONT_PATH + "/Montserrat/static"):
             if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
-                QFontDatabase.addApplicationFont(
-                    f"{FONT_PATH}/Montserrat/static/{font_file}"
-                )
+                QFontDatabase.addApplicationFont(f"{FONT_PATH}/Montserrat/static/{font_file}")
 
         self.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))
         primary_container = MainWindow()
@@ -687,30 +683,20 @@ class Application(QApplication):
 
     @pyqtSlot()
     def update_gear_indicator(self) -> None:
-        # speed = self.cluster_vars.get("vehicle_speed", 1)
-        # rpm = self.cluster_vars.get("rpm", 0)
-        gear = self.cluster_vars.get("gear", 0)
+        speed = self.cluster_vars.get("vehicle_speed", 1)
+        rpm = self.cluster_vars.get("rpm", 0)
+        gear = str(self.cluster_vars.get("gear", 0))
         reverse = self.cluster_vars.get("reverse_switch", 0)
         clutch_switch = self.cluster_vars.get("clutch_switch", 0)
 
-        # if reverse:
-        #     gear = "R"
-        # elif neutral:
-        #     gear = "N"
-        # else:
-        #     if clutch_switch or speed == 0:
-        #         gear = ""
-        #     else:
-        #         gear = calc_gear(rpm, speed * KPH_TO_MPH_SCALE)
-
         if reverse:
             gear = "R"
-        elif clutch_switch:
-            gear = ""
         elif gear == 0:
             gear = "N"
+        elif clutch_switch or speed == 0:
+            gear = ""
         else:
-            gear = str(gear)
+            gear = calc_gear(rpm, speed)
 
         self.primary_container.gear_indicator_label.setText(gear)
 
