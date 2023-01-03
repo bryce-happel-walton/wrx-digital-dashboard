@@ -140,9 +140,9 @@ def headlights(data: bytearray) -> list[int]:
     # }
 
     new_data = [
-        b7[3],
-        b7[2],  # 1 if d7 == rl_and_dim else 2 if d7 == rl_day else 0,
-        b7[4],
+        int(b7[3], 2),
+        int(b7[2], 2),  # 1 if d7 == rl_and_dim else 2 if d7 == rl_day else 0,
+        int(b7[4], 2),
     ]
 
     return new_data
