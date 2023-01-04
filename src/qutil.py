@@ -11,6 +11,7 @@ from PyQt5.QtGui import (
     QPen,
     QPaintEvent,
     QGradient,
+    QPalette,
 )
 from PyQt5.QtWidgets import QLabel, QWidget, QApplication
 from PyQt5.QtCore import (
@@ -157,6 +158,25 @@ class Arc(QWidget):
             self._arc_end,
         )
         painter.end()
+
+
+class TextLabel(QLabel):
+    def __init__(self, parent: QWidget, text: str = "") -> None:
+        super().__init__(parent)
+
+        self.setStyleSheet("background:transparent")
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setText(text)
+
+    @pyqtProperty(QColor)
+    def text_color(self) -> QColor:
+        return self.palette().text().color()
+
+    @text_color.setter
+    def text_color(self, color: QColor) -> None:
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.WindowText, color)
+        self.setPalette(palette)
 
 
 def delay(app: QApplication, f: Callable, delay_s: float) -> QTimer:
