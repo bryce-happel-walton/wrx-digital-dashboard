@@ -501,7 +501,7 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[1] / 2 - self.gear_indicator_label.height() / 2),
         )
 
-        label_font = QFont(FONT_GROUP, 23)
+        label_font = QFont(FONT_GROUP, 20)
 
         self.odometer_label = QLabel(self)
         self.odometer_label.setStyleSheet("background:transparent")
