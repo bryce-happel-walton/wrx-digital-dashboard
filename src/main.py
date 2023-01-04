@@ -768,7 +768,7 @@ class Application(QApplication):
                     False
                 )
         elif var == "handbrake_switch":
-            self.primary_container.brake_warning_image.setVisible(val)
+            self.primary_container.parking_brake_active_image.setVisible(val)
         elif var in ["reverse_switch", "clutch_switch", "gear"]:
             self.update_gear_indicator()
         elif var == "traction_control":
