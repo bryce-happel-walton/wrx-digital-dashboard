@@ -1,20 +1,18 @@
 from PyQt5.QtCore import pyqtSlot
 
+LEAST_5_BITS_MASK = (1 << 5) - 1
+LEAST_4_BITS_MASK = (1 << 4) - 1
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
-FUEL_LEVEL_VALUE_OFFSET = 0x200  # 512
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
 
 # todo: rewrite to allow reading byte, bits, conversions, etc from can.toml
 
 
-# todo: verify rpm function. Inconsistent with other multi-bit values
 @pyqtSlot(bytearray)
 def rpm(data: bytearray) -> int:
-    b4 = f"{data[4]:08b}"
-    b5 = f"{data[5]:08b}"[-5:]
-    return int(b5 + b4, base=2)
+    return data[4] + ((data[5] & LEAST_5_BITS_MASK) << 8)
 
 
 @pyqtSlot(bytearray)
@@ -41,13 +39,9 @@ def turn_signals(data: bytearray) -> list[int]:
 
 @pyqtSlot(bytearray)
 def fuel_level(data: bytearray) -> float:
-    return (
-        1
-        - (
-            (data[0] + FUEL_LEVEL_VALUE_OFFSET - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX
-            - 1
-        )
-    ) * 100
+    num = data[0] + ((data[1] & LEAST_4_BITS_MASK) << 8)
+
+    return (1 - (num - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX - 1) * 100
 
 
 @pyqtSlot(bytearray)
