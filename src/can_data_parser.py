@@ -2,7 +2,6 @@ from PyQt5.QtCore import pyqtSlot
 
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
-FUEL_LEVEL_SCALE = 0.004587
 FUEL_LEVEL_VALUE_OFFSET = 0x200  # 512
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
@@ -10,6 +9,7 @@ FUEL_LEVEL_MIN = 0x25
 # todo: rewrite to allow reading byte, bits, conversions, etc from can.toml
 
 
+# todo: verify rpm function. Inconsistent with other multi-bit values
 @pyqtSlot(bytearray)
 def rpm(data: bytearray) -> int:
     b4 = f"{data[4]:08b}"
@@ -33,9 +33,8 @@ def cruise_control_speed(data: bytearray) -> int:
 def turn_signals(data: bytearray) -> list[int]:
     b5 = f"{data[5]:08b}"
 
-    # data = {"left_turn_signal": int(b5[3]), "right_turn_signal": int(b5[2])}
+    # * left, right
     new_data = [int(b5[3]), int(b5[2])]
-    # constant = [int(b5[4]), int(b5[5])]
 
     return new_data
 
@@ -125,10 +124,10 @@ def headlights(data: bytearray) -> list[int]:
     b7 = f"{data[7]:08b}"
 
     new_data = [
-        int(b7[4], 2), # lowbeams
-        int(b7[5], 2), # parking lights
-        int(b7[3], 2), # highbeams
-        int(b7[6], 2) # running lights
+        int(b7[4], 2),  # * lowbeams
+        int(b7[5], 2),  # * parking lights
+        int(b7[3], 2),  # * highbeams
+        int(b7[6], 2),  # * running lights
     ]
 
     return new_data
@@ -138,7 +137,7 @@ def headlights(data: bytearray) -> list[int]:
 def door_states(data: bytearray) -> dict[str]:
     b1 = f"{data[1]:08b}"
 
-    # data = {"lf": b1[7], "rf": b1[6], "lr": b1[4], "rr": b1[5], "trunk": b1[2]}
+    # * lf, rf, lr, rr, trunk
     new_data = [b1[7], b1[6], b1[4], b1[5], b1[2]]
 
     return new_data
@@ -159,13 +158,13 @@ def check_engine_light(data: bytearray) -> float:
 @pyqtSlot(bytearray)
 def gear(data: bytearray) -> int:
     b6 = f"{data[6]:08b}"[4:]
+    b6 = int(b6, 2)
 
-    b6int = int(b6, 2)
-
-    if b6int == 7 or b6int == 0:
+    if b6 == 7 or b6 == 0:
         return 0
 
-    return b6int
+    return b6
+
 
 @pyqtSlot(bytearray)
 def odometer(data: bytearray) -> float:

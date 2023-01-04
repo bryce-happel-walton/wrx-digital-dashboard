@@ -4,7 +4,7 @@ import sys
 from typing import Any
 import tomlkit
 import can
-from os import listdir, path
+from os import listdir, path, mkdir
 from math import pi
 from time import time
 from functools import reduce
@@ -25,6 +25,7 @@ from dial import Dial
 
 SYSTEM = platform.system()
 CONFIG_PATH = "config"
+LOCAL_DATA_PATH = "local/data.toml"
 
 
 def reload_settings(init: bool = False) -> None:
@@ -45,6 +46,13 @@ reload_settings(True)
 with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
     gauge_params_toml = tomlkit.load(f)
     GAUGE_PARAMS = gauge_params_toml.unwrap()
+
+if path.exists(LOCAL_DATA_PATH):
+    with open(LOCAL_DATA_PATH, "rb") as f:
+        LOCAL_DATA = tomlkit.load(f)
+else:
+    mkdir("local")
+    LOCAL_DATA = tomlkit.document()
 
 START_WAIT = 1
 CONVERSATION_WAIT = 2
@@ -76,12 +84,7 @@ C_TO_F_SCALE = 1.8
 C_TO_F_OFFSET = 32
 KPH_TO_MPH_SCALE = 0.62137119
 
-GEAR_CALC_CONSTANT = (5280 * 12) / (pi * 60)
-GEAR_RATIOS = [3.454, 1.947, 1.296, 0.972, 0.78, 0.666]
-TIRE_DIAMETER = 26
-FINAL_DRIVE_RATIO = 4.111
-
-AVG_FUEL_SAMPLES = 50
+AVG_FUEL_SAMPLES = 200
 LOW_FUEL_THRESHHOLD = 15
 
 SYMBOL_BLUE_COLOR = QColor(0, 0, 255)
@@ -92,6 +95,8 @@ SYMBOL_DARK_GRAY_COLOR = QColor(75, 75, 75)
 SYMBOL_YELLOW_COLOR = QColor(255, 179, 0)
 SYMBOL_RED_COLOR = QColor(255, 0, 0)
 BLUELINE_COLOR = QColor(175, 150, 255)
+PRIMARY_TEXT_COLOR = QColor(255, 255, 255)
+SECONDARY_TEXT_COLOR = SYMBOL_GRAY_COLOR
 
 
 class MainWindow(QMainWindow):
@@ -196,7 +201,9 @@ class MainWindow(QMainWindow):
         )
         self.traction_control_mode_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.traction_control_mode_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 3 * (SYMBOL_SIZE + SYMBOL_BUFFER)),
+            int(
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 3 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -220,7 +227,9 @@ class MainWindow(QMainWindow):
         )
         self.traction_control_off_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.traction_control_off_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + SYMBOL_BUFFER)),
+            int(
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -428,7 +437,9 @@ class MainWindow(QMainWindow):
             IMAGE_PATH + "/brake-warning-indicator-light-letters-only.png",
             SYMBOL_RED_COLOR,
         )
-        self.parking_brake_active_image.resize(int(SYMBOL_SIZE * 1.4), int(SYMBOL_SIZE * 1.2))
+        self.parking_brake_active_image.resize(
+            int(SYMBOL_SIZE * 1.4), int(SYMBOL_SIZE * 1.2)
+        )
         self.parking_brake_active_image.move(
             self.speedometer.pos()
             + QPoint(
@@ -461,7 +472,7 @@ class MainWindow(QMainWindow):
 
         label_font = QFont(FONT_GROUP, 34)
         palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))
+        palette.setColor(QPalette.ColorRole.WindowText, PRIMARY_TEXT_COLOR)
 
         self.speed_label = QLabel(self)
         self.speed_label.setStyleSheet("background:transparent")
@@ -502,20 +513,20 @@ class MainWindow(QMainWindow):
         )
 
         label_font = QFont(FONT_GROUP, 20)
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.WindowText, SECONDARY_TEXT_COLOR)
 
         self.odometer_label = QLabel(self)
         self.odometer_label.setStyleSheet("background:transparent")
         self.odometer_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom
         )
         self.odometer_label.setFont(label_font)
         self.odometer_label.setPalette(palette)
         self.odometer_label.setText("000000")
         self.odometer_label.resize(SCREEN_SIZE[0], SYMBOL_SIZE)
         self.odometer_label.move(
-            int(
-                SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2
-            ),
+            int(SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2),
             int(SCREEN_SIZE[1] - self.odometer_label.height() - bottom_symbol_y_offset),
         )
 
@@ -534,7 +545,9 @@ class Application(QApplication):
 
         for font_file in listdir(FONT_PATH + "/Montserrat/static"):
             if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
-                QFontDatabase.addApplicationFont(f"{FONT_PATH}/Montserrat/static/{font_file}")
+                QFontDatabase.addApplicationFont(
+                    f"{FONT_PATH}/Montserrat/static/{font_file}"
+                )
 
         self.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))
         primary_container = MainWindow()
@@ -628,8 +641,20 @@ class Application(QApplication):
         )
 
         self.cruise_control_set_last = 1
+        self.primary_container.odometer_label.setText(
+            str(LOCAL_DATA.get("odometer", "000000"))
+        )
         self.init_wait.connect(self.awaken_clusters)
         delay(self, self.init_wait.emit, START_WAIT)
+        self.awakened.connect(lambda: timed_func(self, self.save_local_data, 1000))
+
+    @pyqtSlot()
+    def save_local_data(self) -> None:
+        odometer = self.cluster_vars.get("odometer", 0)
+        LOCAL_DATA["odometer"] = odometer
+
+        with open(LOCAL_DATA_PATH, "w") as f:
+            tomlkit.dump(LOCAL_DATA, f)
 
     @pyqtSlot()
     def awaken_clusters(self) -> None:
@@ -690,8 +715,6 @@ class Application(QApplication):
 
     @pyqtSlot()
     def update_gear_indicator(self) -> None:
-        speed = self.cluster_vars.get("vehicle_speed", 1)
-        rpm = self.cluster_vars.get("rpm", 0)
         gear = self.cluster_vars.get("gear", 0)
         reverse = self.cluster_vars.get("reverse_switch", 0)
         clutch_switch = self.cluster_vars.get("clutch_switch", 0)
@@ -802,7 +825,7 @@ class Application(QApplication):
         elif var == "check_engine_light":
             self.primary_container.check_engine_light_image.setVisible(val)
         elif var == "odometer":
-            self.primary_container.odometer_label.setText(f"{val}")
+            self.primary_container.odometer_label.setText(f"{int(val)}")
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
