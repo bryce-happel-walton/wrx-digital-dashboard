@@ -8,7 +8,7 @@ from os import listdir, path, mkdir
 from math import pi
 from time import time
 from functools import reduce
-from qutil import Image, Arc, delay, timed_func, property_animation
+from qutil import Image, Arc, delay, timed_func, property_animation, TextLabel
 from PyQt5.QtCore import Qt, pyqtSignal, QSize, pyqtSlot, QPoint, QAbstractAnimation
 from PyQt5.QtGui import (
     QColor,
@@ -96,7 +96,7 @@ SYMBOL_YELLOW_COLOR = QColor(255, 179, 0)
 SYMBOL_RED_COLOR = QColor(255, 0, 0)
 BLUELINE_COLOR = QColor(175, 150, 255)
 PRIMARY_TEXT_COLOR = QColor(255, 255, 255)
-SECONDARY_TEXT_COLOR = SYMBOL_GRAY_COLOR
+SECONDARY_TEXT_COLOR = QColor(100, 100, 100)
 
 
 class MainWindow(QMainWindow):
@@ -125,6 +125,7 @@ class MainWindow(QMainWindow):
             "gradient": True,
             "border_width": 2,
             "line_width": 1.5,
+            "dial_opacity": 0.55,
         }
 
         dial_params_major = {
@@ -135,7 +136,6 @@ class MainWindow(QMainWindow):
             "middle_section_rad_offset": 43,
             "major_section_rad_offset": 40,
             "angle_offset": pi,
-            "dial_opacity": 0.5,
             "dial_width": 140,
             "angle_range": major_dial_angle_range,
             "size": dial_size_major,
@@ -149,8 +149,7 @@ class MainWindow(QMainWindow):
             "middle_section_rad_offset": 58,
             "major_section_rad_offset": 40,
             "no_font": True,
-            "dial_opacity": 0.5,
-            "dial_width": 35,
+            "dial_width": 40,
             "angle_range": 2 * pi - major_dial_angle_range - pi / 4 * 2,
             "size": dial_size_minor,
             "angle_offset": major_dial_angle_range - pi + pi / 2.5,
@@ -474,14 +473,9 @@ class MainWindow(QMainWindow):
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.WindowText, PRIMARY_TEXT_COLOR)
 
-        self.speed_label = QLabel(self)
-        self.speed_label.setStyleSheet("background:transparent")
-        self.speed_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
+        self.speed_label = TextLabel(self, "0")
         self.speed_label.setFont(label_font)
         self.speed_label.setPalette(palette)
-        self.speed_label.setText("0")
         self.speed_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
         self.speed_label.move(
             int(
@@ -494,14 +488,9 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[1] / 2 - self.speed_label.height() / 2),
         )
 
-        self.gear_indicator_label = QLabel(self)
-        self.gear_indicator_label.setStyleSheet("background:transparent")
-        self.gear_indicator_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
+        self.gear_indicator_label = TextLabel(self, "N")
         self.gear_indicator_label.setFont(label_font)
         self.gear_indicator_label.setPalette(palette)
-        self.gear_indicator_label.setText("N")
         self.gear_indicator_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
         self.gear_indicator_label.move(
             int(
@@ -513,17 +502,12 @@ class MainWindow(QMainWindow):
         )
 
         label_font = QFont(FONT_GROUP, 20)
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, SECONDARY_TEXT_COLOR)
-
-        self.odometer_label = QLabel(self)
-        self.odometer_label.setStyleSheet("background:transparent")
+        self.odometer_label = TextLabel(self, "000000")
         self.odometer_label.setAlignment(
             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom
         )
         self.odometer_label.setFont(label_font)
-        self.odometer_label.setPalette(palette)
-        self.odometer_label.setText("000000")
+        self.odometer_label.text_color = PRIMARY_TEXT_COLOR
         self.odometer_label.resize(SCREEN_SIZE[0], SYMBOL_SIZE)
         self.odometer_label.move(
             int(SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2),
@@ -639,14 +623,38 @@ class Application(QApplication):
             start_right_end,
             duration,
         )
+        self.odometer_text_color_animation_dim = property_animation(
+            self,
+            self.primary_container.odometer_label,
+            "text_color",
+            PRIMARY_TEXT_COLOR,
+            SECONDARY_TEXT_COLOR,
+            duration,
+        )
+        self.odometer_text_color_animation_bright = property_animation(
+            self,
+            self.primary_container.odometer_label,
+            "text_color",
+            SECONDARY_TEXT_COLOR,
+            PRIMARY_TEXT_COLOR,
+            duration,
+        )
 
         self.cruise_control_set_last = 1
-        self.primary_container.odometer_label.setText(
-            str(LOCAL_DATA.get("odometer", "000000"))
-        )
+
+        odo_text = "000000"
+        odo_value = LOCAL_DATA.get("odometer", 0)
+
+        if odo_value > 0:
+            odo_text = str(odo_value)
+
+        self.primary_container.odometer_label.setText(odo_text)
+
         self.init_wait.connect(self.awaken_clusters)
-        delay(self, self.init_wait.emit, START_WAIT)
         self.awakened.connect(lambda: timed_func(self, self.save_local_data, 1000))
+        self.awakened.connect(self.odometer_text_color_animation_dim.start)
+
+        delay(self, self.init_wait.emit, START_WAIT)
 
     @pyqtSlot()
     def save_local_data(self) -> None:
@@ -750,8 +758,8 @@ class Application(QApplication):
             self.primary_container.left_turn_signal_image_active.setVisible(val[0])
             self.primary_container.right_turn_signal_image_active.setVisible(val[1])
         elif var == "fuel_level":
-            self.average_fuel_table.append(val)
             self.average_fuel_table.pop(0)
+            self.average_fuel_table.append(val)
 
             avg = reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
 
@@ -825,7 +833,8 @@ class Application(QApplication):
         elif var == "check_engine_light":
             self.primary_container.check_engine_light_image.setVisible(val)
         elif var == "odometer":
-            self.primary_container.odometer_label.setText(f"{int(val)}")
+            if val > 0:
+                self.primary_container.odometer_label.setText(f"{int(val)}")
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
@@ -833,6 +842,7 @@ class Application(QApplication):
 
 if __name__ == "__main__":
     app = Application()
+    app.primary_container.closed.connect(app.closeAllWindows)
     screens = app.screens()
     USING_CANBUS = False
 
@@ -884,15 +894,6 @@ if __name__ == "__main__":
         bus_virtual_car = can.interface.Bus(channel="test", bustype="virtual")
         bus = can.interface.Bus(channel="test", bustype="virtual")
 
-        TestController = test_module.TestController(bus_virtual_car)
-        TestController.move(
-            app.primary_container.pos() - QPoint(test_module.WINDOW_SIZE[0], 0)
-        )
-        app.setOverrideCursor(Qt.CursorShape.ArrowCursor)
-
-        TestController.closed.connect(app.closeAllWindows)
-        app.primary_container.closed.connect(app.closeAllWindows)
-
         @pyqtSlot()
         def emulate_car() -> None:
             bus_virtual_car.send(test_module.provide_random_message())
@@ -905,7 +906,7 @@ if __name__ == "__main__":
         @pyqtSlot()
         def run() -> None:
             can.Notifier(bus_virtual_car, [emulate_conversation])
-            # timed_func(app, emulate_car, 1)
+            timed_func(app, emulate_car, 1)
 
         app.awakened.connect(run)
 
