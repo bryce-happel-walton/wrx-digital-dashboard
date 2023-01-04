@@ -166,3 +166,13 @@ def gear(data: bytearray) -> int:
         return 0
 
     return b6int
+
+@pyqtSlot(bytearray)
+def odometer(data: bytearray) -> float:
+    bits = [f"{i:08b}" for i in data[:4]]
+    value = "0"
+
+    for i in reversed(bits):
+        value += i
+
+    return int(value, 2) / 10

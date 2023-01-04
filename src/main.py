@@ -196,7 +196,7 @@ class MainWindow(QMainWindow):
         )
         self.traction_control_mode_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.traction_control_mode_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2),
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 3 * (SYMBOL_SIZE + SYMBOL_BUFFER)),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -220,7 +220,7 @@ class MainWindow(QMainWindow):
         )
         self.traction_control_off_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.traction_control_off_image.move(
-            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + SYMBOL_SIZE + SYMBOL_BUFFER),
+            int(SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + SYMBOL_BUFFER)),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
         self.door_open_warning_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.door_open_warning_image.move(
             int(
-                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 6 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
@@ -241,7 +241,7 @@ class MainWindow(QMainWindow):
         self.seatbelt_driver_warning_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.seatbelt_driver_warning_image.move(
             int(
-                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
@@ -423,17 +423,17 @@ class MainWindow(QMainWindow):
             self.tachometer.pos() + QPoint(int(SYMBOL_SIZE / 1.3), SYMBOL_SIZE)
         )
 
-        self.brake_warning_image = Image(
+        self.parking_brake_active_image = Image(
             self,
             IMAGE_PATH + "/brake-warning-indicator-light-letters-only.png",
             SYMBOL_RED_COLOR,
         )
-        self.brake_warning_image.resize(int(SYMBOL_SIZE * 1.4), int(SYMBOL_SIZE * 1.2))
-        self.brake_warning_image.move(
+        self.parking_brake_active_image.resize(int(SYMBOL_SIZE * 1.4), int(SYMBOL_SIZE * 1.2))
+        self.parking_brake_active_image.move(
             self.speedometer.pos()
             + QPoint(
-                DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.width() // 2,
-                DIAL_SIZE_MAJOR // 2 - self.brake_warning_image.height() // 2,
+                DIAL_SIZE_MAJOR // 2 - self.parking_brake_active_image.width() // 2,
+                DIAL_SIZE_MAJOR // 2 - self.parking_brake_active_image.height() // 2,
             )
             + QPoint(0, int(SYMBOL_SIZE * 3))
         )
@@ -499,6 +499,24 @@ class MainWindow(QMainWindow):
                 - self.gear_indicator_label.width() / 2
             ),
             int(SCREEN_SIZE[1] / 2 - self.gear_indicator_label.height() / 2),
+        )
+
+        label_font = QFont(FONT_GROUP, 23)
+
+        self.odometer_label = QLabel(self)
+        self.odometer_label.setStyleSheet("background:transparent")
+        self.odometer_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
+        self.odometer_label.setFont(label_font)
+        self.odometer_label.setPalette(palette)
+        self.odometer_label.setText("000000")
+        self.odometer_label.resize(SCREEN_SIZE[0], SYMBOL_SIZE)
+        self.odometer_label.move(
+            int(
+                SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2
+            ),
+            int(SCREEN_SIZE[1] - self.odometer_label.height() - bottom_symbol_y_offset),
         )
 
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -751,7 +769,7 @@ class Application(QApplication):
                 )
         elif var == "handbrake_switch":
             self.primary_container.brake_warning_image.setVisible(val)
-        elif var in ["reverse_switch", "clutch_switch"]:
+        elif var in ["reverse_switch", "clutch_switch", "gear"]:
             self.update_gear_indicator()
         elif var == "traction_control":
             self.primary_container.traction_control_off_image.setVisible(val)
@@ -783,8 +801,8 @@ class Application(QApplication):
                 )
         elif var == "check_engine_light":
             self.primary_container.check_engine_light_image.setVisible(val)
-        elif var == "gear":
-            print(val)
+        elif var == "odometer":
+            self.primary_container.odometer_label.setText(f"{val}")
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
