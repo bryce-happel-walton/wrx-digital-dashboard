@@ -646,7 +646,7 @@ class Application(QApplication):
         odo_value = LOCAL_DATA.get("odometer", 0)
 
         if odo_value > 0:
-            odo_text = str(odo_value)
+            odo_text = f"{odo_value:.0f}"
 
         self.primary_container.odometer_label.setText(odo_text)
 
