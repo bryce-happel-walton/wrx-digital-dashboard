@@ -6,8 +6,13 @@ SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
+FUEL_CONSUMPTION_SCALE = 0.24726
 
 # todo: rewrite to allow reading byte, bits, conversions, etc from can.toml
+
+
+def is_set(x: int, n: int) -> bool:
+    return x & 1 << n != 0
 
 
 @pyqtSlot(bytearray)
@@ -17,9 +22,7 @@ def rpm(data: bytearray) -> int:
 
 @pyqtSlot(bytearray)
 def vehicle_speed(data: bytearray) -> float:
-    b0 = f"{data[0]:08b}"
-    b1 = f"{data[1]:08b}"
-    return int(b1 + b0, base=2) * SPEED_SCALE
+    return (data[0] + (data[1] << 8)) * SPEED_SCALE
 
 
 @pyqtSlot(bytearray)
@@ -28,11 +31,9 @@ def cruise_control_speed(data: bytearray) -> int:
 
 
 @pyqtSlot(bytearray)
-def turn_signals(data: bytearray) -> list[int]:
-    b5 = f"{data[5]:08b}"
-
+def turn_signals(data: bytearray) -> list[bool]:
     # * left, right
-    new_data = [int(b5[3]), int(b5[2])]
+    new_data = [is_set(data[5], 4), is_set(data[5], 5)]
 
     return new_data
 
@@ -55,39 +56,33 @@ def coolant_temp(data: bytearray) -> int:
 
 
 @pyqtSlot(bytearray)
-def handbrake_switch(data: bytearray) -> int:
-    b6 = f"{data[6]:08b}"
-    return int(b6[4], 2)
+def handbrake_switch(data: bytearray) -> bool:
+    return is_set(data[6], 5)
 
 
 @pyqtSlot(bytearray)
-def reverse_switch(data: bytearray) -> int:
-    b6 = f"{data[6]:08b}"
-    return int(b6[5], 2)
+def reverse_switch(data: bytearray) -> bool:
+    return is_set(data[6], 5)
 
 
 @pyqtSlot(bytearray)
-def clutch_switch(data: bytearray) -> int:
-    b2 = f"{data[1]:08b}"
-    return int(b2[0], 2)
+def clutch_switch(data: bytearray) -> bool:
+    return is_set(data[1], 5)
 
 
 @pyqtSlot(bytearray)
-def cruise_control_set(data: bytearray) -> int:
-    b5 = f"{data[5]:08b}"
-    return int(b5[2], 2)
+def cruise_control_set(data: bytearray) -> bool:
+    return is_set(data[5], 5)
 
 
 @pyqtSlot(bytearray)
-def cruise_control_status(data: bytearray) -> int:
-    b5 = f"{data[5]:08b}"
-    return int(b5[3], 2)
+def cruise_control_status(data: bytearray) -> bool:
+    return is_set(data[5], 4)
 
 
 @pyqtSlot(bytearray)
-def seatbelt_driver(data: bytearray) -> int:
-    b5 = f"{data[5]:08b}"
-    return int(b5[7], 2)
+def seatbelt_driver(data: bytearray) -> bool:
+    return is_set(data[5], 0)
 
 
 @pyqtSlot(bytearray)
@@ -96,45 +91,39 @@ def dimmer_dial(data: bytearray) -> int:
 
 
 @pyqtSlot(bytearray)
-def traction_control(data: bytearray) -> int:
-    b1 = f"{data[1]:08b}"
-    return int(b1[4], 2)
+def traction_control(data: bytearray) -> bool:
+    return is_set(data[1], 3)
 
 
 @pyqtSlot(bytearray)
-def traction_control_mode(data: bytearray) -> int:
-    b0 = f"{data[0]:08b}"
-    return int(b0[4], 2)
+def traction_control_mode(data: bytearray) -> bool:
+    return is_set(data[0], 3)
 
 
 @pyqtSlot(bytearray)
-def fog_lights(data: bytearray) -> int:
-    b1 = f"{data[1]:08b}"
-    return int(b1[1], 2)
+def fog_lights(data: bytearray) -> bool:
+    return is_set(data[1], 6)
 
 
 @pyqtSlot(bytearray)
-def headlights(data: bytearray) -> list[int]:
-    b7 = f"{data[7]:08b}"
-
-    new_data = [
-        int(b7[4], 2),  # * lowbeams
-        int(b7[5], 2),  # * parking lights
-        int(b7[3], 2),  # * highbeams
-        int(b7[6], 2),  # * running lights
+def headlights(data: bytearray) -> list[bool]:
+    return [
+        is_set(data[7], 3),  # * lowbeams
+        is_set(data[7], 2),  # * parking lights
+        is_set(data[7], 4),  # * highbeams
+        is_set(data[7], 1),  # * running lights
     ]
 
-    return new_data
-
 
 @pyqtSlot(bytearray)
-def door_states(data: bytearray) -> dict[str]:
-    b1 = f"{data[1]:08b}"
-
-    # * lf, rf, lr, rr, trunk
-    new_data = [b1[7], b1[6], b1[4], b1[5], b1[2]]
-
-    return new_data
+def door_states(data: bytearray) -> list[bool]:
+    return [
+        is_set(data[1], 0),  # * lf
+        is_set(data[1], 1),  # * rf
+        is_set(data[1], 3),  # * lr
+        is_set(data[1], 2),  # * rr
+        is_set(data[1], 5),  # * trunk
+    ]
 
 
 @pyqtSlot(bytearray)
@@ -144,28 +133,29 @@ def boost_pressure(data: bytearray) -> float:
 
 @pyqtSlot(bytearray)
 def check_engine_light(data: bytearray) -> float:
-    b4 = f"{data[4]:08b}"
-
-    return int(b4[0], 2)
+    return is_set(data[4], 7)
 
 
 @pyqtSlot(bytearray)
 def gear(data: bytearray) -> int:
-    b6 = f"{data[6]:08b}"[4:]
-    b6 = int(b6, 2)
+    val = data[6] & LEAST_4_BITS_MASK
 
-    if b6 == 7 or b6 == 0:
+    if val == 7 or val == 0:
         return 0
 
-    return b6
+    return val
 
 
 @pyqtSlot(bytearray)
 def odometer(data: bytearray) -> float:
-    bits = [f"{i:08b}" for i in data[:4]]
-    value = "0"
+    value = 0
 
-    for i in reversed(bits):
-        value += i
+    for i, x in enumerate(reversed(data[:4])):
+        value += x << (8 * i)
 
-    return int(value, 2) / 10
+    return value / 10
+
+
+@pyqtSlot(bytearray)
+def fuel_consumption(data: bytearray) -> float:
+    return data[1] * FUEL_CONSUMPTION_SCALE
