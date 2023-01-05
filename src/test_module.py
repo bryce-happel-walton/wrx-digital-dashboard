@@ -96,15 +96,16 @@ def provide_random_message() -> can.Message:
     elif key in ["check_engine_light", "oil_pressure_warning"]:
         data = [0, 0, 0, 0, int(f"{randrange(0,2)}0000000", 2), 0, 0, 0]
     elif key == "odometer":
-        val = randrange(0, 1000000) * 10
-        val = f"{val:032b}"
+        num = randrange(0, 1000000) * 10
+        num = f"{num:032b}"
+
         data = [
-            int(val[-32:-24], 2),
-            int(val[-24:-16], 2),
-            int(val[-16:-8], 2),
-            int(val[-8:], 2),
+            int(num[-32:-24], 2),
+            int(num[-24:-16], 2),
+            int(num[-16:-8], 2),
+            int(num[-8:], 2),
             0,
-            5,
+            0,
             0,
             0,
         ]
