@@ -814,9 +814,9 @@ class Application(QApplication):
         elif var == "fog_lights":
             self.primary_container.fog_light_image.setVisible(val)
         elif var == "door_states":
-            self.primary_container.door_open_warning_image.setVisible("1" in val)
+            self.primary_container.door_open_warning_image.setVisible(True in val)
         elif var == "headlights":
-            self.primary_container.low_beam_image.setVisible(val[0] or (val[1] == 1))
+            self.primary_container.low_beam_image.setVisible(val[0] or val[1])
             self.primary_container.high_beam_image.setVisible(val[2])
         elif var == "cruise_control_speed":
             if val > 0 and self.cluster_vars.get("cruise_control_status", 0):
