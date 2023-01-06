@@ -1,7 +1,7 @@
 import can_data_parser
 import tomlkit
 import can
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction
 
@@ -26,17 +26,14 @@ class CanApplication(QWidget):
         self.bus = bus
         self.qApp = qApp
 
-        self.response_recieved.connect(self.parse_response)
-
     def send(self, msg: can.Message) -> None:
         self.bus.send(msg)
 
-    @pyqtSlot(can.Message)
     def parse_response(self, msg: can.Message) -> None:
         data = msg.data
+
         if msg.arbitration_id != conversation_ids["response_id"]:
             return
-
         else:
             expected_bits = data[0]
             service = data[1] - 0x40
@@ -45,13 +42,12 @@ class CanApplication(QWidget):
             if pid == 0x04:
                 print(hex(expected_bits), hex(service), f"{data[3] / 0xFF * 100:.0f}")
 
-    @pyqtSlot(can.Message)
     def parse_data(self, msg: can.Message) -> None:
         id = msg.arbitration_id
         data = msg.data
 
         if id == conversation_ids["response_id"]:
-            self.response_recieved.emit(msg)
+            self.parse_response(msg)
         else:
             for i, v in can_id_items:
                 if v == id and i in parsers:
