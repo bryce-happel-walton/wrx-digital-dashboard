@@ -179,7 +179,7 @@ class TextLabel(QLabel):
         self.setPalette(palette)
 
 
-def delay(app: QApplication, f: Callable, delay_s: float) -> QTimer:
+def delay(app: QApplication, f: Callable, delay_s: float, *params) -> QTimer:
     start_time = time()
     t = QTimer(app)
 
@@ -187,16 +187,18 @@ def delay(app: QApplication, f: Callable, delay_s: float) -> QTimer:
         if time() - start_time >= delay_s:
             t.stop()
             t.deleteLater()
-            f()
+            f(*params)
 
     t.timeout.connect(timed_func)
     t.start(1)
+    return t
 
 
 def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
     t = QTimer(app)
     t.timeout.connect(f)
     t.start(delay_ms)
+    return t
 
 
 def property_animation(
