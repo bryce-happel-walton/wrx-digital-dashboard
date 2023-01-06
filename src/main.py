@@ -927,11 +927,11 @@ class Application(QApplication):
             pass
         elif var == "timing_advance":
             pass
-        elif var == "intake_air_temperature":
-            pass
         elif var == "mass_air_flow":
             pass
         elif var == "throttle_position":
+            pass
+        elif var == "fuel_level_2":
             pass
 
         self.cluster_vars[var] = val

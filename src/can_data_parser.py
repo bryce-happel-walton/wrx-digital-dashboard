@@ -149,12 +149,12 @@ def fuel_consumption(data: bytearray) -> float:
 # *
 
 
-def engine_load(data: bytearray) -> int:
+def fuel_level_2(data: bytearray) -> int:
     return data[0] // 0xFF
 
 
-def fuel_pressure(data: bytearray) -> int:
-    return data[0] * 3
+def engine_load(data: bytearray) -> int:
+    return data[0] // 0xFF
 
 
 def intake_manifold_absolute_pressure(data: bytearray) -> int:
@@ -163,10 +163,6 @@ def intake_manifold_absolute_pressure(data: bytearray) -> int:
 
 def timing_advance(data: bytearray) -> float:
     return data[0] / 2 - 64
-
-
-def intake_air_temperature(data: bytearray) -> int:
-    return data[0] + TEMP_SENSOR_OFFSET
 
 
 def mass_air_flow(data: bytearray) -> float:

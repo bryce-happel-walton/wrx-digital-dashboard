@@ -40,10 +40,6 @@
   sent_bytes = 2
   pid = 0x04
   response_length = 1
- [current_data_mode.fuel_pressure]
-  sent_bytes = 2
-  pid = 0x0A
-  response_length = 1
  [current_data_mode.intake_manifold_absolute_pressure]
   sent_bytes = 2
   pid = 0x0B
@@ -51,10 +47,6 @@
  [current_data_mode.timing_advance]
   sent_bytes = 2
   pid = 0x0E
-  response_length = 1
- [current_data_mode.intake_air_temperature]
-  sent_bytes = 2
-  pid = 0x0F
   response_length = 1
  [current_data_mode.mass_air_flow]
   sent_bytes = 2
@@ -64,9 +56,9 @@
   sent_bytes = 2
   pid = 0x11
   response_length = 1
-#  [current_data_mode.fuel_level]
-#   sent_bytes = 2
-#   pid = 0x2F
-#   response_length = 1
+ [current_data_mode.fuel_level_2]
+  sent_bytes = 2
+  pid = 0x2F
+  response_length = 1
 [mode_ids]
- current_data = 0x02
+ current_data = 0x01

@@ -116,8 +116,6 @@ def get_response_data(pid) -> list:
         if v["pid"] == pid:
             if i == "engine_load":
                 return [randrange(0, 256)]
-            elif i == "fuel_pressure":
-                return [randrange(0, 766) // 3]
             elif i == "intake_manifold_absolute_pressure":
                 return [randrange(0, 256)]
         return []
