@@ -1,4 +1,7 @@
 {
 	"python.formatting.provider": "black",
-	"python.analysis.typeCheckingMode": "off"
+	"python.analysis.typeCheckingMode": "off",
+	"python.formatting.yapfArgs": [
+		"--style={based_on_style: google, column_limit: 120, indent_width: 4}"
+	]
 }
