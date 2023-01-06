@@ -544,7 +544,9 @@ class Application(QApplication):
         self.cluster_vars_update_ts = {
             i: time() for i in VISUAL_UPDATE_INTERVALS.keys()
         }
-        self.average_fuel_table = [0 for _ in range(AVG_FUEL_SAMPLES)]
+
+        avg_fuel_stored_val = LOCAL_DATA.get("fuel_level_avg", 0)
+        self.average_fuel_table = [avg_fuel_stored_val for _ in range(AVG_FUEL_SAMPLES)]
 
         angle_mid = 30
         duration = 500
@@ -659,7 +661,9 @@ class Application(QApplication):
     @pyqtSlot()
     def save_local_data(self) -> None:
         odometer = self.cluster_vars.get("odometer", 0)
+        fuel_level_avg = reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
         LOCAL_DATA["odometer"] = odometer
+        LOCAL_DATA["fuel_level_avg"] = fuel_level_avg
 
         with open(LOCAL_DATA_PATH, "w") as f:
             tomlkit.dump(LOCAL_DATA, f)
@@ -684,6 +688,14 @@ class Application(QApplication):
                 GAUGE_PARAMS["speedometer"]["min_unit"],
                 GAUGE_PARAMS["speedometer"]["max_unit"],
                 duration,
+            ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+            property_animation(
+                self,
+                self.primary_container.fuel_level_gauge,
+                "dial_unit",
+                0,
+                int(self.average_fuel_table[0]),
+                AWAKEN_SEQUENCE_DURATION,
             ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
         def end() -> None:
