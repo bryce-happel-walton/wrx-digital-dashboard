@@ -25,9 +25,11 @@
  oil_pressure_warning = 0x361
  check_engine_light = 0x361
  fog_lights = 0x374
+ tpms_warning = 0x374
  door_states = 0x375
  dimmer_dial = 0x376
  odometer = 0x6D1
+
 
  #headlight_controls = 0x375
  #brake_pedal_position = 0x0D1

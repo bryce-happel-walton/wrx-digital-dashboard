@@ -100,10 +100,10 @@ def provide_random_message() -> can.Message:
         num = f"{num:032b}"
 
         data = [
-            int(num[-32:-24], 2),
-            int(num[-24:-16], 2),
-            int(num[-16:-8], 2),
             int(num[-8:], 2),
+            int(num[-16:-8], 2),
+            int(num[-24:-16], 2),
+            int(num[-32:-24], 2),
             0,
             0,
             0,

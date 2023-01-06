@@ -41,13 +41,19 @@ def turn_signals(data: bytearray) -> list[bool]:
 @pyqtSlot(bytearray)
 def fuel_level(data: bytearray) -> float:
     num = data[0] + ((data[1] & LEAST_4_BITS_MASK) << 8)
+    num = 1 - (num / 2 - FUEL_LEVEL_MIN) / FUEL_LEVEL_MAX
 
-    return (1 - (num - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX - 1) * 100
+    return num * 100
 
 
 @pyqtSlot(bytearray)
 def oil_temp(data: bytearray) -> int:
     return data[2] + TEMP_SENSOR_OFFSET
+
+
+@pyqtSlot(bytearray)
+def oil_pressure_warning(data: bytearray) -> bool:
+    return is_set(data[1], 4)
 
 
 @pyqtSlot(bytearray)
@@ -57,17 +63,22 @@ def coolant_temp(data: bytearray) -> int:
 
 @pyqtSlot(bytearray)
 def handbrake_switch(data: bytearray) -> bool:
-    return is_set(data[6], 5)
+    return is_set(data[6], 3)
 
 
 @pyqtSlot(bytearray)
 def reverse_switch(data: bytearray) -> bool:
-    return is_set(data[6], 5)
+    return is_set(data[6], 2)
 
 
 @pyqtSlot(bytearray)
 def clutch_switch(data: bytearray) -> bool:
-    return is_set(data[1], 5)
+    return is_set(data[1], 7)
+
+
+@pyqtSlot(bytearray)
+def tpms_warning(data: bytearray) -> bool:
+    return is_set(data[4], 4)
 
 
 @pyqtSlot(bytearray)
@@ -150,7 +161,7 @@ def gear(data: bytearray) -> int:
 def odometer(data: bytearray) -> float:
     value = 0
 
-    for i, x in enumerate(reversed(data[:4])):
+    for i, x in enumerate(data[:4]):
         value += x << (8 * i)
 
     return value / 10
