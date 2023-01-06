@@ -79,6 +79,7 @@ class CanApplication(QWidget):
             self.last_conversation_response_time = t
 
     def parse_response(self, msg: can.Message) -> None:
+        # todo handle more expected bits and multiple messages
         data = msg.data
         expected_bits = data[0]
         mode = data[1] - MODE_OFFSET
@@ -95,9 +96,7 @@ class CanApplication(QWidget):
 
         for i, v in CURRENT_DATA_DEFINITION_ITEMS:
             if i in parsers and v["pid"] == pid:
-                necessary_data = data[
-                    expected_bits : expected_bits + v["response_length"]
-                ]
+                necessary_data = data[3 : 3 + v["response_length"]]
                 self.updated.emit((i, parsers[i](necessary_data)))
 
     def parse_data(self, msg: can.Message) -> None:
