@@ -133,12 +133,17 @@ class Dial(QWidget):
         )
         self.arc.set_arc(self.dial_offset_angle_deg, 0)
 
-        self.needle = Arc(self, arc_size, self.default_color_needle, dial_width)
+        self.needle = Arc(
+            self, arc_size, self.default_color_needle, dial_width + dial_width / 8
+        )
         self.needle.move(
             int(half_width - self.arc.width() / 2),
             int(half_width - self.arc.height() / 2),
         )
-        self.needle.set_arc(self.dial_offset_angle_deg - self.needle_width_deg / 2, self.needle_width_deg / 2)
+        self.needle.set_arc(
+            self.dial_offset_angle_deg - self.needle_width_deg / 2,
+            self.needle_width_deg / 2,
+        )
 
         # todo: use line width to extend border and eliminate overhang
         if border_width != 0:

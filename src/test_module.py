@@ -13,7 +13,7 @@ turn_signal_data = [
 
 
 def provide_random_message() -> can.Message:
-    key, val = choice(list(can_handle.can_ids.items()))
+    key, val = choice(list(can_handle.CAN_IDS.items()))
     data = [0, 0, 0, 0, 0, 0, 0, 0]
     if key in ["turn_signals", "fuel_level", "seatbelt_driver"]:
         data = [
@@ -111,11 +111,33 @@ def provide_random_message() -> can.Message:
     return can.Message(is_extended_id=False, arbitration_id=val, data=data)
 
 
+def get_response_data(pid) -> list:
+    for i, v in can_handle.CURRENT_DATA_DEFINITION_ITEMS:
+        if v["pid"] == pid:
+            if i == "engine_load":
+                return [randrange(0, 256)]
+            elif i == "fuel_pressure":
+                return [randrange(0, 766) // 3]
+            elif i == "intake_manifold_absolute_pressure":
+                return [randrange(0, 256)]
+        return []
+
+
 def provide_response_message(recv_msg: can.Message) -> can.Message | list[can.Message]:
-    if recv_msg.arbitration_id == can_handle.conversation_ids["send_id"]:
-        data = [0, 0, 0, 0, 0, 0, 0, 0]
+    if recv_msg.arbitration_id == can_handle.CONVERSATION_IDS["send_id"]:
+        data = recv_msg.data
+
+        response_data = get_response_data(data[2])
+
+        new_data = [0x55 for _ in range(8)]
+        new_data[0] = 0x03
+        new_data[1] = data[1] + 0x40
+        new_data[2] = data[2]
+        new_data[3 : 3 + len(response_data)] = response_data
+        new_data = new_data[:8]
+
         return can.Message(
             is_extended_id=False,
-            arbitration_id=can_handle.conversation_ids["response_id"],
-            data=data,
+            arbitration_id=can_handle.CONVERSATION_IDS["ecu_response_id"],
+            data=new_data,
         )

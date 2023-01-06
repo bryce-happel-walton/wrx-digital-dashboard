@@ -28,28 +28,20 @@ from PyQt5.QtGui import (
     QCloseEvent,
 )
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
-from can_handle import CanApplication, can_ids, conversation_ids
+from can_handle import (
+    CanApplication,
+    CAN_IDS,
+    CURRENT_DATA_DEFINITIONS,
+)
 from dial import Dial
 
 SYSTEM = platform.system()
 CONFIG_PATH = "config"
 LOCAL_DATA_PATH = "local/data.toml"
 
-
-def reload_settings(init: bool = False) -> None:
-    global settings_toml, SETTINGS
-
-    # todo: implement external settings file so that settings don't get reset with every software update
-    # if not init:
-    #     with open(CONFIG_PATH + "/settings.toml", "wb") as f:
-    #         tomlkit.dump(settings_toml, f)
-
-    with open(CONFIG_PATH + "/settings.toml", "rb") as f:
-        settings_toml = tomlkit.load(f)
-        SETTINGS = settings_toml.unwrap()
-
-
-reload_settings(True)
+with open(CONFIG_PATH + "/settings.toml", "rb") as f:
+    settings_toml = tomlkit.load(f)
+    SETTINGS = settings_toml.unwrap()
 
 with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
     gauge_params_toml = tomlkit.load(f)
@@ -63,8 +55,6 @@ else:
     LOCAL_DATA = tomlkit.document()
 
 START_WAIT = 1
-CONVERSATION_WAIT = 2
-CONVERSATION_PERIOD_MS = 50
 
 RESOURCE_PATH = "resources"
 IMAGE_PATH = RESOURCE_PATH + "/images"
@@ -84,13 +74,12 @@ AWAKEN_SEQUENCE_DURATION = 1750
 AWAKEN_SEQUENCE_DURATION_STALL = 250
 VISUAL_UPDATE_INTERVALS = {}
 
-for i in can_ids.keys():
-    if i not in VISUAL_UPDATE_INTERVALS:
-        VISUAL_UPDATE_INTERVALS[i] = 1 / (SCREEN_REFRESH_RATE * 2)
+VISUAL_UPDATE_INVERVAL = 1 / (SCREEN_REFRESH_RATE * 2)
 
 C_TO_F_SCALE = 1.8
 C_TO_F_OFFSET = 32
 KPH_TO_MPH_SCALE = 0.62137119
+KPA_TO_PSI_SCALE = 6.895
 
 AVG_FUEL_SAMPLES = 200
 LOW_FUEL_THRESHHOLD = 15
@@ -110,6 +99,16 @@ PRIMARY_TEXT_COLOR = QColor(255, 255, 255)
 SECONDARY_TEXT_COLOR = QColor(100, 100, 100)
 
 
+def update_visual_update_intervals(keys: list | Any):
+    for i in keys:
+        if i not in VISUAL_UPDATE_INTERVALS:
+            VISUAL_UPDATE_INTERVALS[i] = VISUAL_UPDATE_INVERVAL
+
+
+update_visual_update_intervals(CAN_IDS.keys())
+update_visual_update_intervals(CURRENT_DATA_DEFINITIONS.keys())
+
+
 class MainWindow(QMainWindow):
 
     closed = pyqtSignal()
@@ -126,7 +125,6 @@ class MainWindow(QMainWindow):
 
         turn_signal_offset_x = 70
         turn_signal_offset_y = 40
-        turn_signal_sze = SYMBOL_SIZE
         bottom_symbol_y_offset = 10
         dial_size_major = QSize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
         dial_size_minor = QSize(DIAL_SIZE_MINOR, DIAL_SIZE_MINOR)
@@ -476,7 +474,7 @@ class MainWindow(QMainWindow):
         self.right_turn_signal_image_active = Image(
             self, IMAGE_PATH + "/turn-signal-arrow.png", SYMBOL_GREEN_COLOR
         )
-        self.right_turn_signal_image_active.resize(turn_signal_sze, turn_signal_sze)
+        self.right_turn_signal_image_active.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.right_turn_signal_image_active.move(
             self.speedometer.pos() + QPoint(turn_signal_offset_x, turn_signal_offset_y)
         )
@@ -487,7 +485,7 @@ class MainWindow(QMainWindow):
             SYMBOL_GREEN_COLOR,
             vertical_mirror,
         )
-        self.left_turn_signal_image_active.resize(turn_signal_sze, turn_signal_sze)
+        self.left_turn_signal_image_active.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.left_turn_signal_image_active.move(
             self.tachometer.pos()
             + QPoint(self.tachometer.width() - SYMBOL_SIZE, 0)
@@ -919,11 +917,22 @@ class Application(QApplication):
         elif var == "odometer":
             if val > 0:
                 self.primary_container.odometer_label.setText(f"{int(val)}")
-        elif var == "fuel_consumption":
-            pass
-            # print(val
         elif var == "oil_pressure_warning":
             self.primary_container.oil_pressure_warning_light_image.setVisible(val)
+        elif var == "fuel_consumption":
+            pass
+        elif var == "engine_load":
+            pass
+        elif var == "intake_manifold_absolute_pressure":
+            pass
+        elif var == "timing_advance":
+            pass
+        elif var == "intake_air_temperature":
+            pass
+        elif var == "mass_air_flow":
+            pass
+        elif var == "throttle_position":
+            pass
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
@@ -1002,44 +1011,10 @@ if __name__ == "__main__":
     can_app = CanApplication(app, bus)
     can_app.updated.connect(app.update_var)
 
-    response_debounce = False
-    last_response_time = time()
-
-    @pyqtSlot()
-    def run_conversation() -> None:
-        global response_debounce, last_response_time
-        if response_debounce:
-            last_response_time = time()
-            response_debounce = False
-            message = can.Message(
-                arbitration_id=conversation_ids["send_id"],
-                data=[0x02, 0x01, 0x04, 0x55, 0x55, 0x55, 0x55, 0x55],
-            )
-            can_app.send(message)
-        elif time() - last_response_time >= CONVERSATION_PERIOD_MS:
-            print("[WARNING]: No response from ECU during conversation")
-            response_debounce = True
-            last_response_time = time()
-
     @pyqtSlot()
     def run() -> None:
         can.Notifier(bus, [can_app.parse_data])
-
-        @pyqtSlot()
-        def response_received() -> None:
-            global response_debounce
-            response_debounce = True
-
-        can_app.response_received.connect(response_received)
-
-        @pyqtSlot()
-        def attemp_init_conversation() -> None:
-            if not response_debounce:
-                timed_func(app, run_conversation, CONVERSATION_PERIOD_MS)
-            else:
-                print("ECU Conversation busy; eavesdropping only.")
-
-        delay(app, attemp_init_conversation, CONVERSATION_WAIT)
+        timed_func(app, can_app.run_conversation, 1)
 
     app.awakened.connect(run)
     sys.exit(app.exec())
