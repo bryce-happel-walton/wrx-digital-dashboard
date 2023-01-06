@@ -2,6 +2,7 @@
  vehicle_speed = 0x0D1
  traction_control = 0x0D3
  traction_control_mode = 0x0D3
+ hill_assist = 0x0D3
  wheel_speeds = 0x0D4
  throttle_pedal_position = 0x140
  throttle_plate_position = 0x140
@@ -24,6 +25,7 @@
  fuel_consumption = 0x360
  oil_pressure_warning = 0x361
  check_engine_light = 0x361
+ srs_airbag_system_warning_light = 0x372
  fog_lights = 0x374
  tpms_warning = 0x374
  door_states = 0x375

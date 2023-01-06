@@ -91,6 +91,10 @@ def traction_control_mode(data: bytearray) -> bool:
     return is_set(data[0], 3)
 
 
+def hill_assist(data: bytearray) -> bool:
+    return is_set(data[1], 7)
+
+
 def fog_lights(data: bytearray) -> bool:
     return is_set(data[1], 6)
 
@@ -142,6 +146,10 @@ def odometer(data: bytearray) -> float:
 
 def fuel_consumption(data: bytearray) -> float:
     return data[1] * FUEL_CONSUMPTION_SCALE
+
+
+def srs_airbag_system_warning_light(data: bytearray) -> bool:
+    return is_set(data[2], 0)
 
 
 # *

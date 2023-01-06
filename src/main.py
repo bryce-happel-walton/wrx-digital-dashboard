@@ -18,6 +18,7 @@ from PyQt5.QtCore import (
     QAbstractAnimation,
     QTimer,
 )
+from PyQt5 import QtCore
 from PyQt5.QtGui import (
     QColor,
     QCursor,
@@ -229,6 +230,27 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
 
+        self.srs_airbag_system_warning_light = Image(
+            self,
+            IMAGE_PATH + "/srs-airbag-system-warning-light.png",
+            SYMBOL_RED_COLOR,
+        )
+        self.srs_airbag_system_warning_light.resize(
+            int(SYMBOL_SIZE * 0.75), int(SYMBOL_SIZE * 0.75)
+        )
+        self.srs_airbag_system_warning_light.move(
+            int(
+                SCREEN_SIZE[0] / 2
+                - self.srs_airbag_system_warning_light.width() / 2
+                - 3 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
+            int(
+                SCREEN_SIZE[1]
+                - self.srs_airbag_system_warning_light.height()
+                - bottom_symbol_y_offset
+            ),
+        )
+
         self.oil_pressure_warning_light_image = Image(
             self,
             IMAGE_PATH + "/oil-pressure-warning-light.png",
@@ -262,6 +284,19 @@ class MainWindow(QMainWindow):
         self.door_open_warning_image.move(
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 6 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
+
+        self.hill_assist_disabled_warning_light = Image(
+            self, IMAGE_PATH + "/hillstartassist-warning-light.png", SYMBOL_YELLOW_COLOR
+        )
+        self.hill_assist_disabled_warning_light.resize(SYMBOL_SIZE, SYMBOL_SIZE)
+        self.hill_assist_disabled_warning_light.move(
+            int(
+                SCREEN_SIZE[0] / 2
+                - SYMBOL_SIZE / 2
+                + 11 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
@@ -931,6 +966,10 @@ class Application(QApplication):
             pass
         elif var == "throttle_position":
             pass
+        elif var == "hill_assist":
+            self.primary_container.hill_assist_disabled_warning_light.setVisible(val)
+        elif var == "srs_airbag_system_warning_light":
+            self.primary_container.srs_airbag_system_warning_light.setVisible(val)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
