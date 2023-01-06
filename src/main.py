@@ -672,6 +672,7 @@ class Application(QApplication):
     def awaken_clusters(self) -> None:
         duration = int((AWAKEN_SEQUENCE_DURATION - AWAKEN_SEQUENCE_DURATION_STALL) / 2)
 
+        @pyqtSlot()
         def start() -> None:
             property_animation(
                 self,
@@ -695,9 +696,10 @@ class Application(QApplication):
                 "dial_unit",
                 0,
                 int(self.average_fuel_table[0]),
-                AWAKEN_SEQUENCE_DURATION,
+                duration,
             ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
+        @pyqtSlot()
         def end() -> None:
             property_animation(
                 self,
@@ -847,6 +849,9 @@ class Application(QApplication):
         elif var == "odometer":
             if val > 0:
                 self.primary_container.odometer_label.setText(f"{int(val)}")
+        elif var == "fuel_consumption":
+            pass
+            # print(val)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t

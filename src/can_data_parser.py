@@ -2,6 +2,7 @@ LEAST_5_BITS_MASK = (1 << 5) - 1
 LEAST_4_BITS_MASK = (1 << 4) - 1
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
+FUEL_LEVEL_VALUE_OFFSET = 0x200
 FUEL_LEVEL_MAX = 0xFF
 FUEL_LEVEL_MIN = 0x25
 FUEL_CONSUMPTION_SCALE = 0.24726
@@ -33,10 +34,13 @@ def turn_signals(data: bytearray) -> list[bool]:
 
 
 def fuel_level(data: bytearray) -> float:
-    num = data[0] + ((data[1] & LEAST_4_BITS_MASK) << 8)
-    num = 1 - (num / 2 - FUEL_LEVEL_MIN) / FUEL_LEVEL_MAX
-
-    return num * 100
+    return (
+        1
+        - (
+            (data[0] + FUEL_LEVEL_VALUE_OFFSET - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX
+            - 1
+        )
+    ) * 100
 
 
 def oil_temp(data: bytearray) -> int:
