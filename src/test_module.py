@@ -15,14 +15,14 @@ turn_signal_data = [
 def provide_random_message() -> can.Message:
     key, val = choice(list(can_handle.can_ids.items()))
     data = [0, 0, 0, 0, 0, 0, 0, 0]
-    if key in ["turn_signals", "fuel_level"]:
+    if key in ["turn_signals", "fuel_level", "seatbelt_driver"]:
         data = [
             randrange(0x25, 0xFF),
             int(f"{choice([0x01, 0x02]):8b}0000", 2),  # todo: fix fuel level
             0,
             0,
             0,
-            choice(turn_signal_data),
+            int(f"00{randrange(0, 2)}{randrange(0, 2)}000{1}", 2),
             0,
             0,
         ]
@@ -89,8 +89,6 @@ def provide_random_message() -> can.Message:
             0,
             0,
         ]
-    elif key == "seatbelt_driver":
-        data = [0, 0, 0, 0, 0, int(f"0000000{randrange(0,2)}", 2), 0, 0]
     elif key == "fog_lights":
         data = [0, int(f"0{randrange(0,2)}000000", 2), 0, 0, 0, 0, 0, 0]
     elif key in ["check_engine_light", "oil_pressure_warning"]:
