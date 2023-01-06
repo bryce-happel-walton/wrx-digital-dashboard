@@ -22,7 +22,7 @@ def provide_random_message() -> can.Message:
             0,
             0,
             0,
-            int(f"00{randrange(0, 2)}{randrange(0, 2)}000{1}", 2),
+            int(f"00{randrange(0, 2)}{randrange(0, 2)}000{randrange(0, 2)}", 2),
             0,
             0,
         ]

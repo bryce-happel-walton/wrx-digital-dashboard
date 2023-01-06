@@ -9,7 +9,15 @@ from math import pi
 from time import time
 from functools import reduce
 from qutil import Image, Arc, delay, timed_func, property_animation, TextLabel
-from PyQt5.QtCore import Qt, pyqtSignal, QSize, pyqtSlot, QPoint, QAbstractAnimation
+from PyQt5.QtCore import (
+    Qt,
+    pyqtSignal,
+    QSize,
+    pyqtSlot,
+    QPoint,
+    QAbstractAnimation,
+    QTimer,
+)
 from PyQt5.QtGui import (
     QColor,
     QCursor,
@@ -86,6 +94,9 @@ KPH_TO_MPH_SCALE = 0.62137119
 
 AVG_FUEL_SAMPLES = 200
 LOW_FUEL_THRESHHOLD = 15
+NUM_SEATBELT_BLINKS = 15
+SEATBELT_BLINK_INTERVAL_S = 1
+SEATBELT_BLINK_WAIT_S = 15
 
 SYMBOL_BLUE_COLOR = QColor(0, 0, 255)
 SYMBOL_GREEN_COLOR = QColor(0, 230, 0)
@@ -523,6 +534,7 @@ class Application(QApplication):
 
     awakened = pyqtSignal()
     init_wait = pyqtSignal()
+    seatbelt_blink_timer = QTimer()
 
     def __init__(self) -> None:
         super().__init__([])
@@ -643,6 +655,7 @@ class Application(QApplication):
         )
 
         self.cruise_control_set_last = 1
+        self.seatbelt_blink_last_state = False
 
         odo_text = "000000"
         odo_value = LOCAL_DATA.get("odometer", 0)
@@ -661,7 +674,9 @@ class Application(QApplication):
     @pyqtSlot()
     def save_local_data(self) -> None:
         odometer = self.cluster_vars.get("odometer", 0)
-        fuel_level_avg = reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
+        fuel_level_avg = (
+            reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
+        )
         LOCAL_DATA["odometer"] = odometer
         LOCAL_DATA["fuel_level_avg"] = fuel_level_avg
 
@@ -752,6 +767,49 @@ class Application(QApplication):
 
         self.primary_container.gear_indicator_label.setText(gear)
 
+    @pyqtSlot(bool)
+    def set_seatbelt_indicator(self, enabled: bool) -> None:
+        global t, t2
+
+        if enabled and enabled != self.seatbelt_blink_last_state:
+            t = time()
+            t2 = t + SEATBELT_BLINK_WAIT_S
+
+            @pyqtSlot()
+            def blink():
+                global t, t2
+                current_time = time()
+
+                if (
+                    current_time - t
+                    >= SEATBELT_BLINK_WAIT_S
+                    + SEATBELT_BLINK_INTERVAL_S * (NUM_SEATBELT_BLINKS + 1)
+                ):
+                    t = t2 = current_time + SEATBELT_BLINK_WAIT_S
+                elif current_time - t2 >= SEATBELT_BLINK_INTERVAL_S:
+                    print(True)
+                    t2 = current_time
+                    self.primary_container.seatbelt_driver_warning_image.setVisible(
+                        False
+                    )
+                    delay(
+                        self,
+                        self.primary_container.seatbelt_driver_warning_image.setVisible,
+                        SEATBELT_BLINK_INTERVAL_S / 2,
+                        True,
+                    )
+
+            self.primary_container.seatbelt_driver_warning_image.setVisible(enabled)
+            self.seatbelt_blink_timer.timeout.connect(blink)
+            self.seatbelt_blink_timer.start(1)
+        elif not enabled:
+            if self.seatbelt_blink_timer.isActive():
+                self.seatbelt_blink_timer.stop()
+
+            self.primary_container.seatbelt_driver_warning_image.setVisible(enabled)
+
+        self.seatbelt_blink_last_state = enabled
+
     @pyqtSlot(tuple)
     def update_var(self, data: tuple) -> None:
         t = time()
@@ -821,8 +879,7 @@ class Application(QApplication):
         elif var == "traction_control_mode":
             self.primary_container.traction_control_mode_image.setVisible(val)
         elif var == "seatbelt_driver":
-            # todo: make indicator blink the same way the factory indicator blinks
-            self.primary_container.seatbelt_driver_warning_image.setVisible(val)
+            self.set_seatbelt_indicator(val)
         elif var == "cruise_control_status":
             self.primary_container.cruise_control_status_image.setVisible(val)
         elif var == "fog_lights":
