@@ -26,8 +26,24 @@ class CanApplication(QWidget):
         self.bus = bus
         self.qApp = qApp
 
+        self.response_recieved.connect(self.parse_response)
+
     def send(self, msg: can.Message) -> None:
         self.bus.send(msg)
+
+    @pyqtSlot(can.Message)
+    def parse_response(self, msg: can.Message) -> None:
+        data = msg.data
+        if msg.arbitration_id != conversation_ids["response_id"]:
+            return
+
+        else:
+            expected_bits = data[0]
+            service = data[1] - 0x40
+            pid = data[2]
+
+            if pid == 0x04:
+                print(hex(expected_bits), hex(service), f"{data[3] / 0xFF * 100:.0f}")
 
     @pyqtSlot(can.Message)
     def parse_data(self, msg: can.Message) -> None:
@@ -35,15 +51,7 @@ class CanApplication(QWidget):
         data = msg.data
 
         if id == conversation_ids["response_id"]:
-            self.response_recieved.emit()
-            # todo: implement conversation values
-            # print("Received: ", hex(id), [hex(x) for x in list(data)])
-
-            # if data[2] == 0x08:
-            #     page = data[0]
-            #     length = data[1]
-            # elif data[1] == 0x08:
-            #     length = data[0]
+            self.response_recieved.emit(msg)
         else:
             for i, v in can_id_items:
                 if v == id and i in parsers:

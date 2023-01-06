@@ -28,7 +28,7 @@ from PyQt5.QtGui import (
     QCloseEvent,
 )
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
-from can_handle import CanApplication, can_ids
+from can_handle import CanApplication, can_ids, conversation_ids
 from dial import Dial
 
 SYSTEM = platform.system()
@@ -227,6 +227,19 @@ class MainWindow(QMainWindow):
         self.check_engine_light_image.move(
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 - 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
+            ),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+        )
+
+        self.oil_pressure_warning_light_image = Image(
+            self,
+            IMAGE_PATH + "/oil-pressure-warning-light.png",
+            SYMBOL_RED_COLOR,
+        )
+        self.oil_pressure_warning_light_image.resize(SYMBOL_SIZE, SYMBOL_SIZE)
+        self.oil_pressure_warning_light_image.move(
+            int(
+                SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 - 6 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
             int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
         )
@@ -908,7 +921,9 @@ class Application(QApplication):
                 self.primary_container.odometer_label.setText(f"{int(val)}")
         elif var == "fuel_consumption":
             pass
-            # print(val)
+            # print(val
+        elif var == "oil_pressure_warning":
+            self.primary_container.oil_pressure_warning_light_image.setVisible(val)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
@@ -970,8 +985,7 @@ if __name__ == "__main__":
 
         @pyqtSlot()
         def emulate_car() -> None:
-            # bus_virtual_car.send(test_module.provide_random_message())
-            pass
+            bus_virtual_car.send(test_module.provide_random_message())
 
         @pyqtSlot()
         def emulate_conversation(msg: can.Message) -> None:
@@ -997,10 +1011,12 @@ if __name__ == "__main__":
         if response_debounce:
             last_response_time = time()
             response_debounce = False
-            # message = can.Message(is_extended_id=False,
-            #                       arbitration_id=conversation_ids["send_id"],
-            #                       data=[0x02, 0x01, 0x0D, 0, 0, 0, 0, 0])
-            # can_app.send(message)
+            message = can.Message(
+                is_extended_id=False,
+                arbitration_id=conversation_ids["send_id"],
+                data=[0x02, 0x01, 0x04, 0x55, 0x55, 0x55, 0x55, 0x55],
+            )
+            can_app.send(message)
         elif time() - last_response_time >= CONVERSATION_PERIOD_MS:
             print("[WARNING]: No response from ECU during conversation")
             response_debounce = True
