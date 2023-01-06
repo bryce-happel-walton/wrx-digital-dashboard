@@ -35,8 +35,7 @@ def turn_signals(data: bytearray) -> list[bool]:
 
 def fuel_level(data: bytearray) -> float:
     val = data[0] + ((data[1] & LEAST_4_BITS_MASK) << 8) - FUEL_LEVEL_MIN
-    val = 1 - val / (FUEL_LEVEL_DIFF * 2)
-
+    val = 1 - val / FUEL_LEVEL_DIFF
     return val * 100
 
 
