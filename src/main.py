@@ -931,8 +931,6 @@ class Application(QApplication):
             pass
         elif var == "throttle_position":
             pass
-        elif var == "fuel_level_2":
-            pass
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t

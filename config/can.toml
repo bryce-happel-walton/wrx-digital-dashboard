@@ -56,9 +56,5 @@
   sent_bytes = 2
   pid = 0x11
   response_length = 1
- [current_data_mode.fuel_level_2]
-  sent_bytes = 2
-  pid = 0x2F
-  response_length = 1
 [mode_ids]
  current_data = 0x01

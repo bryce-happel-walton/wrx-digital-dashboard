@@ -149,10 +149,6 @@ def fuel_consumption(data: bytearray) -> float:
 # *
 
 
-def fuel_level_2(data: bytearray) -> float:
-    return data[0] / 0xFF * 100
-
-
 def engine_load(data: bytearray) -> float:
     return data[0] / 0xFF * 100
 
