@@ -137,6 +137,7 @@ class MainWindow(QMainWindow):
             "border_width": 2,
             "line_width": 1.5,
             "dial_opacity": 0.55,
+            "needle_width_deg": 0.9,
         }
 
         dial_params_major = {
@@ -160,7 +161,7 @@ class MainWindow(QMainWindow):
             "middle_section_rad_offset": 58,
             "major_section_rad_offset": 40,
             "no_font": True,
-            "dial_width": 40,
+            "dial_width": 50,
             "angle_range": 2 * pi - major_dial_angle_range - pi / 4 * 2,
             "size": dial_size_minor,
             "angle_offset": major_dial_angle_range - pi + pi / 2.5,
@@ -969,7 +970,8 @@ if __name__ == "__main__":
 
         @pyqtSlot()
         def emulate_car() -> None:
-            bus_virtual_car.send(test_module.provide_random_message())
+            # bus_virtual_car.send(test_module.provide_random_message())
+            pass
 
         @pyqtSlot()
         def emulate_conversation(msg: can.Message) -> None:

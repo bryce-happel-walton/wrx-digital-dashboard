@@ -21,12 +21,14 @@ class Dial(QWidget):
         size: QSize = QSize(500, 500),
         dial_width: float = 30,
         line_width: float = 1,
+        needle_width_deg: float = 0.8,
         no_font: bool = False,
         label_font: QFont = QFont(),
         default_color: QColor = QColor(255, 255, 255),
         redline_color: QColor = QColor(255, 0, 0),
         blueline_color: QColor = QColor(0, 0, 255),
         background_color: QColor = QColor(0, 0, 0),
+        needle_color: QColor = QColor(255, 255, 255),
         dial_opacity: float = 0.3,
         visual_num_gap: float = 1,
         buffer_radius: int = 20,
@@ -51,12 +53,14 @@ class Dial(QWidget):
         self.max_unit = max_unit
         self.redline = redline
         self.blueline = blueline
+        self.needle_width_deg = needle_width_deg
         self.default_color = default_color
         self.redline_color = redline_color
         self.blueline_color = blueline_color
         self.default_color_dial = QColor(default_color)
         self.redline_color_dial = QColor(redline_color)
         self.blueline_color_dial = QColor(blueline_color)
+        self.default_color_needle = QColor(needle_color)
 
         self.default_color_dial.setAlphaF(dial_opacity)
         self.redline_color_dial.setAlphaF(dial_opacity)
@@ -90,14 +94,23 @@ class Dial(QWidget):
             self.blueline_color_gradient = QRadialGradient(
                 arc_size.width() / 2, arc_size.height() / 2, arc_size.width() / 2
             )
+            self.default_color_needle_gradient = QRadialGradient(
+                arc_size.width() / 2, arc_size.height() / 2, arc_size.width() / 2
+            )
 
             self.default_color_gradient.setSpread(QGradient.Spread.PadSpread)
             self.redline_color_gradient.setSpread(QGradient.Spread.PadSpread)
             self.blueline_color_gradient.setSpread(QGradient.Spread.PadSpread)
+            self.default_color_needle_gradient.setSpread(QGradient.Spread.PadSpread)
 
             self.default_color_gradient.setColorAt(1, self.default_color_dial)
             self.redline_color_gradient.setColorAt(1, self.redline_color_dial)
             self.blueline_color_gradient.setColorAt(1, self.blueline_color_dial)
+            self.default_color_needle_gradient.setColorAt(1, self.default_color_needle)
+            self.default_color_needle_gradient.setColorAt(0, QColor(0, 0, 0, 0))
+            self.default_color_needle_gradient.setColorAt(
+                1 - dial_width / arc_size.width() * 3, QColor(0, 0, 0, 0)
+            )
 
             gradient_colors = [
                 (0, QColor(0, 0, 0, 0)),
@@ -111,6 +124,7 @@ class Dial(QWidget):
             self.default_color_dial = self.default_color_gradient
             self.redline_color_dial = self.redline_color_gradient
             self.blueline_color_dial = self.blueline_color_gradient
+            self.default_color_needle = self.default_color_needle_gradient
 
         self.arc = Arc(self, arc_size, self.default_color_dial, dial_width)
         self.arc.move(
@@ -119,8 +133,15 @@ class Dial(QWidget):
         )
         self.arc.set_arc(self.dial_offset_angle_deg, 0)
 
+        self.needle = Arc(self, arc_size, self.default_color_needle, dial_width)
+        self.needle.move(
+            int(half_width - self.arc.width() / 2),
+            int(half_width - self.arc.height() / 2),
+        )
+        self.needle.set_arc(self.dial_offset_angle_deg - self.needle_width_deg / 2, self.needle_width_deg / 2)
+
         # todo: use line width to extend border and eliminate overhang
-        if border_width > 0:
+        if border_width != 0:
             self.outline_arc = Arc(
                 self,
                 arc_size + QSize(border_width * 2, border_width * 2),
@@ -244,6 +265,10 @@ class Dial(QWidget):
         else:
             self.arc.set_color(self.default_color_dial)
         self.arc.set_arc(self.dial_offset_angle_deg, angle)
+        self.needle.set_arc(
+            self.dial_offset_angle_deg + angle - self.needle_width_deg / 2,
+            self.needle_width_deg / 2,
+        )
 
     @pyqtProperty(float)
     def dial_unit(self) -> float:
