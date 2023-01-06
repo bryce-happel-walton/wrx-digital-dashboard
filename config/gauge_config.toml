@@ -14,10 +14,10 @@
 
 [coolant_temp]
  min_unit = 0
- max_unit = 300
+ max_unit = 400
  visual_num_gap = 50
  mid_sections = 2
- redline = 250
+ redline = 350
  blueline = 80
 
 [fuel_level]
