@@ -19,7 +19,7 @@ can_id_values = can_ids.values()
 class CanApplication(QWidget):
 
     updated = pyqtSignal(tuple)
-    response_recieved = pyqtSignal()
+    response_received = pyqtSignal()
 
     def __init__(self, qApp: QApplication, bus: can.interface.Bus) -> None:
         super().__init__()
@@ -27,6 +27,7 @@ class CanApplication(QWidget):
         self.qApp = qApp
 
     def send(self, msg: can.Message) -> None:
+        msg.is_extended_id = False
         self.bus.send(msg)
 
     def parse_response(self, msg: can.Message) -> None:
@@ -48,6 +49,7 @@ class CanApplication(QWidget):
 
         if id == conversation_ids["response_id"]:
             self.parse_response(msg)
+            self.response_received.emit()
         else:
             for i, v in can_id_items:
                 if v == id and i in parsers:

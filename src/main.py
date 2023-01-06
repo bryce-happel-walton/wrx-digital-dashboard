@@ -1012,7 +1012,6 @@ if __name__ == "__main__":
             last_response_time = time()
             response_debounce = False
             message = can.Message(
-                is_extended_id=False,
                 arbitration_id=conversation_ids["send_id"],
                 data=[0x02, 0x01, 0x04, 0x55, 0x55, 0x55, 0x55, 0x55],
             )
@@ -1031,7 +1030,7 @@ if __name__ == "__main__":
             global response_debounce
             response_debounce = True
 
-        can_app.response_recieved.connect(response_received)
+        can_app.response_received.connect(response_received)
 
         @pyqtSlot()
         def attemp_init_conversation() -> None:

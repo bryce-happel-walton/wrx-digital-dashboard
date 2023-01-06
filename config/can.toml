@@ -30,18 +30,44 @@
  dimmer_dial = 0x376
  odometer = 0x6D1
 
-
- #headlight_controls = 0x375
- #brake_pedal_position = 0x0D1
- #steering_wheel_position = 0x002
- #climate_control = 0x281
- #ac_status = 0x360 #* byte 7 (literal)
- # on 0x144
- # literal, not offset by 1
- # steering controls on b1: 3 cancel, 4 res/+, 5 set/-, 6 toggle button
- # status and brake on b8: 5 brake switch, 8 cruise on or off
-
 [conversation_ids]
  send_id = 0x7E0
  send_id_2 = 0x7DF
  response_id = 0x7E8
+
+[conversation_definitions]
+ [conversation_definitions.engine_load]
+  sent_bytes = 2
+  pid = 0x04
+  mode = 0x02
+  response_length = 1
+ [conversation_definitions.timing_advance]
+  sent_bytes = 2
+  pid = 0x0E
+  mode = 0x02
+  response_length = 1
+ [conversation_definitions.intake_air_temperature]
+  sent_bytes = 2
+  pid = 0x0F
+  mode = 0x02
+  response_length = 1
+ [conversation_definitions.mass_air_flow]
+  sent_bytes = 2
+  pid = 0x10
+  mode = 0x02
+  response_length = 2
+ [conversation_definitions.fuel_rail_pressure]
+  sent_bytes = 2
+  pid = 0x22
+  mode = 0x02
+  response_length = 2
+ [conversation_definitions.fuel_rail_gauge_pressure]
+  sent_bytes = 2
+  pid = 0x23
+  mode = 0x02
+  response_length = 2
+ [conversation_definitions.fuel_level]
+  sent_bytes = 2
+  pid = 0x2F
+  mode = 0x02
+  response_length = 1
