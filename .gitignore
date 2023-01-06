@@ -3,5 +3,6 @@ __pycache__
 build
 .VSCodeCounter
 .venv
-.tmp
+*.tmp
+*.old
 local
