@@ -2,9 +2,9 @@ LEAST_5_BITS_MASK = (1 << 5) - 1
 LEAST_4_BITS_MASK = (1 << 4) - 1
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
-FUEL_LEVEL_VALUE_OFFSET = 0x200
-FUEL_LEVEL_MAX = 0xFF
+FUEL_LEVEL_MAX = 0x2FF
 FUEL_LEVEL_MIN = 0x25
+FUEL_LEVEL_DIFF = FUEL_LEVEL_MAX - FUEL_LEVEL_MIN
 FUEL_CONSUMPTION_SCALE = 0.24726
 
 # todo: rewrite to allow reading byte, bits, conversions, etc from can.toml
@@ -34,13 +34,9 @@ def turn_signals(data: bytearray) -> list[bool]:
 
 
 def fuel_level(data: bytearray) -> float:
-    return (
-        1
-        - (
-            (data[0] + FUEL_LEVEL_VALUE_OFFSET - FUEL_LEVEL_MIN) / 2 / FUEL_LEVEL_MAX
-            - 1
-        )
-    ) * 100
+    val = data[0] + ((data[1] & LEAST_4_BITS_MASK) << 8) - FUEL_LEVEL_MIN
+    val = 1 - val / (FUEL_LEVEL_DIFF * 2)
+    return val * 100
 
 
 def oil_temp(data: bytearray) -> int:
