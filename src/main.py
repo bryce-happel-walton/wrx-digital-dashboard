@@ -787,7 +787,6 @@ class Application(QApplication):
                 ):
                     t = t2 = current_time + SEATBELT_BLINK_WAIT_S
                 elif current_time - t2 >= SEATBELT_BLINK_INTERVAL_S:
-                    print(True)
                     t2 = current_time
                     self.primary_container.seatbelt_driver_warning_image.setVisible(
                         False
