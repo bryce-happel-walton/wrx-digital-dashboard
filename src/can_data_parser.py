@@ -143,7 +143,7 @@ def boost_pressure(data: bytearray) -> float:
 
 
 @pyqtSlot(bytearray)
-def check_engine_light(data: bytearray) -> float:
+def check_engine_light(data: bytearray) -> bool:
     return is_set(data[4], 7)
 
 
