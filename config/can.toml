@@ -1,3 +1,5 @@
+# todo: change to dbc files
+
 [can_ids]
  vehicle_speed = 0x0D1
  traction_control = 0x0D3
@@ -58,5 +60,6 @@
   sent_bytes = 2
   pid = 0x11
   response_length = 1
+
 [mode_ids]
  current_data = 0x01

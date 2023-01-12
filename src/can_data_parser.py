@@ -2,7 +2,7 @@ LEAST_5_BITS_MASK = (1 << 5) - 1
 LEAST_4_BITS_MASK = (1 << 4) - 1
 SPEED_SCALE = 0.05625
 TEMP_SENSOR_OFFSET = -40
-FUEL_LEVEL_MAX = 0x2FF
+FUEL_LEVEL_MAX = 0x3FF
 FUEL_LEVEL_MIN = 0x25
 FUEL_LEVEL_DIFF = FUEL_LEVEL_MAX - FUEL_LEVEL_MIN
 FUEL_CONSUMPTION_SCALE = 0.24726
@@ -175,3 +175,7 @@ def mass_air_flow(data: bytearray) -> float:
 
 def throttle_position(data: bytearray) -> float:
     return data[0] / 0xFF * 100
+
+
+# 0x37A byte 5 off 0x10 on 0x04
+# 0x375 byte 6 on 0x22

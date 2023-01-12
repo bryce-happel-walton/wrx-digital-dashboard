@@ -1,6 +1,6 @@
 import PyQt5.QtGui as QtGui
 from math import ceil
-from time import time
+from time import perf_counter
 from typing import Any, Callable
 from PyQt5.QtGui import (
     QImage,
@@ -180,11 +180,11 @@ class TextLabel(QLabel):
 
 
 def delay(app: QApplication, f: Callable, delay_s: float, *params) -> QTimer:
-    start_time = time()
+    start_time = perf_counter()
     t = QTimer(app)
 
     def timed_func():
-        if time() - start_time >= delay_s:
+        if perf_counter() - start_time >= delay_s:
             t.stop()
             t.deleteLater()
             f(*params)

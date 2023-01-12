@@ -1,9 +1,9 @@
 import can_data_parser
 import tomlkit
 import can
-from qutil import delay, timed_func
-from time import time
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
+from qutil import timed_func
+from time import perf_counter
+from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction
 
@@ -30,28 +30,36 @@ CURRENT_DATA_DEFINITION_ITEMS = CURRENT_DATA_DEFINITIONS.items()
 NUM_DEFINITIONS = len(CURRENT_DATA_DEFINITIONS)
 
 
-class CanApplication(QWidget):
+class CanHandler(QWidget):
 
     updated = pyqtSignal(tuple)
     conversation_timer = QTimer()
 
-    def __init__(self, qApp: QApplication, bus: can.interface.Bus) -> None:
+    def __init__(self, parent: QApplication, bus: can.bus) -> None:
         super().__init__()
         self.bus = bus
-        self.qApp = qApp
+        self.qApp = parent
+
+        # todo: apply filtering to bus
 
         self.conversation_response_debounce = True
-        self.last_conversation_response_time = time() * 1000
+        self.last_conversation_response_time = perf_counter() * 1000
         self.conversation_list_index = 0
         self.last_pid_sent = 0
+
+        self.can_notifier = can.Notifier(self.bus, [self.parse_data])
+        # timed_func(self.qApp, self.run_conversation, 1)
+
+    def stop(self) -> None:
+        self.can_notifier.stop()
+        self.bus.shutdown()
 
     def send(self, msg: can.Message) -> None:
         msg.is_extended_id = False
         self.bus.send(msg)
 
-    @pyqtSlot()
     def run_conversation(self) -> None:
-        t = time() * 1000
+        t = perf_counter() * 1000
         if self.conversation_response_debounce:
             self.last_conversation_response_time = t
             self.conversation_response_debounce = False
@@ -74,12 +82,15 @@ class CanApplication(QWidget):
             if self.conversation_list_index >= NUM_DEFINITIONS:
                 self.conversation_list_index = 0
         elif t - self.last_conversation_response_time >= CONVERSATION_PERIOD_MS:
-            print("No response to last PID. Continuing anyway.")
+            print(
+                f"[Warning] No response to last PID [{hex(self.last_pid_sent)}]. Continuing anyway."
+            )
             self.conversation_response_debounce = True
             self.last_conversation_response_time = t
 
+    # ? todo: used buffered reader for better handling of detecting other devices and handling conversations
     def parse_response(self, msg: can.Message) -> None:
-        # todo handle more expected bits and multiple messages
+        # todo: handle more expected bits and multiple messages
         data = msg.data
         expected_bits = data[0]
         mode = data[1] - MODE_OFFSET

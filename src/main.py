@@ -4,10 +4,10 @@ import sys
 from typing import Any
 import tomlkit
 import can
+from numpy import average
 from os import listdir, path, mkdir
 from math import pi
-from time import time
-from functools import reduce
+from time import perf_counter
 from qutil import Image, Arc, delay, timed_func, property_animation, TextLabel
 from PyQt5.QtCore import (
     Qt,
@@ -18,7 +18,6 @@ from PyQt5.QtCore import (
     QAbstractAnimation,
     QTimer,
 )
-from PyQt5 import QtCore
 from PyQt5.QtGui import (
     QColor,
     QCursor,
@@ -29,8 +28,8 @@ from PyQt5.QtGui import (
     QCloseEvent,
 )
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
-from can_handle import (
-    CanApplication,
+from can_handler import (
+    CanHandler,
     CAN_IDS,
     CURRENT_DATA_DEFINITIONS,
 )
@@ -44,9 +43,11 @@ with open(CONFIG_PATH + "/settings.toml", "rb") as f:
     settings_toml = tomlkit.load(f)
     SETTINGS = settings_toml.unwrap()
 
+
 with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
     gauge_params_toml = tomlkit.load(f)
     GAUGE_PARAMS = gauge_params_toml.unwrap()
+
 
 if path.exists(LOCAL_DATA_PATH):
     with open(LOCAL_DATA_PATH, "rb") as f:
@@ -236,7 +237,7 @@ class MainWindow(QMainWindow):
             SYMBOL_RED_COLOR,
         )
         self.srs_airbag_system_warning_light.resize(
-            int(SYMBOL_SIZE * 0.75), int(SYMBOL_SIZE * 0.75)
+            int(SYMBOL_SIZE * 0.90), int(SYMBOL_SIZE * 0.90)
         )
         self.srs_airbag_system_warning_light.move(
             int(
@@ -572,6 +573,10 @@ class MainWindow(QMainWindow):
             int(SCREEN_SIZE[1] - self.odometer_label.height() - bottom_symbol_y_offset),
         )
 
+    def lazy_load(self) -> None:
+        # todo: implement lazy loading for faster boot time
+        pass
+
     def closeEvent(self, a0: QCloseEvent) -> None:
         self.closed.emit()
         return super().closeEvent(a0)
@@ -596,12 +601,12 @@ class Application(QApplication):
         primary_container = MainWindow()
         primary_container.setFixedSize(*SCREEN_SIZE)
 
-        self.start_time = time()
+        self.start_time = perf_counter()
         self.primary_container = primary_container
         self.update_funcs = {}
         self.cluster_vars = {}
         self.cluster_vars_update_ts = {
-            i: time() for i in VISUAL_UPDATE_INTERVALS.keys()
+            i: perf_counter() for i in VISUAL_UPDATE_INTERVALS.keys()
         }
 
         avg_fuel_stored_val = LOCAL_DATA.get("fuel_level_avg", 0)
@@ -718,12 +723,10 @@ class Application(QApplication):
 
         delay(self, self.init_wait.emit, START_WAIT)
 
-    @pyqtSlot()
     def save_local_data(self) -> None:
         odometer = self.cluster_vars.get("odometer", 0)
-        fuel_level_avg = (
-            reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
-        )
+        fuel_level_avg = average(self.average_fuel_table)
+
         LOCAL_DATA["odometer"] = odometer
         LOCAL_DATA["fuel_level_avg"] = fuel_level_avg
 
@@ -734,7 +737,6 @@ class Application(QApplication):
     def awaken_clusters(self) -> None:
         duration = int((AWAKEN_SEQUENCE_DURATION - AWAKEN_SEQUENCE_DURATION_STALL) / 2)
 
-        @pyqtSlot()
         def start() -> None:
             property_animation(
                 self,
@@ -761,7 +763,6 @@ class Application(QApplication):
                 duration,
             ).start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
-        @pyqtSlot()
         def end() -> None:
             property_animation(
                 self,
@@ -819,13 +820,13 @@ class Application(QApplication):
         global t, t2
 
         if enabled and enabled != self.seatbelt_blink_last_state:
-            t = time()
+            t = perf_counter()
             t2 = t + SEATBELT_BLINK_WAIT_S
 
             @pyqtSlot()
             def blink():
                 global t, t2
-                current_time = time()
+                current_time = perf_counter()
 
                 if (
                     current_time - t
@@ -858,118 +859,123 @@ class Application(QApplication):
 
     @pyqtSlot(tuple)
     def update_var(self, data: tuple) -> None:
-        t = time()
+        t = perf_counter()
         var, val = data
         self.cluster_vars[var] = val
 
         if t - self.cluster_vars_update_ts[var] <= VISUAL_UPDATE_INTERVALS[var]:
             return
 
-        if var == "vehicle_speed":
-            val *= KPH_TO_MPH_SCALE
-            self.primary_container.speed_label.setText(f"{val:.0f}")
-            self.primary_container.speedometer.dial_unit = val
-        elif var == "rpm":
-            self.update_gear_indicator()
-            self.primary_container.tachometer.dial_unit = val
-        elif var == "turn_signals":
-            self.primary_container.left_turn_signal_image_active.setVisible(val[0])
-            self.primary_container.right_turn_signal_image_active.setVisible(val[1])
-        elif var == "fuel_level":
-            self.average_fuel_table.pop(0)
-            self.average_fuel_table.append(val)
+        match var:
+            case "vehicle_speed":
+                val *= KPH_TO_MPH_SCALE
+                self.primary_container.speed_label.setText(f"{val:.0f}")
+                self.primary_container.speedometer.dial_unit = val
+            case "rpm":
+                self.update_gear_indicator()
+                self.primary_container.tachometer.dial_unit = val
+            case "turn_signals":
+                self.primary_container.left_turn_signal_image_active.setVisible(val[0])
+                self.primary_container.right_turn_signal_image_active.setVisible(val[1])
+            case "fuel_level":
+                self.average_fuel_table.pop(0)
+                self.average_fuel_table.append(val)
 
-            avg = reduce(lambda x, y: x + y, self.average_fuel_table) / AVG_FUEL_SAMPLES
+                avg = float(average(self.average_fuel_table))
 
-            self.primary_container.fuel_level_gauge.dial_unit = avg
-            self.primary_container.low_fuel_warning_image.setVisible(
-                avg <= LOW_FUEL_THRESHHOLD
-            )
-        elif var == "coolant_temp":
-            converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
-            self.primary_container.coolant_temp_gauge.dial_unit = converted_val
-            if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
-                self.primary_container.coolant_temp_indicator_image_normal.setVisible(
-                    False
+                self.primary_container.fuel_level_gauge.dial_unit = avg
+                self.primary_container.low_fuel_warning_image.setVisible(
+                    avg <= LOW_FUEL_THRESHHOLD
                 )
-                self.primary_container.coolant_temp_indicator_image_cold.setVisible(
-                    True
+            case "coolant_temp":
+                converted_val = val * C_TO_F_SCALE + C_TO_F_OFFSET
+                self.primary_container.coolant_temp_gauge.dial_unit = converted_val
+                if converted_val <= GAUGE_PARAMS["coolant_temp"]["blueline"]:
+                    self.primary_container.coolant_temp_indicator_image_normal.setVisible(
+                        False
+                    )
+                    self.primary_container.coolant_temp_indicator_image_cold.setVisible(
+                        True
+                    )
+                    self.primary_container.coolant_temp_indicator_image_hot.setVisible(
+                        False
+                    )
+                elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
+                    self.primary_container.coolant_temp_indicator_image_normal.setVisible(
+                        False
+                    )
+                    self.primary_container.coolant_temp_indicator_image_cold.setVisible(
+                        False
+                    )
+                    self.primary_container.coolant_temp_indicator_image_hot.setVisible(
+                        True
+                    )
+                else:
+                    self.primary_container.coolant_temp_indicator_image_normal.setVisible(
+                        True
+                    )
+                    self.primary_container.coolant_temp_indicator_image_cold.setVisible(
+                        False
+                    )
+                    self.primary_container.coolant_temp_indicator_image_hot.setVisible(
+                        False
+                    )
+            case "handbrake_switch":
+                self.primary_container.parking_brake_active_image.setVisible(val)
+            case "reverse_switch" | "clutch_switch" | "gear":
+                self.update_gear_indicator()
+            case "traction_control":
+                self.primary_container.traction_control_off_image.setVisible(val)
+            case "traction_control_mode":
+                self.primary_container.traction_control_mode_image.setVisible(val)
+            case "seatbelt_driver":
+                self.set_seatbelt_indicator(val)
+            case "cruise_control_status":
+                self.primary_container.cruise_control_status_image.setVisible(val)
+            case "fog_lights":
+                self.primary_container.fog_light_image.setVisible(val)
+            case "door_states":
+                self.primary_container.door_open_warning_image.setVisible(True in val)
+            case "headlights":
+                self.primary_container.low_beam_image.setVisible(val[0] or val[1])
+                self.primary_container.high_beam_image.setVisible(val[2])
+            case "cruise_control_speed":
+                if val > 0 and self.cluster_vars.get("cruise_control_status", 0):
+                    self.primary_container.cruise_control_speed_label.setVisible(True)
+                    self.primary_container.cruise_control_speed_label.setText(f"{val}")
+                else:
+                    self.primary_container.cruise_control_speed_label.setVisible(False)
+            case "cruise_control_set":
+                if val != self.cruise_control_set_last:
+                    self.cruise_control_set_last = val
+                    self.animate_cruise_control(
+                        val and self.cluster_vars.get("cruise_control_status", 0)
+                    )
+            case "check_engine_light":
+                self.primary_container.check_engine_light_image.setVisible(val)
+            case "odometer":
+                if val > 0:
+                    self.primary_container.odometer_label.setText(f"{int(val)}")
+            case "oil_pressure_warning":
+                self.primary_container.oil_pressure_warning_light_image.setVisible(val)
+            case "fuel_consumption":
+                pass
+            case "engine_load":
+                pass
+            case "intake_manifold_absolute_pressure":
+                pass
+            case "timing_advance":
+                pass
+            case "mass_air_flow":
+                pass
+            case "throttle_position":
+                pass
+            case "hill_assist":
+                self.primary_container.hill_assist_disabled_warning_light.setVisible(
+                    val
                 )
-                self.primary_container.coolant_temp_indicator_image_hot.setVisible(
-                    False
-                )
-            elif converted_val >= GAUGE_PARAMS["coolant_temp"]["redline"]:
-                self.primary_container.coolant_temp_indicator_image_normal.setVisible(
-                    False
-                )
-                self.primary_container.coolant_temp_indicator_image_cold.setVisible(
-                    False
-                )
-                self.primary_container.coolant_temp_indicator_image_hot.setVisible(True)
-            else:
-                self.primary_container.coolant_temp_indicator_image_normal.setVisible(
-                    True
-                )
-                self.primary_container.coolant_temp_indicator_image_cold.setVisible(
-                    False
-                )
-                self.primary_container.coolant_temp_indicator_image_hot.setVisible(
-                    False
-                )
-        elif var == "handbrake_switch":
-            self.primary_container.parking_brake_active_image.setVisible(val)
-        elif var in ["reverse_switch", "clutch_switch", "gear"]:
-            self.update_gear_indicator()
-        elif var == "traction_control":
-            self.primary_container.traction_control_off_image.setVisible(val)
-        elif var == "traction_control_mode":
-            self.primary_container.traction_control_mode_image.setVisible(val)
-        elif var == "seatbelt_driver":
-            self.set_seatbelt_indicator(val)
-        elif var == "cruise_control_status":
-            self.primary_container.cruise_control_status_image.setVisible(val)
-        elif var == "fog_lights":
-            self.primary_container.fog_light_image.setVisible(val)
-        elif var == "door_states":
-            self.primary_container.door_open_warning_image.setVisible(True in val)
-        elif var == "headlights":
-            self.primary_container.low_beam_image.setVisible(val[0] or val[1])
-            self.primary_container.high_beam_image.setVisible(val[2])
-        elif var == "cruise_control_speed":
-            if val > 0 and self.cluster_vars.get("cruise_control_status", 0):
-                self.primary_container.cruise_control_speed_label.setVisible(True)
-                self.primary_container.cruise_control_speed_label.setText(f"{val}")
-            else:
-                self.primary_container.cruise_control_speed_label.setVisible(False)
-        elif var == "cruise_control_set":
-            if val != self.cruise_control_set_last:
-                self.cruise_control_set_last = val
-                self.animate_cruise_control(
-                    val and self.cluster_vars.get("cruise_control_status", 0)
-                )
-        elif var == "check_engine_light":
-            self.primary_container.check_engine_light_image.setVisible(val)
-        elif var == "odometer":
-            if val > 0:
-                self.primary_container.odometer_label.setText(f"{int(val)}")
-        elif var == "oil_pressure_warning":
-            self.primary_container.oil_pressure_warning_light_image.setVisible(val)
-        elif var == "fuel_consumption":
-            pass
-        elif var == "engine_load":
-            pass
-        elif var == "intake_manifold_absolute_pressure":
-            pass
-        elif var == "timing_advance":
-            pass
-        elif var == "mass_air_flow":
-            pass
-        elif var == "throttle_position":
-            pass
-        elif var == "hill_assist":
-            self.primary_container.hill_assist_disabled_warning_light.setVisible(val)
-        elif var == "srs_airbag_system_warning_light":
-            self.primary_container.srs_airbag_system_warning_light.setVisible(val)
+            case "srs_airbag_system_warning_light":
+                self.primary_container.srs_airbag_system_warning_light.setVisible(val)
 
         self.cluster_vars[var] = val
         self.cluster_vars_update_ts[var] = t
@@ -977,7 +983,6 @@ class Application(QApplication):
 
 if __name__ == "__main__":
     app = Application()
-    app.primary_container.closed.connect(app.closeAllWindows)
     screens = app.screens()
     USING_CANBUS = False
 
@@ -1009,7 +1014,7 @@ if __name__ == "__main__":
                 check=True,
             )
 
-            bus = can.interface.Bus(channel="can0", bustype="socketcan", bitrate=500000)
+            bus = can.ThreadSafeBus(channel="can0", bustype="socketcan", bitrate=500000)
         except (
             can.exceptions.CanInitializationError,
             can.exceptions.CanInterfaceNotImplementedError,
@@ -1021,37 +1026,36 @@ if __name__ == "__main__":
         if len(screens) > 1:
             screen = screens[1]
             app.primary_container.move(screen.geometry().topLeft())
-            app.primary_container.showFullScreen()
 
+    # todo: implement "with" when using can
     if not USING_CANBUS:
         import test_module
 
-        bus_virtual_car = can.interface.Bus(channel="test", bustype="virtual")
-        bus = can.interface.Bus(channel="test", bustype="virtual")
+        bus_virtual_car = can.ThreadSafeBus(channel="test", bustype="virtual")
+        bus = can.ThreadSafeBus(channel="test", bustype="virtual")
 
-        @pyqtSlot()
         def emulate_car() -> None:
             bus_virtual_car.send(test_module.provide_random_message())
 
-        @pyqtSlot()
         def emulate_conversation(msg: can.Message) -> None:
             response = test_module.provide_response_message(msg)
             bus_virtual_car.send(response)
 
-        @pyqtSlot()
         def run() -> None:
             can.Notifier(bus_virtual_car, [emulate_conversation])
             timed_func(app, emulate_car, 1)
 
         app.awakened.connect(run)
 
-    can_app = CanApplication(app, bus)
+    can_app = CanHandler(app, bus)
     can_app.updated.connect(app.update_var)
 
-    @pyqtSlot()
-    def run() -> None:
-        can.Notifier(bus, [can_app.parse_data])
-        timed_func(app, can_app.run_conversation, 1)
+    def stop() -> None:
+        can_app.close()
+        app.closeAllWindows()
 
+    app.aboutToQuit.connect(stop)
+    app.setQuitOnLastWindowClosed(True)
     app.awakened.connect(run)
+
     sys.exit(app.exec())
