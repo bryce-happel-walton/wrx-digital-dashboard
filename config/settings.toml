@@ -2,3 +2,8 @@ units = "USC" # 'USC' or 'SI' default: 'Imperial'
 
 [fonts]
  main = "Montserrat-Bold" # any system font. "Montserrat-Bold" is auto loaded. default: 'Montserrat-Bold'
+
+[can_device]
+ channel = "can0"
+ bustype = "socketcan"
+ bitrate = 500000

@@ -35,7 +35,7 @@ from can_handler import (
 )
 from dial import Dial
 
-SYSTEM = platform.system()
+PLATFORM = platform.system()
 CONFIG_PATH = "config"
 LOCAL_DATA_PATH = "local/data.toml"
 
@@ -43,6 +43,7 @@ LOCAL_DATA_PATH = "local/data.toml"
 with open(CONFIG_PATH + "/settings.toml", "rb") as f:
     settings_toml = tomlkit.load(f)
     SETTINGS = settings_toml.unwrap()
+    CAN_DEVICE_SETTINGS = SETTINGS["can_device"]
 
 
 # TODO: lazy load
@@ -994,7 +995,7 @@ class Application(QApplication):
 def main() -> None:
     app = Application()
     screens = app.screens()
-    using_canbus = False
+    using_canbus = "nocan" not in sys.argv
     bus = None
 
     def post_can_init(bus: can.interface.Bus) -> None:
@@ -1013,52 +1014,52 @@ def main() -> None:
 
         sys.exit(app.exec())
 
-    if SYSTEM == "Linux":
+    if RPI and using_canbus:
         screen = screens[0]
         app.primary_container.move(screen.geometry().topLeft())
         app.primary_container.showFullScreen()
         app.primary_container.setFocus()
 
-        using_canbus = "nocan" not in sys.argv
-
         try:
-            subprocess.run(
-                ["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True
-            )
-            subprocess.run(
-                [
-                    "sudo",
-                    "/sbin/ip",
-                    "link",
-                    "set",
-                    "can0",
-                    "up",
-                    "type",
-                    "can",
-                    "bitrate",
-                    "500000",
-                ],
-                check=True,
-            )
+            if PLATFORM == "Linux":
+                subprocess.run(
+                    ["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True
+                )
+                subprocess.run(
+                    [
+                        "sudo",
+                        "/sbin/ip",
+                        "link",
+                        "set",
+                        "can0",
+                        "up",
+                        "type",
+                        "can",
+                        "bitrate",
+                        "500000",
+                    ],
+                    check=True,
+                )
 
             with can.thread_safe_bus.ThreadSafeBus(
-                channel="can0", bustype="socketcan", bitrate=500000
+                **CAN_DEVICE_SETTINGS
             ) as bus:
                 post_can_init(bus)
         except (
             can.exceptions.CanInitializationError,
             can.exceptions.CanInterfaceNotImplementedError,
         ):
-            print("Could not find PiCan device. Switching to emulation.")
-            using_canbus = False
+            print("Could not find can interface device. ENTER to quit")
+            input()
+        except OSError:
+            pass # python-can has its own print
     else:
+        import test_module
+
         app.primary_container.show()
         if len(screens) > 1:
             screen = screens[1]
             app.primary_container.move(screen.geometry().topLeft())
-
-    if not using_canbus:
-        import test_module
 
         with can.thread_safe_bus.ThreadSafeBus(
             channel="test", bustype="virtual"
@@ -1083,4 +1084,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    RPI = "pi" in sys.argv
     main()
