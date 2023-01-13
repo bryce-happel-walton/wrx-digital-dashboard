@@ -31,6 +31,10 @@ CURRENT_DATA_DEFINITION_ITEMS = CURRENT_DATA_DEFINITIONS.items()
 
 NUM_DEFINITIONS = len(CURRENT_DATA_DEFINITIONS)
 
+CAN_FILTER = [
+    {"can_id": x, "can_mask": 0xFFF, "extended": False} for x in CAN_ID_VALUES()
+]
+
 
 class CanHandler(QWidget):
 
@@ -41,13 +45,12 @@ class CanHandler(QWidget):
         super().__init__()
         self.bus = bus
         self.qApp = parent
-
-        # TODO: apply filtering to bus
-
         self.conversation_response_debounce = True
         self.last_conversation_response_time = perf_counter() * 1000
         self.conversation_list_index = 0
         self.last_pid_sent = 0
+
+        self.bus.set_filters(CAN_FILTER)
 
         self.can_notifier = can.notifier.Notifier(self.bus, [self.parse_data])
         # timed_func(self.qApp, self.run_conversation, 1)
