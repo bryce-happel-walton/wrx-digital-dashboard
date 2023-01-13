@@ -32,7 +32,7 @@ CURRENT_DATA_DEFINITION_ITEMS = CURRENT_DATA_DEFINITIONS.items()
 NUM_DEFINITIONS = len(CURRENT_DATA_DEFINITIONS)
 
 CAN_FILTER = [
-    {"can_id": x, "can_mask": 0xFFF, "extended": False} for x in CAN_ID_VALUES()
+    {"can_id": x, "can_mask": 0xFFF, "extended": False} for x in CAN_ID_VALUES
 ]
 
 
