@@ -1,4 +1,4 @@
-# todo: change to dbc files
+# TODO: change to dbc files
 
 [can_ids]
  vehicle_speed = 0x0D1

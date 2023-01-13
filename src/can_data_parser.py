@@ -7,7 +7,7 @@ FUEL_LEVEL_MIN = 0x25
 FUEL_LEVEL_DIFF = FUEL_LEVEL_MAX - FUEL_LEVEL_MIN
 FUEL_CONSUMPTION_SCALE = 0.24726
 
-# todo: rewrite to allow reading byte, bits, conversions, etc from can.toml
+# TODO: change to dbc files
 
 
 def is_set(x: int, n: int) -> bool:

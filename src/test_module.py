@@ -2,7 +2,7 @@ import can_handler
 import can
 from random import choice, randrange
 
-# todo: make testing UI with controls for everything
+# TODO: make testing UI with controls for everything
 
 turn_signal_data = [
     0x30,  # hazards
@@ -12,7 +12,7 @@ turn_signal_data = [
 ]
 
 
-def provide_random_message() -> can.Message:
+def provide_random_message() -> can.message.Message:
     key, val = choice(list(can_handler.CAN_IDS.items()))
     data = [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -20,7 +20,7 @@ def provide_random_message() -> can.Message:
         case "turn_signals" | "fuel_level" | "seatbelt_driver":
             data = [
                 randrange(0x25, 0xFF),
-                int(f"{choice([0x01, 0x02]):8b}0000", 2),  # todo: fix fuel level
+                int(f"{choice([0x01, 0x02]):8b}0000", 2),  # TODO: fix fuel level
                 0,
                 0,
                 0,
@@ -104,7 +104,7 @@ def provide_random_message() -> can.Message:
                 0,
             ]
 
-    return can.Message(is_extended_id=False, arbitration_id=val, data=data)
+    return can.message.Message(is_extended_id=False, arbitration_id=val, data=data)
 
 
 def get_response_data(pid) -> list:
@@ -117,7 +117,9 @@ def get_response_data(pid) -> list:
         return []
 
 
-def provide_response_message(recv_msg: can.Message) -> can.Message | list[can.Message]:
+def provide_response_message(
+    recv_msg: can.message.Message,
+) -> can.message.Message | list[can.message.Message]:
     if recv_msg.arbitration_id == can_handler.CONVERSATION_IDS["send_id"]:
         data = recv_msg.data
 
@@ -130,7 +132,7 @@ def provide_response_message(recv_msg: can.Message) -> can.Message | list[can.Me
         new_data[3 : 3 + len(response_data)] = response_data
         new_data = new_data[:8]
 
-        return can.Message(
+        return can.message.Message(
             is_extended_id=False,
             arbitration_id=can_handler.CONVERSATION_IDS["ecu_response_id"],
             data=new_data,

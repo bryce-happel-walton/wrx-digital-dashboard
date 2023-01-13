@@ -1,11 +1,12 @@
 from math import ceil, cos, degrees, floor, pi, sin
 from qutil import Line, Arc
-from PyQt5.QtCore import QSize, QLineF, pyqtProperty, Qt
+from PyQt5.QtCore import QSize, QLineF, Qt
+from PyQt5.QtCore import pyqtProperty
 from PyQt5.QtGui import QColor, QFont, QPalette, QGradient, QRadialGradient
 from PyQt5.QtWidgets import QFrame, QLabel, QWidget
 
 
-# todo: allow dynamic changing of dial variable. Ex: changing unit, max, min, etc
+# TODO: allow dynamic changing of dial variable. Ex: changing unit, max, min, etc
 
 
 class Dial(QWidget):
@@ -79,8 +80,7 @@ class Dial(QWidget):
         num_x_radius = half_width - buffer_radius - num_radius
         section_x_radius = half_width - buffer_radius - section_radius
         arc_size_offset = (buffer_radius + section_radius) * 2
-        arc_size = size - QSize(arc_size_offset, arc_size_offset)
-
+        arc_size: QSize = size - QSize(arc_size_offset, arc_size_offset)
         self.dial_offset_angle_deg = 360 - degrees(angle_offset)
         self.dial_angle_step = degrees(angle_range) / (max_unit - min_unit)
 
@@ -145,7 +145,7 @@ class Dial(QWidget):
             self.needle_width_deg / 2,
         )
 
-        # todo: use line width to extend border and eliminate overhang
+        # TODO: use line width to extend border and eliminate overhang
         if border_width != 0:
             self.outline_arc = Arc(
                 self,

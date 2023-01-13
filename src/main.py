@@ -39,11 +39,13 @@ SYSTEM = platform.system()
 CONFIG_PATH = "config"
 LOCAL_DATA_PATH = "local/data.toml"
 
+# TODO: lazy load
 with open(CONFIG_PATH + "/settings.toml", "rb") as f:
     settings_toml = tomlkit.load(f)
     SETTINGS = settings_toml.unwrap()
 
 
+# TODO: lazy load
 with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
     gauge_params_toml = tomlkit.load(f)
     GAUGE_PARAMS = gauge_params_toml.unwrap()
@@ -51,10 +53,10 @@ with open(CONFIG_PATH + "/gauge_config.toml", "rb") as f:
 
 if path.exists(LOCAL_DATA_PATH):
     with open(LOCAL_DATA_PATH, "rb") as f:
-        LOCAL_DATA = tomlkit.load(f)
+        local_data = tomlkit.load(f)
 else:
     mkdir("local")
-    LOCAL_DATA = tomlkit.document()
+    local_data = tomlkit.document()
 
 START_WAIT = 1
 
@@ -101,7 +103,7 @@ PRIMARY_TEXT_COLOR = QColor(255, 255, 255)
 SECONDARY_TEXT_COLOR = QColor(100, 100, 100)
 
 
-def update_visual_update_intervals(keys: list | Any):
+def update_visual_update_intervals(keys: list[str] | Any):
     for i in keys:
         if i not in VISUAL_UPDATE_INTERVALS:
             VISUAL_UPDATE_INTERVALS[i] = VISUAL_UPDATE_INVERVAL
@@ -110,8 +112,51 @@ def update_visual_update_intervals(keys: list | Any):
 update_visual_update_intervals(CAN_IDS.keys())
 update_visual_update_intervals(CURRENT_DATA_DEFINITIONS.keys())
 
+major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
 
-class MainWindow(QMainWindow):
+dial_size_major = QSize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
+dial_size_minor = QSize(DIAL_SIZE_MINOR, DIAL_SIZE_MINOR)
+
+turn_signal_offset_x = 70
+turn_signal_offset_y = 40
+bottom_symbol_y_offset = 10
+
+ALL_DIAL_PARAMS = {
+    "blueline_color": BLUELINE_COLOR,
+    "gradient": True,
+    "border_width": 2,
+    "line_width": 1.5,
+    "dial_opacity": 0.55,
+    "needle_width_deg": 0.9,
+}
+DIAL_PARAMS_MAJOR = {
+    "buffer_radius": 22,
+    "num_radius": 54,
+    "section_radius": 20,
+    "minor_section_rad_offset": 5,
+    "middle_section_rad_offset": 43,
+    "major_section_rad_offset": 40,
+    "angle_offset": pi,
+    "dial_width": 140,
+    "angle_range": major_dial_angle_range,
+    "size": dial_size_major,
+}
+DIAL_PARAMS_MINOR = {
+    "buffer_radius": 22,
+    "num_radius": 50,
+    "section_radius": 15,
+    "minor_section_rad_offset": 5,
+    "middle_section_rad_offset": 58,
+    "major_section_rad_offset": 40,
+    "no_font": True,
+    "dial_width": 50,
+    "angle_range": 2 * pi - major_dial_angle_range - pi / 4 * 2,
+    "size": dial_size_minor,
+    "angle_offset": major_dial_angle_range - pi + pi / 2.5,
+}
+
+
+class UI(QMainWindow):
 
     closed = pyqtSignal()
 
@@ -121,58 +166,137 @@ class MainWindow(QMainWindow):
         background_palette.setColor(QPalette.ColorRole.Background, BACKGROUND_COLOR)
         self.setPalette(background_palette)
 
-        major_dial_angle_range = 2 * pi - pi / 2 - pi / 5 - pi / 32
+        self.build_dials()
+        self.build_images()
 
-        vertical_mirror = QTransform().rotate(180)
+        angle_mid = 30
+        arc_width = 1.5
+        size_scale = 4.25
 
-        turn_signal_offset_x = 70
-        turn_signal_offset_y = 40
-        bottom_symbol_y_offset = 10
-        dial_size_major = QSize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
-        dial_size_minor = QSize(DIAL_SIZE_MINOR, DIAL_SIZE_MINOR)
+        self.cruise_control_status_widget = QWidget(self)
+        self.cruise_control_status_widget.setStyleSheet("background:transparent")
+        self.cruise_control_status_widget.resize(
+            QSize(int(DIAL_SIZE_MAJOR / size_scale), int(DIAL_SIZE_MAJOR / size_scale))
+        )
+        self.cruise_control_status_widget.move(
+            self.speedometer.pos()
+            + QPoint(DIAL_SIZE_MAJOR // 2, DIAL_SIZE_MAJOR // 2)
+            - QPoint(
+                self.cruise_control_status_widget.width() // 2,
+                self.cruise_control_status_widget.height() // 2,
+            )
+        )
 
-        all_dial_params = {
-            "blueline_color": BLUELINE_COLOR,
-            "gradient": True,
-            "border_width": 2,
-            "line_width": 1.5,
-            "dial_opacity": 0.55,
-            "needle_width_deg": 0.9,
-        }
+        self.cruise_control_arc_left = Arc(
+            self.cruise_control_status_widget,
+            self.cruise_control_status_widget.size(),
+            SYMBOL_GRAY_COLOR,
+            arc_width,
+        )
+        self.cruise_control_arc_left.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        self.cruise_control_arc_left.set_arc(90 + angle_mid, 180 - angle_mid * 2)
 
-        dial_params_major = {
-            "buffer_radius": 22,
-            "num_radius": 54,
-            "section_radius": 20,
-            "minor_section_rad_offset": 5,
-            "middle_section_rad_offset": 43,
-            "major_section_rad_offset": 40,
-            "angle_offset": pi,
-            "dial_width": 140,
-            "angle_range": major_dial_angle_range,
-            "size": dial_size_major,
-        }
+        self.cruise_control_arc_right = Arc(
+            self.cruise_control_status_widget,
+            self.cruise_control_status_widget.size(),
+            SYMBOL_GRAY_COLOR,
+            arc_width,
+        )
+        self.cruise_control_arc_right.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        self.cruise_control_arc_right.set_arc(270 + angle_mid, 180 - angle_mid * 2)
 
-        dial_params_minor = {
-            "buffer_radius": 22,
-            "num_radius": 50,
-            "section_radius": 15,
-            "minor_section_rad_offset": 5,
-            "middle_section_rad_offset": 58,
-            "major_section_rad_offset": 40,
-            "no_font": True,
-            "dial_width": 50,
-            "angle_range": 2 * pi - major_dial_angle_range - pi / 4 * 2,
-            "size": dial_size_minor,
-            "angle_offset": major_dial_angle_range - pi + pi / 2.5,
-        }
+        label_font = QFont(FONT_GROUP, 22)
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.WindowText, SYMBOL_GRAY_COLOR)
 
+        # TODO: add arrow to fuel image instead
+        self.fuel_cap_indicator_arrow = QLabel(self)
+        self.fuel_cap_indicator_arrow.setStyleSheet("background:transparent")
+        self.fuel_cap_indicator_arrow.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
+        self.fuel_cap_indicator_arrow.setFont(QFont(FONT_GROUP, 10))
+        self.fuel_cap_indicator_arrow.setText(">")
+        self.fuel_cap_indicator_arrow.setPalette(palette)
+        self.fuel_cap_indicator_arrow.adjustSize()
+        self.fuel_cap_indicator_arrow.move(
+            self.fuel_image.pos()
+            + QPoint(
+                self.fuel_image.width() + self.fuel_cap_indicator_arrow.width() - 10,
+                self.fuel_cap_indicator_arrow.height() // 2,
+            )
+        )
+
+        self.cruise_control_speed_label = QLabel(self)
+        self.cruise_control_speed_label.setStyleSheet("background:transparent")
+        self.cruise_control_speed_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
+        self.cruise_control_speed_label.setFont(label_font)
+        self.cruise_control_speed_label.setText("0")
+        self.cruise_control_speed_label.setPalette(palette)
+        self.cruise_control_speed_label.resize(SYMBOL_SIZE, SYMBOL_SIZE)
+        self.cruise_control_speed_label.move(
+            self.speedometer.pos()
+            + QPoint(
+                DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.width() // 2,
+                DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.height() // 2,
+            )
+            + QPoint(0, int(SYMBOL_SIZE * 1.05))
+        )
+
+        label_font = QFont(FONT_GROUP, 34)
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.WindowText, PRIMARY_TEXT_COLOR)
+
+        self.speed_label = TextLabel(self, "0")
+        self.speed_label.setFont(label_font)
+        self.speed_label.setPalette(palette)
+        self.speed_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
+        self.speed_label.move(
+            int(
+                SCREEN_SIZE[0]
+                - DIAL_SIZE_MAJOR
+                - DIAL_SIZE_MAJOR / 4
+                + DIAL_SIZE_MAJOR / 2
+                - self.speed_label.width() / 2
+            ),
+            int(SCREEN_SIZE[1] / 2 - self.speed_label.height() / 2),
+        )
+
+        self.gear_indicator_label = TextLabel(self, "N")
+        self.gear_indicator_label.setFont(label_font)
+        self.gear_indicator_label.setPalette(palette)
+        self.gear_indicator_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
+        self.gear_indicator_label.move(
+            int(
+                DIAL_SIZE_MAJOR / 4
+                + DIAL_SIZE_MAJOR / 2
+                - self.gear_indicator_label.width() / 2
+            ),
+            int(SCREEN_SIZE[1] / 2 - self.gear_indicator_label.height() / 2),
+        )
+
+        label_font = QFont(FONT_GROUP, 20)
+        self.odometer_label = TextLabel(self, "000000")
+        self.odometer_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom
+        )
+        self.odometer_label.setFont(label_font)
+        self.odometer_label.text_color = PRIMARY_TEXT_COLOR
+        self.odometer_label.resize(SCREEN_SIZE[0], SYMBOL_SIZE)
+        self.odometer_label.move(
+            int(SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2),
+            int(SCREEN_SIZE[1] - self.odometer_label.height() - bottom_symbol_y_offset),
+        )
+
+    def build_dials(self) -> None:
         self.tachometer = Dial(
             self,
             label_font=QFont(FONT_GROUP, 20),
             **GAUGE_PARAMS["tachometer"],
-            **dial_params_major,
-            **all_dial_params,
+            **DIAL_PARAMS_MAJOR,
+            **ALL_DIAL_PARAMS,
         )
         self.tachometer.move(
             int(DIAL_SIZE_MAJOR / 4), int(SCREEN_SIZE[1] / 2 - DIAL_SIZE_MAJOR / 2)
@@ -183,8 +307,8 @@ class MainWindow(QMainWindow):
             label_font=QFont(FONT_GROUP, 18),
             redline=GAUGE_PARAMS["speedometer"]["max_unit"] + 1,
             **GAUGE_PARAMS["speedometer"],
-            **dial_params_major,
-            **all_dial_params,
+            **DIAL_PARAMS_MAJOR,
+            **ALL_DIAL_PARAMS,
         )
         self.speedometer.move(
             int(SCREEN_SIZE[0] - DIAL_SIZE_MAJOR - DIAL_SIZE_MAJOR / 4),
@@ -192,7 +316,7 @@ class MainWindow(QMainWindow):
         )
 
         self.coolant_temp_gauge = Dial(
-            self, **GAUGE_PARAMS["coolant_temp"], **dial_params_minor, **all_dial_params
+            self, **GAUGE_PARAMS["coolant_temp"], **DIAL_PARAMS_MINOR, **ALL_DIAL_PARAMS
         )
         self.coolant_temp_gauge.move(
             self.tachometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7)
@@ -200,12 +324,16 @@ class MainWindow(QMainWindow):
         self.coolant_temp_gauge.frame.setStyleSheet("background:transparent")
 
         self.fuel_level_gauge = Dial(
-            self, **GAUGE_PARAMS["fuel_level"], **dial_params_minor, **all_dial_params
+            self, **GAUGE_PARAMS["fuel_level"], **DIAL_PARAMS_MINOR, **ALL_DIAL_PARAMS
         )
         self.fuel_level_gauge.move(
             self.speedometer.pos() + QPoint(0, DIAL_SIZE_MAJOR // 7)
         )
         self.fuel_level_gauge.frame.setStyleSheet("background:transparent")
+
+    def build_images(self) -> None:
+        """Depends on dials to be built first: `self.build_dials`"""
+        vertical_mirror = QTransform().rotate(180)
 
         self.traction_control_mode_image = Image(
             self, IMAGE_PATH + "/traction-mode-indicator-light.png", SYMBOL_GREEN_COLOR
@@ -392,81 +520,6 @@ class MainWindow(QMainWindow):
             )
         )
 
-        angle_mid = 30
-        arc_width = 1.5
-        size_scale = 4.25
-
-        self.cruise_control_status_widget = QWidget(self)
-        self.cruise_control_status_widget.setStyleSheet("background:transparent")
-        self.cruise_control_status_widget.resize(
-            QSize(int(DIAL_SIZE_MAJOR / size_scale), int(DIAL_SIZE_MAJOR / size_scale))
-        )
-        self.cruise_control_status_widget.move(
-            self.speedometer.pos()
-            + QPoint(DIAL_SIZE_MAJOR // 2, DIAL_SIZE_MAJOR // 2)
-            - QPoint(
-                self.cruise_control_status_widget.width() // 2,
-                self.cruise_control_status_widget.height() // 2,
-            )
-        )
-        self.cruise_control_arc_left = Arc(
-            self.cruise_control_status_widget,
-            self.cruise_control_status_widget.size(),
-            SYMBOL_GRAY_COLOR,
-            arc_width,
-        )
-        self.cruise_control_arc_left.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        self.cruise_control_arc_left.set_arc(90 + angle_mid, 180 - angle_mid * 2)
-
-        self.cruise_control_arc_right = Arc(
-            self.cruise_control_status_widget,
-            self.cruise_control_status_widget.size(),
-            SYMBOL_GRAY_COLOR,
-            arc_width,
-        )
-        self.cruise_control_arc_right.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        self.cruise_control_arc_right.set_arc(270 + angle_mid, 180 - angle_mid * 2)
-
-        label_font = QFont(FONT_GROUP, 22)
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, SYMBOL_GRAY_COLOR)
-
-        # todo: add arrow to image instead
-        self.fuel_cap_indicator_arrow = QLabel(self)
-        self.fuel_cap_indicator_arrow.setStyleSheet("background:transparent")
-        self.fuel_cap_indicator_arrow.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
-        self.fuel_cap_indicator_arrow.setFont(QFont(FONT_GROUP, 10))
-        self.fuel_cap_indicator_arrow.setText(">")
-        self.fuel_cap_indicator_arrow.setPalette(palette)
-        self.fuel_cap_indicator_arrow.adjustSize()
-        self.fuel_cap_indicator_arrow.move(
-            self.fuel_image.pos()
-            + QPoint(
-                self.fuel_image.width() + self.fuel_cap_indicator_arrow.width() - 10,
-                self.fuel_cap_indicator_arrow.height() // 2,
-            )
-        )
-
-        self.cruise_control_speed_label = QLabel(self)
-        self.cruise_control_speed_label.setStyleSheet("background:transparent")
-        self.cruise_control_speed_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
-        self.cruise_control_speed_label.setFont(label_font)
-        self.cruise_control_speed_label.setText("0")
-        self.cruise_control_speed_label.setPalette(palette)
-        self.cruise_control_speed_label.resize(SYMBOL_SIZE, SYMBOL_SIZE)
-        self.cruise_control_speed_label.move(
-            self.speedometer.pos()
-            + QPoint(
-                DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.width() // 2,
-                DIAL_SIZE_MAJOR // 2 - self.cruise_control_speed_label.height() // 2,
-            )
-            + QPoint(0, int(SYMBOL_SIZE * 1.05))
-        )
-
         self.high_beam_image = Image(
             self, IMAGE_PATH + "/highbeam-indicator-light.png", SYMBOL_BLUE_COLOR
         )
@@ -528,53 +581,8 @@ class MainWindow(QMainWindow):
             + QPoint(-turn_signal_offset_x, turn_signal_offset_y)
         )
 
-        label_font = QFont(FONT_GROUP, 34)
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.WindowText, PRIMARY_TEXT_COLOR)
-
-        self.speed_label = TextLabel(self, "0")
-        self.speed_label.setFont(label_font)
-        self.speed_label.setPalette(palette)
-        self.speed_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
-        self.speed_label.move(
-            int(
-                SCREEN_SIZE[0]
-                - DIAL_SIZE_MAJOR
-                - DIAL_SIZE_MAJOR / 4
-                + DIAL_SIZE_MAJOR / 2
-                - self.speed_label.width() / 2
-            ),
-            int(SCREEN_SIZE[1] / 2 - self.speed_label.height() / 2),
-        )
-
-        self.gear_indicator_label = TextLabel(self, "N")
-        self.gear_indicator_label.setFont(label_font)
-        self.gear_indicator_label.setPalette(palette)
-        self.gear_indicator_label.resize(DIAL_SIZE_MAJOR, DIAL_SIZE_MAJOR)
-        self.gear_indicator_label.move(
-            int(
-                DIAL_SIZE_MAJOR / 4
-                + DIAL_SIZE_MAJOR / 2
-                - self.gear_indicator_label.width() / 2
-            ),
-            int(SCREEN_SIZE[1] / 2 - self.gear_indicator_label.height() / 2),
-        )
-
-        label_font = QFont(FONT_GROUP, 20)
-        self.odometer_label = TextLabel(self, "000000")
-        self.odometer_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom
-        )
-        self.odometer_label.setFont(label_font)
-        self.odometer_label.text_color = PRIMARY_TEXT_COLOR
-        self.odometer_label.resize(SCREEN_SIZE[0], SYMBOL_SIZE)
-        self.odometer_label.move(
-            int(SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2),
-            int(SCREEN_SIZE[1] - self.odometer_label.height() - bottom_symbol_y_offset),
-        )
-
     def lazy_load(self) -> None:
-        # todo: implement lazy loading for faster boot time
+        # TODO: implement lazy loading for faster boot time
         pass
 
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -598,19 +606,21 @@ class Application(QApplication):
                 )
 
         self.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))
-        primary_container = MainWindow()
+        primary_container = UI()
         primary_container.setFixedSize(*SCREEN_SIZE)
 
         self.start_time = perf_counter()
         self.primary_container = primary_container
         self.update_funcs = {}
-        self.cluster_vars = {}
-        self.cluster_vars_update_ts = {
+        self.cluster_vars: dict[str, Any] = {}
+        self.cluster_vars_update_ts: dict[str, float] = {
             i: perf_counter() for i in VISUAL_UPDATE_INTERVALS.keys()
         }
 
-        avg_fuel_stored_val = LOCAL_DATA.get("fuel_level_avg", 0)
-        self.average_fuel_table = [avg_fuel_stored_val for _ in range(AVG_FUEL_SAMPLES)]
+        avg_fuel_stored_val = local_data.get("fuel_level_avg", 0)
+        self.average_fuel_table: list[float] = [
+            avg_fuel_stored_val for _ in range(AVG_FUEL_SAMPLES)
+        ]
 
         angle_mid = 30
         duration = 500
@@ -710,7 +720,7 @@ class Application(QApplication):
         self.seatbelt_blink_last_state = False
 
         odo_text = "000000"
-        odo_value = LOCAL_DATA.get("odometer", 0)
+        odo_value = local_data.get("odometer", 0)
 
         if odo_value > 0:
             odo_text = f"{odo_value:.0f}"
@@ -727,11 +737,11 @@ class Application(QApplication):
         odometer = self.cluster_vars.get("odometer", 0)
         fuel_level_avg = average(self.average_fuel_table)
 
-        LOCAL_DATA["odometer"] = odometer
-        LOCAL_DATA["fuel_level_avg"] = fuel_level_avg
+        local_data["odometer"] = odometer
+        local_data["fuel_level_avg"] = fuel_level_avg
 
         with open(LOCAL_DATA_PATH, "w") as f:
-            tomlkit.dump(LOCAL_DATA, f)
+            tomlkit.dump(local_data, f)
 
     @pyqtSlot()
     def awaken_clusters(self) -> None:
@@ -858,7 +868,7 @@ class Application(QApplication):
         self.seatbelt_blink_last_state = enabled
 
     @pyqtSlot(tuple)
-    def update_var(self, data: tuple) -> None:
+    def update_var(self, data: tuple[str, Any]) -> None:
         t = perf_counter()
         var, val = data
         self.cluster_vars[var] = val
@@ -981,10 +991,27 @@ class Application(QApplication):
         self.cluster_vars_update_ts[var] = t
 
 
-if __name__ == "__main__":
+def main() -> None:
     app = Application()
     screens = app.screens()
-    USING_CANBUS = False
+    using_canbus = False
+    bus = None
+
+    def post_can_init(bus: can.interface.Bus) -> None:
+        can_app = CanHandler(app, bus)
+
+        def run() -> None:
+            can_app.updated.connect(app.update_var)
+
+        def stop() -> None:
+            can_app.close()
+            app.closeAllWindows()
+
+        app.aboutToQuit.connect(stop)
+        app.setQuitOnLastWindowClosed(True)
+        app.awakened.connect(run)
+
+        sys.exit(app.exec())
 
     if SYSTEM == "Linux":
         screen = screens[0]
@@ -992,13 +1019,13 @@ if __name__ == "__main__":
         app.primary_container.showFullScreen()
         app.primary_container.setFocus()
 
-        USING_CANBUS = "nocan" not in sys.argv
+        using_canbus = "nocan" not in sys.argv
 
         try:
-            shutdown_can = subprocess.run(
+            subprocess.run(
                 ["sudo", "/sbin/ip", "link", "set", "can0", "down"], check=True
             )
-            setup_can = subprocess.run(
+            subprocess.run(
                 [
                     "sudo",
                     "/sbin/ip",
@@ -1014,48 +1041,46 @@ if __name__ == "__main__":
                 check=True,
             )
 
-            bus = can.ThreadSafeBus(channel="can0", bustype="socketcan", bitrate=500000)
+            with can.thread_safe_bus.ThreadSafeBus(
+                channel="can0", bustype="socketcan", bitrate=500000
+            ) as bus:
+                post_can_init(bus)
         except (
             can.exceptions.CanInitializationError,
             can.exceptions.CanInterfaceNotImplementedError,
         ):
             print("Could not find PiCan device. Switching to emulation.")
-            USING_CANBUS = False
+            using_canbus = False
     else:
         app.primary_container.show()
         if len(screens) > 1:
             screen = screens[1]
             app.primary_container.move(screen.geometry().topLeft())
 
-    # todo: implement "with" when using can
-    if not USING_CANBUS:
+    if not using_canbus:
         import test_module
 
-        bus_virtual_car = can.ThreadSafeBus(channel="test", bustype="virtual")
-        bus = can.ThreadSafeBus(channel="test", bustype="virtual")
+        with can.thread_safe_bus.ThreadSafeBus(
+            channel="test", bustype="virtual"
+        ) as bus, can.thread_safe_bus.ThreadSafeBus(
+            channel="test", bustype="virtual"
+        ) as bus_virtual_car:
 
-        def emulate_car() -> None:
-            bus_virtual_car.send(test_module.provide_random_message())
+            def emulate_car() -> None:
+                bus_virtual_car.send(test_module.provide_random_message())
 
-        def emulate_conversation(msg: can.Message) -> None:
-            response = test_module.provide_response_message(msg)
-            bus_virtual_car.send(response)
+            def emulate_conversation(msg: can.message.Message) -> None:
+                response = test_module.provide_response_message(msg)
+                bus_virtual_car.send(response)
 
-        def run() -> None:
-            can.Notifier(bus_virtual_car, [emulate_conversation])
-            timed_func(app, emulate_car, 1)
+            def run() -> None:
+                can.notifier.Notifier(bus_virtual_car, [emulate_conversation])
+                timed_func(app, emulate_car, 1)
 
-        app.awakened.connect(run)
+            app.awakened.connect(run)
 
-    can_app = CanHandler(app, bus)
-    can_app.updated.connect(app.update_var)
+            post_can_init(bus)
 
-    def stop() -> None:
-        can_app.close()
-        app.closeAllWindows()
 
-    app.aboutToQuit.connect(stop)
-    app.setQuitOnLastWindowClosed(True)
-    app.awakened.connect(run)
-
-    sys.exit(app.exec())
+if __name__ == "__main__":
+    main()

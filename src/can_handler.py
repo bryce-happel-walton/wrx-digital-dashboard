@@ -6,15 +6,17 @@ from time import perf_counter
 from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction
+from typing import Any
 
 parsers = {x[0]: x[1] for x in getmembers(can_data_parser, isfunction)}
 
+
 with open("config/can.toml", "rb") as f:
-    CONFIG = tomlkit.load(f).unwrap()
-    CAN_IDS: dict = CONFIG["can_ids"]
-    CONVERSATION_IDS: dict = CONFIG["conversation_ids"]
-    CURRENT_DATA_DEFINITIONS: dict = CONFIG["current_data_mode"]
-    MODE_IDS: dict = CONFIG["mode_ids"]
+    CONFIG: dict[str, Any] = tomlkit.load(f).unwrap()
+    CAN_IDS: dict[str, int] = CONFIG["can_ids"]
+    CONVERSATION_IDS: dict[str, int] = CONFIG["conversation_ids"]
+    CURRENT_DATA_DEFINITIONS: dict[str, dict[str, int]] = CONFIG["current_data_mode"]
+    MODE_IDS: dict[str, int] = CONFIG["mode_ids"]
 
 
 CONVERSATION_WAIT = 2
@@ -35,26 +37,26 @@ class CanHandler(QWidget):
     updated = pyqtSignal(tuple)
     conversation_timer = QTimer()
 
-    def __init__(self, parent: QApplication, bus: can.bus) -> None:
+    def __init__(self, parent: QApplication, bus: can.interface.Bus) -> None:
         super().__init__()
         self.bus = bus
         self.qApp = parent
 
-        # todo: apply filtering to bus
+        # TODO: apply filtering to bus
 
         self.conversation_response_debounce = True
         self.last_conversation_response_time = perf_counter() * 1000
         self.conversation_list_index = 0
         self.last_pid_sent = 0
 
-        self.can_notifier = can.Notifier(self.bus, [self.parse_data])
+        self.can_notifier = can.notifier.Notifier(self.bus, [self.parse_data])
         # timed_func(self.qApp, self.run_conversation, 1)
 
     def stop(self) -> None:
         self.can_notifier.stop()
         self.bus.shutdown()
 
-    def send(self, msg: can.Message) -> None:
+    def send(self, msg: can.message.Message) -> None:
         msg.is_extended_id = False
         self.bus.send(msg)
 
@@ -74,7 +76,9 @@ class CanHandler(QWidget):
             data[1] = MODE_IDS["current_data"]
             data[2] = definition["pid"]
 
-            message = can.Message(arbitration_id=CONVERSATION_IDS["send_id"], data=data)
+            message = can.message.Message(
+                arbitration_id=CONVERSATION_IDS["send_id"], data=data
+            )
             self.last_pid_sent = definition["pid"]
             self.send(message)
 
@@ -88,9 +92,9 @@ class CanHandler(QWidget):
             self.conversation_response_debounce = True
             self.last_conversation_response_time = t
 
-    # ? todo: used buffered reader for better handling of detecting other devices and handling conversations
-    def parse_response(self, msg: can.Message) -> None:
-        # todo: handle more expected bits and multiple messages
+    # ? # TODO: used buffered reader for better handling of detecting other devices and handling conversations
+    def parse_response(self, msg: can.message.Message) -> None:
+        # TODO: handle more expected bits and multiple messages
         data = msg.data
         expected_bits = data[0]
         mode = data[1] - MODE_OFFSET
@@ -110,7 +114,7 @@ class CanHandler(QWidget):
                 necessary_data = data[3 : 3 + v["response_length"]]
                 self.updated.emit((i, parsers[i](necessary_data)))
 
-    def parse_data(self, msg: can.Message) -> None:
+    def parse_data(self, msg: can.message.Message) -> None:
         id = msg.arbitration_id
         data = msg.data
 

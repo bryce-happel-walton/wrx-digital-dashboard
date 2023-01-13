@@ -1,7 +1,7 @@
 import PyQt5.QtGui as QtGui
 from math import ceil
 from time import perf_counter
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 from PyQt5.QtGui import (
     QImage,
     QPixmap,
@@ -44,8 +44,8 @@ class Image(QLabel):
         self,
         parent: QWidget,
         image_path: str,
-        color: QColor = None,
-        transform: QTransform = None,
+        color: Optional[QColor] = None,
+        transform: Optional[QTransform] = None,
     ):
         super().__init__(parent)
 
@@ -64,10 +64,10 @@ class Image(QLabel):
         self.update()
 
     def update(self) -> None:
-        self.pixmap = QPixmap.fromImage(self.image)
+        self._pixmap = QPixmap.fromImage(self.image)
         if self.transform:
-            self.pixmap = self.pixmap.transformed(self.transform)
-        self.setPixmap(self.pixmap)
+            self._pixmap = self._pixmap.transformed(self.transform)
+        self.setPixmap(self._pixmap)
 
 
 class Line(QWidget):
@@ -95,7 +95,7 @@ class Line(QWidget):
         self.pen.setBrush(color)
         self.update()
 
-    def paintEvent(self, _: QtGui.QPaintEvent) -> None:
+    def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         painter = self.painter
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)
@@ -179,7 +179,9 @@ class TextLabel(QLabel):
         self.setPalette(palette)
 
 
-def delay(app: QApplication, f: Callable, delay_s: float, *params) -> QTimer:
+def delay(
+    app: QApplication, f: Callable[..., Any], delay_s: float, *params: ...
+) -> QTimer:
     start_time = perf_counter()
     t = QTimer(app)
 
@@ -194,7 +196,7 @@ def delay(app: QApplication, f: Callable, delay_s: float, *params) -> QTimer:
     return t
 
 
-def timed_func(app: QApplication, f: Callable, delay_ms: int) -> QTimer:
+def timed_func(app: QApplication, f: Callable[..., Any], delay_ms: int) -> QTimer:
     t = QTimer(app)
     t.timeout.connect(f)
     t.start(delay_ms)
