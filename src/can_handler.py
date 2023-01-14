@@ -1,6 +1,7 @@
 import can_data_parser
 import tomlkit
 import can
+from data import CarData
 from qutil import timed_func
 from time import perf_counter
 from PyQt5.QtCore import pyqtSignal, QTimer
@@ -35,6 +36,11 @@ CAN_FILTER = [
     {"can_id": x, "can_mask": 0xFFF, "extended": False} for x in CAN_ID_VALUES
 ]
 
+CAN_FILTER.append(
+    {"can_id": x, "can_mask": 0xFFF, "extended": False}
+    for x in CURRENT_DATA_DEFINITIONS.values()
+)
+
 
 class CanHandler(QWidget):
 
@@ -45,6 +51,7 @@ class CanHandler(QWidget):
         super().__init__()
         self.bus = bus
         self.qApp = parent
+        self.car_data = CarData()
         self.conversation_response_debounce = True
         self.last_conversation_response_time = perf_counter() * 1000
         self.conversation_list_index = 0
@@ -126,4 +133,6 @@ class CanHandler(QWidget):
         else:
             for i, v in CAN_ID_ITEMS:
                 if i in parsers and v == id:
-                    self.updated.emit((i, parsers[i](data)))
+                    val = parsers[i](data)
+                    setattr(self.car_data, i, val)
+                    self.updated.emit((i, val))
