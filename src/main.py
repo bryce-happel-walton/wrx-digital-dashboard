@@ -358,7 +358,6 @@ class UI(QMainWindow):
             self.speedometer.pos() + QPoint(0, DIAL_SIZE_MAJOR_INT // 7)
         )
         self.fuel_level_gauge.frame.setStyleSheet("background:transparent")
-        print("dials built")
 
     def built_images(self) -> None:
 
@@ -612,12 +611,6 @@ class UI(QMainWindow):
             + QPoint(self.tachometer.width() - SYMBOL_SIZE, 0)
             + QPoint(-turn_signal_offset_x, turn_signal_offset_y)
         )
-
-        print("images built")
-
-    def lazy_load(self) -> None:
-        # TODO: implement lazy loading for faster boot time
-        pass
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         self.closed.emit()
