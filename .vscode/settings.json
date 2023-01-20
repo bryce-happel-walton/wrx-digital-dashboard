@@ -1,8 +1,14 @@
 {
     "python.formatting.provider": "black",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
     "python.analysis.typeCheckingMode": "off",
     "editor.detectIndentation": false,
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "pylint.importStrategy": "fromEnvironment",
+    // "pylint.args": [
+    //     "pylint extension-pkg-allow-list=PyQt5.QtGui"
+    // ]
 }

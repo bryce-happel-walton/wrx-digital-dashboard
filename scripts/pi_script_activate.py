@@ -2,6 +2,7 @@ import os, shutil, stat
 
 PATH = "/home/wrx/wrx_scripts"
 
+# todo: convert to pathlib
 if __name__ == "__main__":
     if os.path.exists(PATH):
         shutil.rmtree(PATH, True)

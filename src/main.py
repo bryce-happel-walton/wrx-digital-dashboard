@@ -4,10 +4,9 @@ import sys
 from typing import Any
 import tomlkit
 import can
-from threading import Thread
 from data import *
 from numpy import average
-from os import listdir, path
+from os import listdir
 from pathlib import Path
 from math import pi
 from time import perf_counter
@@ -30,14 +29,13 @@ from PyQt5.QtGui import (
     QTransform,
     QCloseEvent,
 )
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from can_handler import (
     CanHandler,
     CAN_IDS,
     CURRENT_DATA_DEFINITIONS,
 )
 from dial import Dial
-
 
 PLATFORM = platform.system()
 RPI = "pi" in sys.argv
@@ -146,8 +144,8 @@ local_data_path = local_path.joinpath("data.toml")
 
 
 def save_local_data():
-    with open(LOCAL_DATA_PATH, "w") as f:
-        tomlkit.dump(local_data.__dict__, f)
+    with open(LOCAL_DATA_PATH, "w", encoding="UTF-8") as local_data_file:
+        tomlkit.dump(local_data.__dict__, local_data_file)
 
 
 def read_local_data():
@@ -230,11 +228,7 @@ class UI(QMainWindow):
         palette.setColor(QPalette.ColorRole.WindowText, SYMBOL_GRAY_COLOR)
 
         # TODO: add arrow to fuel image instead
-        self.fuel_cap_indicator_arrow = QLabel(self)
-        self.fuel_cap_indicator_arrow.setStyleSheet("background:transparent")
-        self.fuel_cap_indicator_arrow.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
+        self.fuel_cap_indicator_arrow = TextLabel(self, ">")
         self.fuel_cap_indicator_arrow.setFont(QFont(FONT_GROUP, 10))
         self.fuel_cap_indicator_arrow.setText(">")
         self.fuel_cap_indicator_arrow.setPalette(palette)
@@ -247,13 +241,8 @@ class UI(QMainWindow):
             )
         )
 
-        self.cruise_control_speed_label = QLabel(self)
-        self.cruise_control_speed_label.setStyleSheet("background:transparent")
-        self.cruise_control_speed_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
+        self.cruise_control_speed_label = TextLabel(self, "0")
         self.cruise_control_speed_label.setFont(label_font)
-        self.cruise_control_speed_label.setText("0")
         self.cruise_control_speed_label.setPalette(palette)
         self.cruise_control_speed_label.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.cruise_control_speed_label.move(
@@ -626,10 +615,11 @@ class Application(QApplication):
     def __init__(self) -> None:
         super().__init__([])
 
-        Thread(target=read_local_data, name="local data reader").start()
+        read_local_data()
 
+        # todo: fix this to use config value
         for font_file in listdir(FONT_PATH + "/Montserrat/static"):
-            if path.splitext(font_file)[0] in SETTINGS["fonts"].values():
+            if Path(font_file).stem in SETTINGS["fonts"].values():
                 QFontDatabase.addApplicationFont(
                     f"{FONT_PATH}/Montserrat/static/{font_file}"
                 )
@@ -637,6 +627,9 @@ class Application(QApplication):
         self.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))
         primary_container = UI()
         primary_container.setFixedSize(*SCREEN_SIZE)
+
+        self._last_seatbelt_long_blink_time = 0
+        self._last_seatbelt_rapid_blink_time = 0
 
         self.primary_container = primary_container
         self.cluster_vars: dict[str, Any] = {}
@@ -762,7 +755,7 @@ class Application(QApplication):
 
     def save_local_data(self) -> None:
         odometer = self.cluster_vars.get("odometer", 0)
-        fuel_level_avg = average(self.average_fuel_table)
+        fuel_level_avg = float(average(self.average_fuel_table))
 
         local_data.odometer = odometer
         local_data.fuel_level_avg = fuel_level_avg
@@ -853,25 +846,29 @@ class Application(QApplication):
 
     @pyqtSlot(bool)
     def set_seatbelt_indicator(self, enabled: bool) -> None:
-        global t, t2
-
         if enabled and enabled != self.seatbelt_blink_last_state:
-            t = perf_counter()
-            t2 = t + SEATBELT_BLINK_WAIT_S
+            self._last_seatbelt_long_blink_time = perf_counter()
+            self._last_seatbelt_rapid_blink_time = (
+                self._last_seatbelt_long_blink_time + SEATBELT_BLINK_WAIT_S
+            )
 
             @pyqtSlot()
             def blink():
-                global t, t2
                 current_time = perf_counter()
 
                 if (
-                    current_time - t
+                    current_time - self._last_seatbelt_long_blink_time
                     >= SEATBELT_BLINK_WAIT_S
                     + SEATBELT_BLINK_INTERVAL_S * (NUM_SEATBELT_BLINKS + 1)
                 ):
-                    t = t2 = current_time + SEATBELT_BLINK_WAIT_S
-                elif current_time - t2 >= SEATBELT_BLINK_INTERVAL_S:
-                    t2 = current_time
+                    self._last_seatbelt_long_blink_time = (
+                        self._last_seatbelt_rapid_blink_time
+                    ) = (current_time + SEATBELT_BLINK_WAIT_S)
+                elif (
+                    current_time - self._last_seatbelt_rapid_blink_time
+                    >= SEATBELT_BLINK_INTERVAL_S
+                ):
+                    self._last_seatbelt_rapid_blink_time = current_time
                     self.primary_container.seatbelt_driver_warning_image.setVisible(
                         False
                     )

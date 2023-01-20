@@ -6,12 +6,16 @@ LOCAL_DATA_PATH = "local/data.toml"
 
 @dataclass(order=True)
 class LocalData:
+    """Data that is stored locally. Used to make the startup more seamless."""
+
     odometer: float = 0
     fuel_level_avg: float = 0
 
 
 @dataclass(order=True)
 class CanDeviceConfig:
+    """Configuration of the can interface"""
+
     channel: str = "can0"
     bustype: str = "socketcan"
     bitrate: int = 500000
@@ -19,8 +23,16 @@ class CanDeviceConfig:
 
 @dataclass(order=True)
 class Settings:
-    units: str = "UIC"
-    fonts: dict[str, str] = field(default_factory=lambda: {"main": "Montserrat-Bold"})
+    """
+    User interface settings.
+    """
+
+    units: str = "USC"
+    """Units used for display. `USC` (U.S. Customary Units) or `SI` (International System of Units) (Default: USC)"""
+    fonts: dict[str, str] = field(
+        default_factory=lambda: {"main": "Montserrat-Bold"}
+    )  # todo: move to another dataclass
+    """UI Fonts used. Fonts must be placed in `resources/<FONT>/static`. Be sure to include the license."""
 
 
 @dataclass

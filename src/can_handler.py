@@ -1,13 +1,13 @@
-import can_data_parser
-import tomlkit
-import can
-from data import CarData
-from qutil import timed_func
 from time import perf_counter
-from PyQt5.QtCore import pyqtSignal, QTimer
-from PyQt5.QtWidgets import QApplication, QWidget
 from inspect import getmembers, isfunction
 from typing import Any
+import cantools
+import tomlkit
+import can
+from PyQt5 import QtCore, QtWidgets
+from qutil import timed_func
+from data import CarData
+import can_data_parser
 
 parsers = {x[0]: x[1] for x in getmembers(can_data_parser, isfunction)}
 
@@ -16,7 +16,9 @@ with open("config/can.toml", "rb") as f:
     CONFIG: dict[str, Any] = tomlkit.load(f).unwrap()
     CAN_IDS: dict[str, int] = CONFIG["can_ids"]
     CONVERSATION_IDS: dict[str, int] = CONFIG["conversation_ids"]
-    CURRENT_DATA_DEFINITIONS: dict[str, dict[str, int]] = CONFIG["current_data_mode"]
+    CURRENT_DATA_DEFINITIONS: dict[str, dict[str, int]] = CONFIG[
+        "current_data_mode_definitions"
+    ]
     MODE_IDS: dict[str, int] = CONFIG["mode_ids"]
 
 
@@ -36,25 +38,31 @@ CAN_FILTER = [
     {"can_id": x, "can_mask": 0xFFF, "extended": False} for x in CAN_ID_VALUES
 ]
 
-CAN_FILTER.append(
-    {"can_id": x, "can_mask": 0xFFF, "extended": False}
-    for x in CURRENT_DATA_DEFINITIONS.values()
-)
+for x in CURRENT_DATA_DEFINITIONS.values():
+    CAN_FILTER.append({"can_id": x, "can_mask": 0xFFF, "extended": False})
 
 
-class CanHandler(QWidget):
+wrx_can_db = cantools.db.load_file("resources/database/subaru_wrx_2018.dbc")
 
-    updated = pyqtSignal(tuple)
-    conversation_timer = QTimer()
+DECODABLE_IDS = []
+for db_msg in wrx_can_db.messages:
+    DECODABLE_IDS.append(db_msg.frame_id)
 
-    def __init__(self, parent: QApplication, bus: can.interface.Bus) -> None:
+
+class CanHandler(QtWidgets.QWidget):
+
+    updated = QtCore.pyqtSignal(tuple)
+    conversation_timer = QtCore.QTimer()
+
+    def __init__(self, parent: QtWidgets.QApplication, bus: can.interface.Bus) -> None:
         super().__init__()
         self.bus = bus
-        self.qApp = parent
+        self.q_app = parent
         self.car_data = CarData()
         self.conversation_response_debounce = True
         self.last_conversation_response_time = perf_counter() * 1000
         self.conversation_list_index = 0
+        self.last_mode_sent = 0
         self.last_pid_sent = 0
 
         self.bus.set_filters(CAN_FILTER)
@@ -71,9 +79,9 @@ class CanHandler(QWidget):
         self.bus.send(msg)
 
     def run_conversation(self) -> None:
-        t = perf_counter() * 1000
+        current_time = perf_counter() * 1000
         if self.conversation_response_debounce:
-            self.last_conversation_response_time = t
+            self.last_conversation_response_time = current_time
             self.conversation_response_debounce = False
 
             definition_index = CURRENT_DATA_DEFINITION_KEYS[
@@ -89,20 +97,26 @@ class CanHandler(QWidget):
             message = can.message.Message(
                 arbitration_id=CONVERSATION_IDS["send_id"], data=data
             )
-            self.last_pid_sent = definition["pid"]
+
+            self.last_mode_sent = data[1]
+            self.last_pid_sent = data[2]
+
             self.send(message)
 
             self.conversation_list_index += 1
             if self.conversation_list_index >= NUM_DEFINITIONS:
                 self.conversation_list_index = 0
-        elif t - self.last_conversation_response_time >= CONVERSATION_PERIOD_MS:
+        elif (
+            current_time - self.last_conversation_response_time
+            >= CONVERSATION_PERIOD_MS
+        ):
             print(
                 f"[Warning] No response to last PID [{hex(self.last_pid_sent)}]. Continuing anyway."
             )
             self.conversation_response_debounce = True
-            self.last_conversation_response_time = t
+            self.last_conversation_response_time = current_time
 
-    # ? # TODO: used buffered reader for better handling of detecting other devices and handling conversations
+    # TODO: used buffered reader for better handling of detecting other devices, and conversations
     def parse_response(self, msg: can.message.Message) -> None:
         # TODO: handle more expected bits and multiple messages
         data = msg.data
@@ -116,7 +130,7 @@ class CanHandler(QWidget):
             )
             return
 
-        if pid == self.last_pid_sent:
+        if mode == self.last_mode_sent and pid == self.last_pid_sent:
             self.conversation_response_debounce = True
 
         for i, v in CURRENT_DATA_DEFINITION_ITEMS:
@@ -125,14 +139,20 @@ class CanHandler(QWidget):
                 self.updated.emit((i, parsers[i](necessary_data)))
 
     def parse_data(self, msg: can.message.Message) -> None:
-        id = msg.arbitration_id
-        data = msg.data
+        msg_id = msg.arbitration_id
+        msg_data = msg.data
 
-        if id == CONVERSATION_IDS["ecu_response_id"]:
+        if msg_id == CONVERSATION_IDS["ecu_response_id"]:
             self.parse_response(msg)
+        elif msg_id in DECODABLE_IDS:
+            decode = wrx_can_db.decode_message(msg_id, msg_data)
+            for msg in decode:
+                db_msg_name, val = msg, decode[msg]
+                setattr(self.car_data, db_msg_name, val)
+                self.updated.emit((db_msg_name, val))
         else:
-            for i, v in CAN_ID_ITEMS:
-                if i in parsers and v == id:
-                    val = parsers[i](data)
-                    setattr(self.car_data, i, val)
-                    self.updated.emit((i, val))
+            for db_msg_name, db_msg_id in CAN_ID_ITEMS:
+                if db_msg_name in parsers and db_msg_id == msg_id:
+                    val = parsers[db_msg_name](msg_data)
+                    setattr(self.car_data, db_msg_name, val)
+                    self.updated.emit((db_msg_name, val))

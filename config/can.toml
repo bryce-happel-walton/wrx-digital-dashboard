@@ -39,24 +39,24 @@
  send_id_2 = 0x7DF
  ecu_response_id = 0x7E8
 
-[current_data_mode]
- [current_data_mode.engine_load]
+[current_data_mode_definitions]
+ [current_data_mode_definitions.engine_load]
   sent_bytes = 2
   pid = 0x04
   response_length = 1
- [current_data_mode.intake_manifold_absolute_pressure]
+ [current_data_mode_definitions.intake_manifold_absolute_pressure]
   sent_bytes = 2
   pid = 0x0B
   response_length = 1
- [current_data_mode.timing_advance]
+ [current_data_mode_definitions.timing_advance]
   sent_bytes = 2
   pid = 0x0E
   response_length = 1
- [current_data_mode.mass_air_flow]
+ [current_data_mode_definitions.mass_air_flow]
   sent_bytes = 2
   pid = 0x10
   response_length = 2
- [current_data_mode.throttle_position]
+ [current_data_mode_definitions.throttle_position]
   sent_bytes = 2
   pid = 0x11
   response_length = 1

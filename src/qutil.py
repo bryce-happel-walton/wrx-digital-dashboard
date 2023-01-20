@@ -1,7 +1,7 @@
-import PyQt5.QtGui as QtGui
 from math import ceil
 from time import perf_counter
 from typing import Any, Callable, Optional
+from PyQt5 import QtGui
 from PyQt5.QtGui import (
     QImage,
     QPixmap,
@@ -9,7 +9,6 @@ from PyQt5.QtGui import (
     QColor,
     QPainter,
     QPen,
-    QPaintEvent,
     QGradient,
     QPalette,
 )
@@ -95,10 +94,10 @@ class Line(QWidget):
         self.pen.setBrush(color)
         self.update()
 
-    def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
+    def paintEvent(self, _: QtGui.QPaintEvent) -> None:
         painter = self.painter
         painter.begin(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setPen(self.pen)
         painter.drawLine(self.line)
         painter.end()
@@ -145,10 +144,10 @@ class Arc(QWidget):
         self._arc_end = int(end * Q_DEGREE_MULT)
         self.update()
 
-    def paintEvent(self, _: QPaintEvent) -> None:
+    def paintEvent(self, _: QtGui.QPaintEvent) -> None:
         painter = self.painter
         painter.begin(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setPen(self.pen)
         painter.drawArc(
             QRectF(
@@ -162,7 +161,7 @@ class Arc(QWidget):
 
 class TextLabel(QLabel):
     def __init__(self, parent: QWidget, text: str = "") -> None:
-        super().__init__(parent)
+        super().__init__(text, parent)
 
         self.setStyleSheet("background:transparent")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)

@@ -10,8 +10,8 @@ FUEL_CONSUMPTION_SCALE = 0.24726
 # TODO: change to dbc files
 
 
-def is_set(x: int, n: int) -> bool:
-    return x & 1 << n != 0
+def is_bit_set(number: int, bit: int) -> bool:
+    return number & 1 << bit != 0
 
 
 def rpm(data: bytearray) -> int:
@@ -28,7 +28,7 @@ def cruise_control_speed(data: bytearray) -> int:
 
 def turn_signals(data: bytearray) -> list[bool]:
     # * left, right
-    new_data = [is_set(data[5], 4), is_set(data[5], 5)]
+    new_data = [is_bit_set(data[5], 4), is_bit_set(data[5], 5)]
 
     return new_data
 
@@ -44,7 +44,7 @@ def oil_temp(data: bytearray) -> int:
 
 
 def oil_pressure_warning(data: bytearray) -> bool:
-    return is_set(data[1], 4)
+    return is_bit_set(data[1], 4)
 
 
 def coolant_temp(data: bytearray) -> int:
@@ -52,31 +52,31 @@ def coolant_temp(data: bytearray) -> int:
 
 
 def handbrake_switch(data: bytearray) -> bool:
-    return is_set(data[6], 3)
+    return is_bit_set(data[6], 3)
 
 
 def reverse_switch(data: bytearray) -> bool:
-    return is_set(data[6], 2)
+    return is_bit_set(data[6], 2)
 
 
 def clutch_switch(data: bytearray) -> bool:
-    return is_set(data[1], 7)
+    return is_bit_set(data[1], 7)
 
 
 def tpms_warning(data: bytearray) -> bool:
-    return is_set(data[4], 4)
+    return is_bit_set(data[4], 4)
 
 
 def cruise_control_set(data: bytearray) -> bool:
-    return is_set(data[5], 5)
+    return is_bit_set(data[5], 5)
 
 
 def cruise_control_status(data: bytearray) -> bool:
-    return is_set(data[5], 4)
+    return is_bit_set(data[5], 4)
 
 
 def seatbelt_driver(data: bytearray) -> bool:
-    return is_set(data[5], 0)
+    return is_bit_set(data[5], 0)
 
 
 def dimmer_dial(data: bytearray) -> int:
@@ -84,37 +84,37 @@ def dimmer_dial(data: bytearray) -> int:
 
 
 def traction_control(data: bytearray) -> bool:
-    return is_set(data[1], 3)
+    return is_bit_set(data[1], 3)
 
 
 def traction_control_mode(data: bytearray) -> bool:
-    return is_set(data[0], 3)
+    return is_bit_set(data[0], 3)
 
 
 def hill_assist(data: bytearray) -> bool:
-    return is_set(data[1], 7)
+    return is_bit_set(data[1], 7)
 
 
 def fog_lights(data: bytearray) -> bool:
-    return is_set(data[1], 6)
+    return is_bit_set(data[1], 6)
 
 
 def headlights(data: bytearray) -> list[bool]:
     return [
-        is_set(data[7], 3),  # * lowbeams
-        is_set(data[7], 2),  # * parking lights
-        is_set(data[7], 4),  # * highbeams
-        is_set(data[7], 1),  # * running lights
+        is_bit_set(data[7], 3),  # * lowbeams
+        is_bit_set(data[7], 2),  # * parking lights
+        is_bit_set(data[7], 4),  # * highbeams
+        is_bit_set(data[7], 1),  # * running lights
     ]
 
 
 def door_states(data: bytearray) -> list[bool]:
     return [
-        is_set(data[1], 0),  # * lf
-        is_set(data[1], 1),  # * rf
-        is_set(data[1], 3),  # * lr
-        is_set(data[1], 2),  # * rr
-        is_set(data[1], 5),  # * trunk
+        is_bit_set(data[1], 0),  # * lf
+        is_bit_set(data[1], 1),  # * rf
+        is_bit_set(data[1], 3),  # * lr
+        is_bit_set(data[1], 2),  # * rr
+        is_bit_set(data[1], 5),  # * trunk
     ]
 
 
@@ -123,7 +123,7 @@ def boost_pressure(data: bytearray) -> float:
 
 
 def check_engine_light(data: bytearray) -> bool:
-    return is_set(data[4], 7)
+    return is_bit_set(data[4], 7)
 
 
 def gear(data: bytearray) -> int:
@@ -138,8 +138,8 @@ def gear(data: bytearray) -> int:
 def odometer(data: bytearray) -> float:
     value = 0
 
-    for i, x in enumerate(data[:4]):
-        value += x << (8 * i)
+    for i, val in enumerate(data[:4]):
+        value += val << (8 * i)
 
     return value / 10
 
@@ -149,7 +149,7 @@ def fuel_consumption(data: bytearray) -> float:
 
 
 def srs_airbag_system_warning_light(data: bytearray) -> bool:
-    return is_set(data[2], 0)
+    return is_bit_set(data[2], 0)
 
 
 # *
