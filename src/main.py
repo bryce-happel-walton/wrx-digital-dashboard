@@ -61,7 +61,7 @@ START_WAIT = 1
 RESOURCE_PATH = "resources"
 IMAGE_PATH = RESOURCE_PATH + "/images"
 FONT_PATH = RESOURCE_PATH + "/fonts"
-FONT_GROUP = SETTINGS["fonts"]["main"]
+FONT_GROUP = settings.fonts["main"]
 
 SCREEN_SIZE = [1920, 720]
 SCREEN_REFRESH_RATE = 75
