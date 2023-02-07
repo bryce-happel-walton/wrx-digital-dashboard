@@ -11,4 +11,29 @@
     // "pylint.args": [
     //     "pylint extension-pkg-allow-list=PyQt5.QtGui"
     // ]
+    "terminal.integrated.profiles.osx": {
+        "bash": {
+            "path": "bash",
+            "args": [
+                "-l"
+            ],
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh",
+            "args": [
+                "-l"
+            ]
+        },
+        "rosetta - zsh": {
+            "path": "arch",
+            "args": [
+                "-x86_64",
+                "zsh",
+                "-l"
+            ],
+            "overrideName": true
+        }
+    },
+    "terminal.integrated.defaultProfile.osx": "rosetta - zsh" // PyQt5 is a pain
 }

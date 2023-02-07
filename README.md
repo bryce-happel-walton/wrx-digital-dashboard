@@ -1,5 +1,7 @@
 **Requires Python3.11+ (init script will auto install on RPi)**
 
+**On Apple Silicon Macs, you must install PyQt5 using a rosetta environment.** This environment is provided in the .vscode profile. You do not need to do anything more.
+
 Add PiCan device overlay
 
 `sudo nano /boot/config`
