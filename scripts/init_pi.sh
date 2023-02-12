@@ -11,7 +11,7 @@ sudo make altinstall
 sudo rm -r ~/Python-3.11.1
 sudo rm -r ~/Python-3.11.1.tgz
 cd ~
-git clone https://github.com/MrTaco9001/wrx-digital-dashboard.git
+git clone https://github.com/bryce-happel-walton/wrx-digital-dashboard.git
 cd ~/wrx-digital-dashboard
 git config pull.rebase true
 python3.11 -m pip install PyQt5==5.15.7 --config-settings --confirm-license= --verbose
