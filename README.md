@@ -19,7 +19,7 @@ The init script installs Python and PyQt5.
 
 ```sh
 cd ~
-git clone https://github.com/MrTaco9001/wrx-digital-dashboard.git
+git clone https://github.com/bryce-happel-walton/wrx-digital-dashboard.git
 cd wrx-digital-dashboard && chmod +x scripts/init_pi.sh && ./scripts/init_pi.sh
 ```
 
