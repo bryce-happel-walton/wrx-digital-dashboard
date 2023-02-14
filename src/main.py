@@ -2,14 +2,13 @@ import platform
 import subprocess
 import sys
 from typing import Any
-import tomlkit
-import can
-from data import *
-from numpy import average
+from time import perf_counter
+from math import pi
 from os import listdir
 from pathlib import Path
-from math import pi
-from time import perf_counter
+import tomlkit
+import can
+from numpy import average
 from qutil import Image, Arc, delay, timed_func, property_animation, TextLabel
 from PyQt5.QtCore import (
     Qt,
@@ -36,6 +35,8 @@ from can_handler import (
     CURRENT_DATA_DEFINITIONS,
 )
 from dial import Dial
+from data import *
+
 
 PLATFORM = platform.system()
 RPI = "pi" in sys.argv
@@ -152,9 +153,9 @@ def read_local_data():
     local_path.mkdir(parents=True, exist_ok=True)
     local_data_path.touch(exist_ok=True)
 
-    with open(local_data_path, "rb") as f:
-        for k, v in tomlkit.load(f).items():
-            setattr(local_data, k, v)
+    with open(local_data_path, "rb") as file:
+        for k, value in tomlkit.load(file).items():
+            setattr(local_data, k, value)
 
 
 def update_visual_update_intervals(keys: list[str] | Any):
@@ -166,9 +167,9 @@ def update_visual_update_intervals(keys: list[str] | Any):
 update_visual_update_intervals(CAN_IDS.keys())
 update_visual_update_intervals(CURRENT_DATA_DEFINITIONS.keys())
 
-turn_signal_offset_x = 70
-turn_signal_offset_y = 40
-bottom_symbol_y_offset = 10
+TURN_SIGNAL_OFFSET_X = 70
+TURN_SIGNAL_OFFSET_Y = 40
+BOTTOM_SYMBOL_Y_OFFSET = 10
 
 
 class UI(QMainWindow):
@@ -297,7 +298,7 @@ class UI(QMainWindow):
         self.odometer_label.resize(SCREEN_SIZE[0], SYMBOL_SIZE)
         self.odometer_label.move(
             int(SCREEN_SIZE[0] / 2 - self.odometer_label.width() / 2),
-            int(SCREEN_SIZE[1] - self.odometer_label.height() - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - self.odometer_label.height() - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
     def build_dials(self) -> None:
@@ -361,7 +362,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 3 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.check_engine_light_image = Image(
@@ -374,7 +375,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 - 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.srs_airbag_system_warning_light = Image(
@@ -394,7 +395,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[1]
                 - self.srs_airbag_system_warning_light.height()
-                - bottom_symbol_y_offset
+                - BOTTOM_SYMBOL_Y_OFFSET
             ),
         )
 
@@ -408,7 +409,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 - 6 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.traction_control_off_image = Image(
@@ -421,7 +422,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 4 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.door_open_warning_image = Image(
@@ -432,7 +433,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 6 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.hill_assist_disabled_warning_light = Image(
@@ -445,7 +446,7 @@ class UI(QMainWindow):
                 - SYMBOL_SIZE / 2
                 + 11 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.seatbelt_driver_warning_image = Image(
@@ -456,7 +457,7 @@ class UI(QMainWindow):
             int(
                 SCREEN_SIZE[0] / 2 - SYMBOL_SIZE / 2 + 5 * (SYMBOL_SIZE + SYMBOL_BUFFER)
             ),
-            int(SCREEN_SIZE[1] - SYMBOL_SIZE - bottom_symbol_y_offset),
+            int(SCREEN_SIZE[1] - SYMBOL_SIZE - BOTTOM_SYMBOL_Y_OFFSET),
         )
 
         self.cruise_control_status_image = Image(
@@ -585,7 +586,7 @@ class UI(QMainWindow):
         )
         self.right_turn_signal_image_active.resize(SYMBOL_SIZE, SYMBOL_SIZE)
         self.right_turn_signal_image_active.move(
-            self.speedometer.pos() + QPoint(turn_signal_offset_x, turn_signal_offset_y)
+            self.speedometer.pos() + QPoint(TURN_SIGNAL_OFFSET_X, TURN_SIGNAL_OFFSET_Y)
         )
 
         self.left_turn_signal_image_active = Image(
@@ -598,7 +599,7 @@ class UI(QMainWindow):
         self.left_turn_signal_image_active.move(
             self.tachometer.pos()
             + QPoint(self.tachometer.width() - SYMBOL_SIZE, 0)
-            + QPoint(-turn_signal_offset_x, turn_signal_offset_y)
+            + QPoint(-TURN_SIGNAL_OFFSET_X, TURN_SIGNAL_OFFSET_Y)
         )
 
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -861,9 +862,9 @@ class Application(QApplication):
                     >= SEATBELT_BLINK_WAIT_S
                     + SEATBELT_BLINK_INTERVAL_S * (NUM_SEATBELT_BLINKS + 1)
                 ):
-                    self._last_seatbelt_long_blink_time = (
-                        self._last_seatbelt_rapid_blink_time
-                    ) = (current_time + SEATBELT_BLINK_WAIT_S)
+                    self._last_seatbelt_long_blink_time\
+                    =self._last_seatbelt_rapid_blink_time\
+                    =current_time + SEATBELT_BLINK_WAIT_S
                 elif (
                     current_time - self._last_seatbelt_rapid_blink_time
                     >= SEATBELT_BLINK_INTERVAL_S
@@ -892,11 +893,11 @@ class Application(QApplication):
 
     @pyqtSlot(tuple)
     def update_var(self, data: tuple[str, Any]) -> None:
-        t = perf_counter()
+        current_time = perf_counter()
         var, val = data
         self.cluster_vars[var] = val
 
-        if t - self.cluster_vars_update_ts[var] <= VISUAL_UPDATE_INTERVALS[var]:
+        if current_time - self.cluster_vars_update_ts[var] <= VISUAL_UPDATE_INTERVALS[var]:
             return
 
         match var:
@@ -1011,7 +1012,7 @@ class Application(QApplication):
                 self.primary_container.srs_airbag_system_warning_light.setVisible(val)
 
         self.cluster_vars[var] = val
-        self.cluster_vars_update_ts[var] = t
+        self.cluster_vars_update_ts[var] = current_time
 
 
 def main() -> None:
